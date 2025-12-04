@@ -1,5 +1,5 @@
 {
-  "id": "84545844-bbf3-4626-82f7-7a8013afe868",
+  "id": "e29fbac9-ee43-4f9b-8105-215e9e3f6024",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -14,8 +14,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "code": {
-          "name": "code",
+        "name": {
+          "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
@@ -25,11 +25,44 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "roles_code_unique": {
-          "name": "roles_code_unique",
+        "roles_name_unique": {
+          "name": "roles_name_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "code"
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.status": {
+      "name": "status",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "status_status_unique": {
+          "name": "status_status_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "status"
           ]
         }
       },
@@ -62,28 +95,25 @@
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": null
         },
         "lastname": {
           "name": "lastname",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": null
         },
-        "age": {
-          "name": "age",
-          "type": "integer",
+        "birthdate": {
+          "name": "birthdate",
+          "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": null
         },
         "email": {
           "name": "email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "username": {
-          "name": "username",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
@@ -98,16 +128,18 @@
           "name": "url_image",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": null
         },
-        "id_departamento": {
-          "name": "id_departamento",
+        "status": {
+          "name": "status",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": null
         },
-        "id_cargo": {
-          "name": "id_cargo",
+        "roles_id": {
+          "name": "roles_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -119,15 +151,29 @@
           "notNull": false,
           "default": "now()"
         },
-        "roles_id": {
-          "name": "roles_id",
-          "type": "integer",
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {
+        "users_status_status_id_fk": {
+          "name": "users_status_status_id_fk",
+          "tableFrom": "users",
+          "tableTo": "status",
+          "columnsFrom": [
+            "status"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "users_roles_id_roles_id_fk": {
           "name": "users_roles_id_roles_id_fk",
           "tableFrom": "users",
@@ -149,13 +195,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
-        },
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "username"
           ]
         }
       },

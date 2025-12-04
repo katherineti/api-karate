@@ -12,8 +12,8 @@ async function bootstrap() {
     credentials: false
   })
 
-  await app.listen(3000);
-  console.log("escuchando en el puerto 3000")
+  await app.listen(process.env.PORT);
+  console.log(`escuchando en el puerto ${process.env.PORT}`)
 }
 bootstrap();
 

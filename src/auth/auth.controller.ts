@@ -23,7 +23,6 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @Post('login')
     // @Roles(Role.Admin)
-    // signin( @Body() signInDto: signInDto ){
     signIn( @Body() signInDto: SignInDto ): Promise<{ access_token: string }>{
         return this.authService.signIn(
             signInDto.email,
@@ -32,7 +31,7 @@ export class AuthController {
     }
 
     @Post('signUp')
-      @Roles(RoleType.Admin)//solo  el admin puede crear usuario.
+    //   @Roles(RoleType.Admin)//solo  el admin puede crear usuario.
     signUp( @Body() createUser: CreateUserDto ) {
         return this.authService.signUp(createUser);
     } 
@@ -49,6 +48,4 @@ export class AuthController {
     delete( @Body() user: {id:number} ) {console.log("controlador eliminar ")
         return this.authService.deleteUser(user.id);
     } 
-
-
 }

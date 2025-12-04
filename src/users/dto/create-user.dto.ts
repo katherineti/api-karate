@@ -14,12 +14,12 @@ export class CreateUserDto{
     @IsNotEmpty()
     lastname: string;
 
-    @IsString()
-    @IsNotEmpty()
-    gender: string;
+    // @IsString()
+    // @IsNotEmpty()
+    // gender: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     birthdate: string;
 
     @IsEmail()
@@ -27,37 +27,22 @@ export class CreateUserDto{
     @IsNotEmpty()
     email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    username: string;
+    // @IsString()
+    // @IsNotEmpty()
+    // username: string;
 
     @IsString()
     @IsOptional()
     password: string;  //en la actualizacion de usuario la contraseña no se necesita
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     url_image: string;
-    
-    @IsNumber()
+
     @IsNotEmpty()
-    subdependency_id: number;
-
-    @IsString()
-    @IsNotEmpty()
-    job_title: string;
-
-    @IsNumber()
-    @IsNotEmpty()
-    contract_type: number; 
-
-    // @IsDecimal()
-    // @IsNotEmpty()
-    // @IsOptional()
-    salary: number;
-
-    
-    updated_at: Date;
+    roles_id: number;
+      
+    // created_at: Date;
     
     // @IsNumber()
     // @IsNotEmpty()
