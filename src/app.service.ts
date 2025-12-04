@@ -10,7 +10,7 @@ import { CreateUserDto } from './users/dto/create-user.dto';
 export class AppService {
 
  constructor(@Inject(PG_CONNECTION) private conn: NeonDatabase) {
-  console.log("********coneccion BD  " , this.conn);
+  console.log("******** Coneccion BD:  ", this.conn);
  }
 
   async getUsers() {
