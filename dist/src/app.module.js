@@ -17,6 +17,7 @@ const users_module_1 = require("./users/users.module");
 const roles_guard_1 = require("./guards/roles.guard");
 const core_1 = require("@nestjs/core");
 const roles_module_1 = require("./roles/roles.module");
+const validation_env_schema_1 = require("./config/validation-env.schema");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -24,7 +25,15 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             db_module_1.DrizzleDbConecctionModule,
-            config_1.ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: '.env',
+                validationSchema: validation_env_schema_1.validationSchema,
+                validationOptions: {
+                    abortEarly: true,
+                    allowUnknown: true,
+                },
+            }),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             roles_module_1.RolesModule,

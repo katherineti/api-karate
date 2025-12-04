@@ -8,11 +8,23 @@ import { UsersModule } from './users/users.module';
 import { RolesGuard } from './guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesModule } from './roles/roles.module';
-
+import { validationSchema } from './config/validation-env.schema';
 @Module({
   imports: [
     DrizzleDbConecctionModule, //moduleDrizzel
-    ConfigModule.forRoot({isGlobal:true,envFilePath: '.env'}),
+    ConfigModule.forRoot({
+      isGlobal:true,
+      envFilePath: '.env',
+
+     // Validacion de las variables de entorno con joi:
+      validationSchema: validationSchema,
+      
+      // Opciones de validación de Joi
+      validationOptions: {
+        abortEarly: true, // Detiene la validación en el primer error
+        allowUnknown: true, // Permite variables en .env no definidas en el esquema
+      },
+    }),
     AuthModule,
     UsersModule,
     RolesModule,
