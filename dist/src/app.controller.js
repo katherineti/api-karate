@@ -15,7 +15,6 @@ const app_service_1 = require("./app.service");
 let AppController = class AppController {
     constructor(appService) {
         this.appService = appService;
-        this.appService.getUsers();
     }
     getHello() {
         return this.appService.getUsers();

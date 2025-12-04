@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { RolesService } from './roles.service';
-import { DrizzleDbConecctionModule } from 'src/db.module';
+import { DrizzleDbConecctionModule } from 'src/db/db.module';
 
 @Module({
   imports: [DrizzleDbConecctionModule],

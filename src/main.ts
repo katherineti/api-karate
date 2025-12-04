@@ -1,39 +1,68 @@
+// src/main.ts (Versión ESTÁNDAR para Render/Contenedor)
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  
+  // Tu configuración CORS
+  app.enableCors({
+    origin: ['*'],
+    methods: ['GET','POST','PUT','PATCH','DELETE'], 
+    allowedHeaders: ['content-Type', 'origin'],
+    credentials: false
+  });
+
+  // 💥 CRÍTICO: Escucha en el puerto que Render asigna (process.env.PORT)
+  await app.listen(process.env.PORT || 3000); 
+  console.log(`escuchando en el puerto ${process.env.PORT || 3000}`)
+}
+bootstrap();
+// src/main.ts (Patrón Final con Body Parsers de Express) PARA VWERCEL
+/*
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
 import * as serverless from 'serverless-http';
 
+// ** 1. Variables globales
+let cachedServer;
 const expressApp = express();
-let cachedServer; // 1. Variable para cachear el servidor inicializado
 
-async function createNestServer() {
-  // Solo se ejecuta una vez (Cold Start)
+// 💥 CRÍTICO: Añadir Body Parsers antes de la inicialización de NestJS
+expressApp.use(express.json());
+expressApp.use(express.urlencoded({ extended: true }));
+
+// ** 2. Función de inicialización
+async function bootstrapServer() {
   const app = await NestFactory.create(
     AppModule,
     new ExpressAdapter(expressApp),
   );
 
-  app.enableCors({
+  // Configuración de CORS
+  app.enableCors({ 
     origin: ['*'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['content-Type', 'origin'],
-    credentials: false
+    credentials: false,
   });
 
-  // CRÍTICO: Esperar la inicialización de NestJS (incluye la conexión a Neon)
-  await app.init();
-  
-  // 2. Devolver el handler de Express envuelto por serverless-http
-  return serverless(expressApp);
+  // 💥 CRÍTICO: Monta las rutas en expressApp
+  await app.init(); 
+
+  // Crea el handler de serverless
+  cachedServer = serverless(expressApp);
+  return cachedServer;
 }
 
-// 3. Handler principal (Vercel llama a esta función)
-export default async function (req, res) {
+// ** 3. EXPORTACIÓN DEL HANDLER
+export default async (req, res) => {
   if (!cachedServer) {
-    // 4. Inicializar el servidor SOLO si no está en cache
-    cachedServer = await createNestServer();
+    // Si no está inicializado, lo inicializa de forma ASÍNCRONA
+    await bootstrapServer();
   }
-  // 5. Procesar la solicitud con el servidor cacheado
   return cachedServer(req, res);
 };
+*/
