@@ -3,10 +3,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { validationSchema } from './config/validation-env.schema';
+import { DrizzleDbConecctionModule } from './db/db.module';
 
 @Module({
   imports: [
-    // DrizzleDbConecctionModule,
+    DrizzleDbConecctionModule,
     ConfigModule.forRoot({
       isGlobal:true,
       envFilePath: '.env',

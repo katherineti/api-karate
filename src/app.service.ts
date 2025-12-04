@@ -7,28 +7,28 @@ import { eq } from 'drizzle-orm'
 @Injectable()
 export class AppService {
 
-//  constructor(@Inject(PG_CONNECTION) private conn: NeonDatabase) {
-//   console.log("******** Coneccion BD:  ", this.conn);
-//  }
-constructor(){}
+  constructor(@Inject(PG_CONNECTION) private conn: NeonDatabase) {
+   console.log("********desde AppService - Coneccion BD:  ", this.conn);
+  }
+// constructor(){}
 
   async getUsers() {
     try{
-/*       const result = await this.conn
+       const result = await this.conn
       .select({
         id: usersTable.id,
         email: usersTable.email,
         role: roleTable.name,
       })
       .from(usersTable)
-      .innerJoin( roleTable, eq( usersTable.roles_id ,roleTable.id ) ) */
-      const result = [
+      .innerJoin( roleTable, eq( usersTable.roles_id ,roleTable.id ) ) 
+/*       const result = [
         {
     "email": "katherine.revenga@gmail.com",
     "password": "12345678",
     "roles_id": 1
     }
-      ]
+      ] */
   
       return result; 
 
