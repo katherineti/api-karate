@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
+import { validationSchema } from './config/validation-env.schema';
 
 @Module({
   imports: [
@@ -11,13 +12,13 @@ import { ConfigModule } from '@nestjs/config';
       envFilePath: '.env',
 
      // Validacion de las variables de entorno con joi:
-/*       validationSchema: validationSchema,
+       validationSchema: validationSchema,
 
       // Opciones de validación de Joi
       validationOptions: {
         abortEarly: true, // Detiene la validación en el primer error
         allowUnknown: true, // Permite variables en .env no definidas en el esquema
-      }, */
+      }, 
     }),
     // AuthModule,
     // UsersModule,
