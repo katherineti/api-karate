@@ -22,13 +22,6 @@ export class AppService {
       })
       .from(usersTable)
       .innerJoin( roleTable, eq( usersTable.roles_id ,roleTable.id ) ) 
-/*       const result = [
-        {
-    "email": "katherine.revenga@gmail.com",
-    "password": "12345678",
-    "roles_id": 1
-    }
-      ] */
   
       return result; 
 

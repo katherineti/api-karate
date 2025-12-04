@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { validationSchema } from './config/validation-env.schema';
 import { DrizzleDbConecctionModule } from './db/db.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -21,8 +23,8 @@ import { DrizzleDbConecctionModule } from './db/db.module';
         allowUnknown: true, // Permite variables en .env no definidas en el esquema
       }, 
     }),
-    // AuthModule,
-    // UsersModule,
+     AuthModule,
+     UsersModule,
     // RolesModule,
   ],
   controllers: [AppController],
