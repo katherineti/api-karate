@@ -2,14 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/api-deploy-vercel/index.ts", 
+      "src": "src/main.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/api-deploy-vercel/index.js" 
+      "dest": "src/main.ts",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
     }
   ]
 }
