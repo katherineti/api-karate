@@ -21,16 +21,26 @@ class PaginationDto {
 exports.PaginationDto = PaginationDto;
 __decorate([
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], PaginationDto.prototype, "page", void 0);
 __decorate([
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], PaginationDto.prototype, "limit", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], PaginationDto.prototype, "search", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], PaginationDto.prototype, "roleName", void 0);
 //# sourceMappingURL=pagination.dto.js.map

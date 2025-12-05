@@ -1,20 +1,26 @@
 // src/common/dto/pagination.dto.ts
 
-import { IsNumber, Min, IsOptional, IsInt } from 'class-validator';
+import { IsNumber, IsOptional, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PaginationDto {
-  
-  // 💡 Buenas prácticas: Usar @Type para asegurar que los query params son números
   @Type(() => Number)
-  @IsInt()
+  @IsNumber()
   @Min(1)
   @IsOptional()
-  page: number = 1; // Valor por defecto
+  page: number = 1;
 
   @Type(() => Number)
-  @IsInt()
+  @IsNumber()
   @Min(1)
   @IsOptional()
-  limit: number = 10; // Valor por defecto
+  limit: number = 10;
+
+  @IsString()
+  @IsOptional()
+  search?: string; // 💡 Nuevo: Búsqueda por name, lastname, email
+
+  @IsString()
+  @IsOptional()
+  roleName?: string; // 💡 Nuevo: Búsqueda por rol //debe estart completo el string
 }

@@ -20,7 +20,12 @@ export class UsersController {
   @Roles(RoleType.Admin, RoleType.Master) 
   
   async getPaginatedList(@Query() query: PaginationDto) {
-    return this.usersService.getPaginatedUsers(query.page, query.limit);
+    return this.usersService.getPaginatedUsers(
+      query.page, 
+      query.limit, 
+      query.search,  
+      query.roleName 
+    );
   }
 
 // 2. 🔒 Endpoint de DETALLE DE USUARIO (GET /users/:id)

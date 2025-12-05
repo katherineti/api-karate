@@ -25,7 +25,7 @@ let UsersController = class UsersController {
         this.usersService = usersService;
     }
     async getPaginatedList(query) {
-        return this.usersService.getPaginatedUsers(query.page, query.limit);
+        return this.usersService.getPaginatedUsers(query.page, query.limit, query.search, query.roleName);
     }
     async getUserDetail(id) {
         const userId = parseInt(id, 10);

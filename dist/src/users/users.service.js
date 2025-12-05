@@ -90,15 +90,26 @@ let UsersService = class UsersService {
             throw new Error("Error al actualizar un usuario " + err);
         }
     }
-    async getPaginatedUsers(page, limit) {
-        const offset = (page - 1) * limit;
+    async getPaginatedUsers(page = 1, limit = 10, search, roleName) {
         try {
+            const offset = (page - 1) * limit;
+            const whereConditions = [];
+            if (search) {
+                const searchPattern = `%${search.toLowerCase()}%`;
+                whereConditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.like)(schema_1.usersTable.name, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.lastname, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.email, searchPattern)));
+            }
+            if (roleName) {
+                whereConditions.push((0, drizzle_orm_1.eq)(schema_1.roleTable.name, roleName));
+            }
+            const finalWhereCondition = whereConditions.length > 0
+                ? (whereConditions.length === 1 ? whereConditions[0] : drizzle_orm_1.sql.join(whereConditions, (0, drizzle_orm_1.sql) ` AND `))
+                : undefined;
             const countResult = await this.db
-                .select({
-                count: (0, drizzle_orm_1.sql) `count(*)`.as('count'),
-            })
-                .from(schema_1.usersTable);
-            const totalItems = countResult[0].count;
+                .select({ count: (0, drizzle_orm_1.sql) `count(*)` })
+                .from(schema_1.usersTable)
+                .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
+                .where(finalWhereCondition);
+            const total = countResult[0].count;
             const data = await this.db
                 .select({
                 id: schema_1.usersTable.id,
@@ -109,16 +120,14 @@ let UsersService = class UsersService {
             })
                 .from(schema_1.usersTable)
                 .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
+                .where(finalWhereCondition)
                 .limit(limit)
                 .offset(offset);
             return {
                 data,
-                pagination: {
-                    page,
-                    limit,
-                    totalItems,
-                    totalPages: Math.ceil(totalItems / limit),
-                },
+                total,
+                page,
+                limit,
             };
         }
         catch (err) {

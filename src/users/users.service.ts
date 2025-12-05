@@ -2,7 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, STATUS_ACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable } from 'src/db/schema';
-import { eq, sql } from 'drizzle-orm'
+import { eq, like, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { CreateUserDto } from './dto/create-user.dto';
 import { SignupDto } from '../auth/signup.dto';
@@ -122,7 +122,82 @@ export class UsersService {
    * @param limit - Límite de registros por página.
    * @returns Un objeto con los datos, el total y la paginación.
    */
-  async getPaginatedUsers(page: number, limit: number): Promise<any> {
+async getPaginatedUsers(
+    page: number = 1, 
+    limit: number = 10,
+    search?: string, // Búsqueda por nombre, apellido, email
+    roleName?: string, // Búsqueda por nombre de rol
+  ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+    try {
+      const offset = (page - 1) * limit;
+
+      // --- 1. Crear el filtro de búsqueda dinámico ---
+      const whereConditions: SQL<unknown>[] = [];
+
+      if (search) {
+        // Filtro OR: busca en name, lastname o email (usando LIKE para 'contiene')
+        const searchPattern = `%${search.toLowerCase()}%`;
+        whereConditions.push(
+          or(
+            like(usersTable.name, searchPattern),
+            like(usersTable.lastname, searchPattern),
+            like(usersTable.email, searchPattern)
+          ) as SQL<unknown>
+        );
+      }
+
+      if (roleName) {
+        // Filtro por rol: busca el nombre del rol (JOIN ya está en la query)
+        // La comparación debe ser con la columna 'name' de roleTable
+        whereConditions.push(
+          eq(roleTable.name, roleName) as SQL<unknown>
+        );
+      }
+      
+      // Combinar todos los filtros en una sola expresión OR si existe, 
+      // pero para la función where(), simplemente pasaremos el resultado de 'or()' si hay condiciones.
+      const finalWhereCondition = whereConditions.length > 0 
+        ? (whereConditions.length === 1 ? whereConditions[0] : sql.join(whereConditions, sql` AND `))
+        : undefined;
+
+
+      // --- 2. Consulta para obtener el TOTAL (COUNT) ---
+      const countResult = await this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(usersTable)
+        .innerJoin(roleTable, eq(usersTable.roles_id, roleTable.id))
+        .where(finalWhereCondition); // Aplicar el filtro también al conteo
+
+      const total = countResult[0].count;
+      
+      // --- 3. Consulta para obtener los DATOS PAGINADOS ---
+      const data = await this.db
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          lastname: usersTable.lastname,
+          email: usersTable.email,
+          role: roleTable.name,
+        })
+        .from(usersTable)
+        .innerJoin(roleTable, eq(usersTable.roles_id, roleTable.id))
+        .where(finalWhereCondition) 
+        .limit(limit)
+        .offset(offset);
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+      };
+    } catch (err) {
+      console.error('Error al obtener usuarios paginados:', err);
+      throw new Error('Error al obtener la lista de usuarios.');
+    }
+  }
+
+/*   async getPaginatedUsers(page: number, limit: number): Promise<any> {
     const offset = (page - 1) * limit;
 
     try {
@@ -165,7 +240,7 @@ export class UsersService {
       console.error('Error al obtener usuarios paginados:', err);
       throw new Error('Error al obtener la lista de usuarios.');
     }
-  }
+  } */
 
 /*
    * Para el Modal: Gestión de Usuarios - Detalles del Usuario.
