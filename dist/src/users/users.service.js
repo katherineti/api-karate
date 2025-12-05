@@ -90,8 +90,73 @@ let UsersService = class UsersService {
             throw new Error("Error al actualizar un usuario " + err);
         }
     }
-    delete(id) {
-        return this.db.delete(schema_1.usersTable).where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, id));
+    async getPaginatedUsers(page, limit) {
+        const offset = (page - 1) * limit;
+        try {
+            const countResult = await this.db
+                .select({
+                count: (0, drizzle_orm_1.sql) `count(*)`.as('count'),
+            })
+                .from(schema_1.usersTable);
+            const totalItems = countResult[0].count;
+            const data = await this.db
+                .select({
+                id: schema_1.usersTable.id,
+                name: schema_1.usersTable.name,
+                lastname: schema_1.usersTable.lastname,
+                email: schema_1.usersTable.email,
+                role: schema_1.roleTable.name,
+            })
+                .from(schema_1.usersTable)
+                .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
+                .limit(limit)
+                .offset(offset);
+            return {
+                data,
+                pagination: {
+                    page,
+                    limit,
+                    totalItems,
+                    totalPages: Math.ceil(totalItems / limit),
+                },
+            };
+        }
+        catch (err) {
+            console.error('Error al obtener usuarios paginados:', err);
+            throw new Error('Error al obtener la lista de usuarios.');
+        }
+    }
+    async findUserDetailById(id) {
+        try {
+            const userResult = await this.db
+                .select({
+                id: schema_1.usersTable.id,
+                name: schema_1.usersTable.name,
+                lastname: schema_1.usersTable.lastname,
+                email: schema_1.usersTable.email,
+                birthdate: schema_1.usersTable.birthdate,
+                url_image: schema_1.usersTable.url_image,
+                created_at: schema_1.usersTable.created_at,
+                updated_at: schema_1.usersTable.updated_at,
+                role: schema_1.roleTable.name,
+            })
+                .from(schema_1.usersTable)
+                .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
+                .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, id))
+                .limit(1);
+            const user = userResult[0];
+            if (!user) {
+                throw new common_1.NotFoundException(`Usuario con ID ${id} no encontrado.`);
+            }
+            return user;
+        }
+        catch (err) {
+            if (err instanceof common_1.NotFoundException) {
+                throw err;
+            }
+            console.error('Error al obtener el detalle del usuario:', err);
+            throw new Error('Error interno al buscar el usuario.');
+        }
     }
 };
 exports.UsersService = UsersService;
