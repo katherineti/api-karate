@@ -1,5 +1,5 @@
 // import { Injectable } from '@nestjs/common';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { JWTSecret, PG_CONNECTION } from 'src/constants';
 import { UsersService } from 'src/users/users.service';
@@ -7,6 +7,7 @@ import * as argon2 from "argon2";
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { SignupDto } from './signup.dto';
 
 @Injectable()
 export class AuthService {
@@ -46,11 +47,34 @@ export class AuthService {
             };
         }
 
-        async signUp(signUp): Promise<string> {
+/*         async signUp(signUp): Promise<string> {
               
               const user = await this.usersService.createUser(signUp);
               return user
-        }
+        } */
+
+    async signUp(signUp:SignupDto): Promise<{
+      ok: boolean,
+      status: number,
+      description: string,
+    }> {
+
+      const userExist = await this.usersService.findOnByEmail(signUp.email);
+
+      if (userExist) {
+        throw new ConflictException('El correo ya existe.');
+      }
+          
+      await this.usersService.createUser(signUp);
+
+      const objSaved = {
+        ok: true,
+        status: 201,
+        description: 'Usuario registrado',
+      };
+  
+      return objSaved;
+    }
         
         async updateUser(user:CreateUserDto): Promise<any> {
 
@@ -67,7 +91,4 @@ export class AuthService {
             return await this.usersService.updateUser(user);
         }
 
-        async deleteUser(id:number): Promise<any> {
-          return await this.usersService.delete(id);
-        }
 }

@@ -5,6 +5,7 @@ import { roleTable, usersTable } from 'src/db/schema';
 import { eq } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { CreateUserDto } from './dto/create-user.dto';
+import { SignupDto } from '../auth/signup.dto';
 
 type User = {
     id: number;
@@ -58,7 +59,7 @@ export class UsersService {
       }
     }
 
-      async createUser( createUser : CreateUserDto){
+      async createUser( createUser : SignupDto){
     
         try {
      

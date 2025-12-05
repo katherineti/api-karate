@@ -21,6 +21,7 @@ const types_1 = require("../../types");
 const role_decorators_1 = require("../decorators/role.decorators");
 const auth_guard_1 = require("../guards/auth.guard");
 const roles_guard_1 = require("../guards/roles.guard");
+const signup_dto_1 = require("./signup.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -36,10 +37,6 @@ let AuthController = class AuthController {
     }
     update(createUser) {
         return this.authService.updateUser(createUser);
-    }
-    delete(user) {
-        console.log("controlador eliminar ");
-        return this.authService.deleteUser(user.id);
     }
 };
 exports.AuthController = AuthController;
@@ -64,7 +61,7 @@ __decorate([
     (0, role_decorators_1.Roles)(types_1.RoleType.Admin),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
+    __metadata("design:paramtypes", [signup_dto_1.SignupDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "createByAdmin", null);
 __decorate([
@@ -75,14 +72,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "update", null);
-__decorate([
-    (0, common_1.Post)('delete'),
-    (0, role_decorators_1.Roles)(types_1.RoleType.Admin),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "delete", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

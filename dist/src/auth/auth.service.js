@@ -48,8 +48,17 @@ let AuthService = class AuthService {
         };
     }
     async signUp(signUp) {
-        const user = await this.usersService.createUser(signUp);
-        return user;
+        const userExist = await this.usersService.findOnByEmail(signUp.email);
+        if (userExist) {
+            throw new common_1.ConflictException('El correo ya existe.');
+        }
+        await this.usersService.createUser(signUp);
+        const objSaved = {
+            ok: true,
+            status: 201,
+            description: 'Usuario registrado',
+        };
+        return objSaved;
     }
     async updateUser(user) {
         let email = await this.usersService.findOnByEmail(user.email);
@@ -61,9 +70,6 @@ let AuthService = class AuthService {
             throw new Error("No existe el id usuario");
         }
         return await this.usersService.updateUser(user);
-    }
-    async deleteUser(id) {
-        return await this.usersService.delete(id);
     }
 };
 exports.AuthService = AuthService;

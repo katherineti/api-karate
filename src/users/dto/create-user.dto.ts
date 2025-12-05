@@ -11,7 +11,7 @@ export class CreateUserDto{
     name: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     lastname: string;
 
     // @IsString()
@@ -32,7 +32,7 @@ export class CreateUserDto{
     // username: string;
 
     @IsString()
-    @IsOptional()
+    @IsNotEmpty()
     password: string;  //en la actualizacion de usuario la contraseña no se necesita
 
     @IsString()

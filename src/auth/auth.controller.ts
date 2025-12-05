@@ -6,6 +6,7 @@ import { RoleType } from 'types';
 import { Roles } from 'src/decorators/role.decorators';
 import { AuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
+import { SignupDto } from './signup.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,7 +33,7 @@ export class AuthController {
     @UseGuards(AuthGuard, RolesGuard)
     // B. Requiere que el usuario tenga el rol 'Admin'
     @Roles(RoleType.Admin) 
-    createByAdmin( @Body() createUser: CreateUserDto ) {
+    createByAdmin( @Body() createUser: SignupDto ) {
         // La lógica sigue siendo la misma, pero ahora solo un Admin puede llegar aquí.
         return this.authService.signUp(createUser);
     }
@@ -44,9 +45,4 @@ export class AuthController {
         return this.authService.updateUser(createUser);
     } 
 
-    @Post('delete')
-    @Roles(RoleType.Admin)
-    delete( @Body() user: {id:number} ) {console.log("controlador eliminar ")
-        return this.authService.deleteUser(user.id);
-    } 
 }

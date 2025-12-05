@@ -1,6 +1,7 @@
 export enum RoleType {
     // User = 'user',
-    // User = 'usuario',
      Admin = 'administrador',
-    // Admin = 1,
+     Master = 'master',
+     Representante = 'representante',
+     Alumno = 'alumno',
 }
