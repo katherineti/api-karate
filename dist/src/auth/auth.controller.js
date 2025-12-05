@@ -58,7 +58,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('create-user-protected'),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, role_decorators_1.Roles)(types_1.RoleType.Admin),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [signup_dto_1.SignupDto]),

@@ -31,8 +31,7 @@ export class AuthController {
     @Post('create-user-protected')
     // A. Protege la ruta con el token de acceso (AuthGuard)
     @UseGuards(AuthGuard, RolesGuard)
-    // B. Requiere que el usuario tenga el rol 'Admin'
-    @Roles(RoleType.Admin) 
+    // @Roles(RoleType.Admin) 
     createByAdmin( @Body() createUser: SignupDto ) {
         // La lógica sigue siendo la misma, pero ahora solo un Admin puede llegar aquí.
         return this.authService.signUp(createUser);
