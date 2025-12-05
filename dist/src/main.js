@@ -4,10 +4,12 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const frontendLocalUrl = 'http://localhost:4000';
+    const frontendUrl = 'https://sram-integrated.vercel.app';
     app.enableCors({
         origin: [
-            'http://localhost:4000',
-            'https://api-karate.onrender.com',
+            frontendLocalUrl,
+            frontendUrl,
         ],
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         allowedHeaders: ['Content-Type', 'Origin', 'Authorization', 'Accept'],

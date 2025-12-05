@@ -3,11 +3,12 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+  const frontendLocalUrl = 'http://localhost:4000'; 
+  const frontendUrl = 'https://sram-integrated.vercel.app';
   app.enableCors({
     origin: [
-      'http://localhost:4000', 
-      'https://api-karate.onrender.com', 
+      frontendLocalUrl, 
+      frontendUrl, 
     ],
     methods: ['GET','POST','PUT','PATCH','DELETE'], 
     // Aseguramos las cabeceras comunes necesarias para peticiones con JSON y autenticación
