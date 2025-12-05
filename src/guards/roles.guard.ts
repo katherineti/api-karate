@@ -1,36 +1,36 @@
+// src/auth/roles.guard.ts (Código corregido)
 
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from 'src/decorators/role.decorators';
+import { RoleType } from 'types'; // Asegúrate de importar RoleType
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector, 
-  ) {}
+  constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
   
-    const roles = this.reflector.getAllAndOverride<string[] | undefined>(ROLES_KEY, [
+    const requiredRoles = this.reflector.getAllAndOverride<RoleType[] | undefined>(ROLES_KEY, [
       context.getHandler(), 
       context.getClass(),
     ]);
 
-    if (!roles) {
-      return true;
+    if (!requiredRoles) {
+      return true; // Si no hay roles requeridos, permite el acceso.
     }
 
     const request = context.switchToHttp().getRequest();
-    const { user } = request;
+    // 💡 IMPORTANTE: 'user' viene del payload JWT adjuntado por AuthGuard
+    const { user } = request; 
 
-    if (!user || user.roles_id === undefined) {
+    if (!user || !user.role) {
+      // El AuthGuard debería haber adjuntado el rol. Si no está, se niega el acceso.
       return false;
     }
     
-    // Si user.role es un string, lo comparamos directamente con los roles permitidos
-    const hasRole = () => roles.includes(user.roles_id);
-
-    return user?.roles_id && hasRole();
+    // 💡 Corrección Clave: Compara el rol del usuario (user.role) con los roles requeridos.
+    // user.role es el string del nombre del rol (ej: 'Admin')
+    return requiredRoles.some((requiredRole) => user.role === requiredRole);
   } 
-
 }

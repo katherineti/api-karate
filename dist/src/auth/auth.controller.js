@@ -19,6 +19,8 @@ const signIn_dto_1 = require("./signIn.dto");
 const create_user_dto_1 = require("../users/dto/create-user.dto");
 const types_1 = require("../../types");
 const role_decorators_1 = require("../decorators/role.decorators");
+const auth_guard_1 = require("../guards/auth.guard");
+const roles_guard_1 = require("../guards/roles.guard");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -27,6 +29,9 @@ let AuthController = class AuthController {
         return this.authService.signIn(signInDto.email, signInDto.password);
     }
     signUp(createUser) {
+        return this.authService.signUp(createUser);
+    }
+    createByAdmin(createUser) {
         return this.authService.signUp(createUser);
     }
     update(createUser) {
@@ -53,6 +58,15 @@ __decorate([
     __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "signUp", null);
+__decorate([
+    (0, common_1.Post)('create-user-protected'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "createByAdmin", null);
 __decorate([
     (0, common_1.Post)('update'),
     (0, role_decorators_1.Roles)(types_1.RoleType.Admin),
