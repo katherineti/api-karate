@@ -9,6 +9,8 @@ async function bootstrap() {
     origin: [
       frontendLocalUrl, 
       frontendUrl, 
+      'https://studio.firebase.google.com/',
+      '*'
     ],
     methods: ['GET','POST','PUT','PATCH','DELETE'], 
     // Aseguramos las cabeceras comunes necesarias para peticiones con JSON y autenticación

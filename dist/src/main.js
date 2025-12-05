@@ -10,6 +10,8 @@ async function bootstrap() {
         origin: [
             frontendLocalUrl,
             frontendUrl,
+            'https://studio.firebase.google.com/',
+            '*'
         ],
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         allowedHeaders: ['Content-Type', 'Origin', 'Authorization', 'Accept'],
