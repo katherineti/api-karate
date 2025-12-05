@@ -7,13 +7,14 @@ async function bootstrap() {
   const frontendUrl = 'https://sram-integrated.vercel.app';
   app.enableCors({
     origin: [
+      '*',
       frontendLocalUrl, 
       frontendUrl, 
       'https://studio.firebase.google.com/',
-      '*'
+      'https://9000-firebase-studio-1764097833286.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/login',
+      'https://9000-firebase-studio-1764097833286.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/login?monospaceUid=525592&embedded=0',
     ],
     methods: ['GET','POST','PUT','PATCH','DELETE'], 
-    // Aseguramos las cabeceras comunes necesarias para peticiones con JSON y autenticación
     allowedHeaders: ['Content-Type', 'Origin', 'Authorization', 'Accept'],
     credentials: true // Recomendado si vas a manejar cookies o credenciales.
   });
