@@ -36,7 +36,7 @@ exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Get)(),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master, types_1.RoleType.Juez),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [pagination_dto_1.PaginationDto]),
@@ -45,7 +45,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master, types_1.RoleType.Juez),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

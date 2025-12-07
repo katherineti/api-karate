@@ -5,7 +5,6 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { RoleType } from 'types';
 import { Roles } from 'src/decorators/role.decorators';
 import { AuthGuard } from '../guards/auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
 import { SignupDto } from './signup.dto';
 
 @Controller('auth')
@@ -27,21 +26,19 @@ export class AuthController {
         return this.authService.signUp(createUser);
     } 
 
-    // 2. NUEVA RUTA PROTEGIDA PARA CREAR USUARIOS
+    // Protege la ruta con el token de acceso (AuthGuard)
     @Post('create-user-protected')
-    // A. Protege la ruta con el token de acceso (AuthGuard)
-    @UseGuards(AuthGuard, RolesGuard)
-    // @Roles(RoleType.Admin) 
+    @UseGuards(AuthGuard)
     createByAdmin( @Body() createUser: SignupDto ) {
-        // La lógica sigue siendo la misma, pero ahora solo un Admin puede llegar aquí.
         return this.authService.signUp(createUser);
     }
 
+    //el juez no edita ni elimina
     @Post('update')
-    @Roles(RoleType.Admin)
+    @UseGuards(AuthGuard)
+    @Roles(RoleType.Admin, RoleType.Master)
     // update( @Body() createUser: CreateUserDto, @Param('id') id: number ) {
-    update( @Body() createUser: any) {//le agregue el id
+    update( @Body() createUser: any) {
         return this.authService.updateUser(createUser);
-    } 
-
+    }
 }

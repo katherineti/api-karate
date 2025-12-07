@@ -5,6 +5,7 @@ var RoleType;
 (function (RoleType) {
     RoleType["Admin"] = "administrador";
     RoleType["Master"] = "master";
+    RoleType["Juez"] = "juez";
     RoleType["Representante"] = "representante";
     RoleType["Alumno"] = "alumno";
 })(RoleType || (exports.RoleType = RoleType = {}));

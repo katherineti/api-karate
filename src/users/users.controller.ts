@@ -17,7 +17,7 @@ export class UsersController {
   // 1. 🔒 Endpoint de LISTA PAGINADA PROTEGIDA (GET /users?page=1&limit=5)
   @Get()
   @UseGuards(AuthGuard, RolesGuard) 
-  @Roles(RoleType.Admin, RoleType.Master) 
+  @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
   
   async getPaginatedList(@Query() query: PaginationDto) {
     return this.usersService.getPaginatedUsers(
@@ -31,7 +31,7 @@ export class UsersController {
 // 2. 🔒 Endpoint de DETALLE DE USUARIO (GET /users/:id)
   @Get(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.Admin, RoleType.Master) 
+  @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
   async getUserDetail(@Param('id') id: string) {
     const userId = parseInt(id, 10);
     
