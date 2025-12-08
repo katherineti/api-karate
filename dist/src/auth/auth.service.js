@@ -37,7 +37,8 @@ let AuthService = class AuthService {
         const payload = {
             sub: user.id,
             email: user.email,
-            role: user.role
+            roles_ids: user.roles_ids,
+            roles: (user.roles_ids.length > 0) ? user.roles : null
         };
         console.log("JWTSecret ", constants_1.JWTSecret);
         console.log("payload ", payload);
@@ -48,7 +49,7 @@ let AuthService = class AuthService {
         };
     }
     async signUp(signUp) {
-        const userExist = await this.usersService.findOnByEmail(signUp.email);
+        const userExist = await this.usersService.findOnByEmail(signUp.email, true);
         if (userExist) {
             throw new common_1.ConflictException('El correo ya existe.');
         }

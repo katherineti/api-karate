@@ -25,8 +25,9 @@ __decorate([
     __metadata("design:type", String)
 ], SignupDto.prototype, "password", void 0);
 __decorate([
+    (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], SignupDto.prototype, "roles_id", void 0);
+    (0, class_validator_1.IsNumber)({}, { each: true }),
+    __metadata("design:type", Array)
+], SignupDto.prototype, "roles_ids", void 0);
 //# sourceMappingURL=signup.dto.js.map

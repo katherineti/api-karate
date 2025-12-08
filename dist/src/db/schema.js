@@ -19,7 +19,7 @@ exports.usersTable = (0, pg_core_1.pgTable)("users", {
     password: (0, pg_core_1.varchar)({ length: 255 }).notNull(),
     url_image: (0, pg_core_1.varchar)({ length: 255 }).default(null),
     status: (0, pg_core_1.integer)().default(null).references(() => exports.statusTable.id),
-    roles_id: (0, pg_core_1.integer)().notNull().references(() => exports.roleTable.id),
+    roles_ids: (0, pg_core_1.jsonb)('roles_ids').$type().notNull().default([]),
     created_at: (0, pg_core_1.timestamp)().defaultNow(),
     updated_at: (0, pg_core_1.timestamp)().defaultNow(),
 });

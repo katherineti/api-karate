@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsNotEmpty, IsEmail, IsOptional, IsDecimal } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsEmail, IsOptional, IsDecimal, IsArray } from 'class-validator';
 
 export class CreateUserDto{
 
@@ -39,8 +39,13 @@ export class CreateUserDto{
     @IsOptional()
     url_image: string;
 
-    @IsNotEmpty()
-    roles_id: number;
+    // @IsNotEmpty()
+    // roles_id: number;
+
+    @IsArray() //  Valida que la entrada sea un array
+    @IsNotEmpty() // Valida que el array no esté vacío (al menos un rol)
+    @IsNumber({}, { each: true }) //  Valida que CADA elemento del array sea un número
+    roles_ids: number[];
       
     // created_at: Date;
     

@@ -17,11 +17,9 @@ const common_1 = require("@nestjs/common");
 const constants_1 = require("./constants");
 const neon_serverless_1 = require("drizzle-orm/neon-serverless");
 const schema_1 = require("./db/schema");
-const drizzle_orm_1 = require("drizzle-orm");
 let AppService = class AppService {
     constructor(conn) {
         this.conn = conn;
-        console.log("********desde AppService - Coneccion BD:  ", this.conn);
     }
     async getUsers() {
         try {
@@ -29,10 +27,9 @@ let AppService = class AppService {
                 .select({
                 id: schema_1.usersTable.id,
                 email: schema_1.usersTable.email,
-                role: schema_1.roleTable.name,
+                roles_ids: schema_1.usersTable.roles_ids,
             })
-                .from(schema_1.usersTable)
-                .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id));
+                .from(schema_1.usersTable);
             return result;
         }
         catch (err) {

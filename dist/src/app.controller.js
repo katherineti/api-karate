@@ -16,8 +16,9 @@ let AppController = class AppController {
     constructor(appService) {
         this.appService = appService;
     }
-    getHello() {
-        return this.appService.getUsers();
+    async getHello() {
+        const users = await this.appService.getUsers();
+        return 'API SVRAM está funcionando correctamente. Usuarios encontrados: ' + JSON.stringify(users, null, 2);
     }
 };
 exports.AppController = AppController;
@@ -25,7 +26,7 @@ __decorate([
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], AppController.prototype, "getHello", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),

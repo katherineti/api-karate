@@ -23,7 +23,7 @@ let UsersService = class UsersService {
     constructor(db) {
         this.db = db;
     }
-    async findOnByEmail(email) {
+    async findOnByEmail(email, isSignUp = false) {
         const result = await this.db.select({
             id: schema_1.usersTable.id,
             name: schema_1.usersTable.name,
@@ -31,13 +31,25 @@ let UsersService = class UsersService {
             email: schema_1.usersTable.email,
             password: schema_1.usersTable.password,
             created_at: schema_1.usersTable.created_at,
-            roles_id: schema_1.usersTable.roles_id,
-            role: schema_1.roleTable.name,
+            roles_ids: schema_1.usersTable.roles_ids,
         })
             .from(schema_1.usersTable)
-            .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
             .where((0, drizzle_orm_1.eq)(schema_1.usersTable.email, email));
-        return result[0];
+        const user = result[0];
+        if (!user && !isSignUp) {
+            throw new common_1.NotFoundException(`Usuario con correo ${email} no encontrado.`);
+        }
+        if (!user) {
+            return user;
+        }
+        const roles = await this.db
+            .select({ name: schema_1.roleTable.name })
+            .from(schema_1.roleTable)
+            .where((0, drizzle_orm_1.sql) `${schema_1.roleTable.id} IN (${drizzle_orm_1.sql.join(user.roles_ids.map(id => drizzle_orm_1.sql.raw(`${id}`)), (0, drizzle_orm_1.sql) `, `)})`);
+        return {
+            ...user,
+            roles: roles.map(r => r.name),
+        };
     }
     async getUserbyId(id) {
         try {
@@ -54,7 +66,7 @@ let UsersService = class UsersService {
     async createUser(createUser) {
         try {
             const hash = await argon2.hash(createUser.password);
-            const result = await this.db.select().from(schema_1.usersTable);
+            await this.db.select().from(schema_1.usersTable);
             const newUser = {
                 ...createUser,
                 password: hash,
@@ -77,10 +89,10 @@ let UsersService = class UsersService {
                 password: createUser.password,
                 url_image: createUser.url_image,
                 status: constants_1.STATUS_UPDATED,
-                roles_id: createUser.roles_id,
+                roles_id: createUser.roles_ids,
                 updated_at: new Date(),
             };
-            let g = await this.getUserbyId(createUser.id);
+            await this.getUserbyId(createUser.id);
             return await this.db.update(schema_1.usersTable)
                 .set(upd)
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, createUser.id))
@@ -99,7 +111,17 @@ let UsersService = class UsersService {
                 whereConditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.like)(schema_1.usersTable.name, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.lastname, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.email, searchPattern)));
             }
             if (roleName) {
-                whereConditions.push((0, drizzle_orm_1.eq)(schema_1.roleTable.name, roleName));
+                const role = await this.db.select({ id: schema_1.roleTable.id })
+                    .from(schema_1.roleTable)
+                    .where((0, drizzle_orm_1.eq)(schema_1.roleTable.name, roleName))
+                    .limit(1);
+                if (role.length > 0) {
+                    const roleId = role[0].id;
+                    whereConditions.push((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${drizzle_orm_1.sql.raw(`'[${roleId}]'`)}`);
+                }
+                else {
+                    whereConditions.push((0, drizzle_orm_1.sql) `false`);
+                }
             }
             const finalWhereCondition = whereConditions.length > 0
                 ? (whereConditions.length === 1 ? whereConditions[0] : drizzle_orm_1.sql.join(whereConditions, (0, drizzle_orm_1.sql) ` AND `))
@@ -107,7 +129,6 @@ let UsersService = class UsersService {
             const countResult = await this.db
                 .select({ count: (0, drizzle_orm_1.sql) `count(*)` })
                 .from(schema_1.usersTable)
-                .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
                 .where(finalWhereCondition);
             const total = countResult[0].count;
             const data = await this.db
@@ -116,10 +137,9 @@ let UsersService = class UsersService {
                 name: schema_1.usersTable.name,
                 lastname: schema_1.usersTable.lastname,
                 email: schema_1.usersTable.email,
-                role: schema_1.roleTable.name,
+                roles_ids: schema_1.usersTable.roles_ids,
             })
                 .from(schema_1.usersTable)
-                .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
                 .where(finalWhereCondition)
                 .limit(limit)
                 .offset(offset);
@@ -147,17 +167,23 @@ let UsersService = class UsersService {
                 url_image: schema_1.usersTable.url_image,
                 created_at: schema_1.usersTable.created_at,
                 updated_at: schema_1.usersTable.updated_at,
-                role: schema_1.roleTable.name,
+                roles_ids: schema_1.usersTable.roles_ids,
             })
                 .from(schema_1.usersTable)
-                .innerJoin(schema_1.roleTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.roles_id, schema_1.roleTable.id))
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, id))
                 .limit(1);
             const user = userResult[0];
             if (!user) {
                 throw new common_1.NotFoundException(`Usuario con ID ${id} no encontrado.`);
             }
-            return user;
+            const roles = await this.db
+                .select({ name: schema_1.roleTable.name })
+                .from(schema_1.roleTable)
+                .where((0, drizzle_orm_1.sql) `${schema_1.roleTable.id} IN (${drizzle_orm_1.sql.join(user.roles_ids.map(id => drizzle_orm_1.sql.raw(`${id}`)), (0, drizzle_orm_1.sql) `, `)})`);
+            return {
+                ...user,
+                roles: roles.map(r => r.name),
+            };
         }
         catch (err) {
             if (err instanceof common_1.NotFoundException) {

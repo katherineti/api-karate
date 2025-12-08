@@ -7,8 +7,7 @@ import * as argon2 from "argon2";
 import { CreateUserDto } from './dto/create-user.dto';
 import { SignupDto } from '../auth/signup.dto';
 
-
-type User = {
+export type User = {
     id: number;
     name: string;
     lastname: string;
@@ -16,8 +15,10 @@ type User = {
     email: string;
     password: string;
     created_at: Date;
-    roles_id: number;
-    role: string;
+    // roles_id: number;
+    // role: string;
+    roles_ids: number[];
+    roles?:string[];
 };
 
 @Injectable()
@@ -25,9 +26,9 @@ export class UsersService {
 
  constructor(@Inject(PG_CONNECTION) private db: NeonDatabase) {}
 
-    async findOnByEmail(email: string): Promise<User | undefined> {
-        const result = await 
- 
+    // async findOnByEmail(email: string, isSignUp=false): Promise<User | undefined> {
+    async findOnByEmail(email: string, isSignUp=false): Promise<User | undefined> {
+        const result = await  
         this.db.select({
           id:  usersTable.id,
           name: usersTable.name,
@@ -35,13 +36,38 @@ export class UsersService {
           email: usersTable.email,
           password: usersTable.password,
           created_at: usersTable.created_at,
-          roles_id: usersTable.roles_id,
-          role: roleTable.name,
+          // Obtener el arreglo de IDs:
+          roles_ids: usersTable.roles_ids,
+          // role: roleTable.name,
         })
         .from(usersTable)
-        .innerJoin( roleTable, eq( usersTable.roles_id ,roleTable.id ) )
+        // .innerJoin( roleTable, or( ...usersTable.roles_ids.map( id => eq( id, roleTable.id ) ) ) )  
         .where(eq(usersTable.email , email ));
-        return result[0];
+        // return result[0];
+
+      const user = result[0];
+
+      if (!user && !isSignUp) {
+        throw new NotFoundException(`Usuario con correo ${email} no encontrado.`);
+      }
+
+      if(!user){
+        return user;
+      }
+
+      // 2. Obtener los nombres de los roles basados en los IDs
+      const roles = await this.db
+            .select({ name: roleTable.name })
+            .from(roleTable)
+            .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
+            // O, si Drizzle soporta el operador ANY:
+            // .where(sql`${roleTable.id} = ANY(${user.roles_ids})`); 
+  
+      // 3. Devolver el objeto de usuario enriquecido
+      return {
+          ...user,
+          roles: roles.map(r => r.name), // Arreglo de strings con los nombres de roles
+      };
     }
 
     async getUserbyId(id:number) {
@@ -66,7 +92,7 @@ export class UsersService {
      
             const hash = await argon2.hash( createUser.password );
  
-            const result = await  this.db.select().from(usersTable)
+            await  this.db.select().from(usersTable)
 
             const newUser = {
               ...createUser,
@@ -95,11 +121,11 @@ export class UsersService {
           password: createUser.password,
           url_image: createUser.url_image,
           status: STATUS_UPDATED,
-          roles_id: createUser.roles_id,
+          roles_id: createUser.roles_ids,
           updated_at: new Date(),
         }
           
-        let g = await this.getUserbyId(createUser.id)        
+        await this.getUserbyId(createUser.id)        
 
         return  await this.db.update(usersTable)
           .set(upd)
@@ -147,11 +173,24 @@ async getPaginatedUsers(
       }
 
       if (roleName) {
-        // Filtro por rol: busca el nombre del rol (JOIN ya está en la query)
-        // La comparación debe ser con la columna 'name' de roleTable
-        whereConditions.push(
-          eq(roleTable.name, roleName) as SQL<unknown>
-        );
+          // 💡 Filtro por Rol: Verifica si el arreglo 'roles_ids' contiene el ID del rol
+          // Primero, encuentra el ID del rol por su nombre
+          const role = await this.db.select({ id: roleTable.id })
+              .from(roleTable)
+              .where(eq(roleTable.name, roleName))
+              .limit(1);
+
+          if (role.length > 0) {
+              const roleId = role[0].id;
+              // Uso del operador PostgreSQL JSONB '@>' (Contiene)
+              // Ejemplo: usersTable.roles_ids @> '[5]'
+              whereConditions.push(
+                  sql`${usersTable.roles_ids} @> ${sql.raw(`'[${roleId}]'`)}` as SQL<unknown>
+              );
+          } else {
+              // Si el rol no existe, forzamos una condición falsa
+              whereConditions.push(sql`false` as SQL<unknown>);
+          }
       }
       
       // Combinar todos los filtros en una sola expresión OR si existe, 
@@ -163,10 +202,9 @@ async getPaginatedUsers(
 
       // --- 2. Consulta para obtener el TOTAL (COUNT) ---
       const countResult = await this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(usersTable)
-        .innerJoin(roleTable, eq(usersTable.roles_id, roleTable.id))
-        .where(finalWhereCondition); // Aplicar el filtro también al conteo
+          .select({ count: sql<number>`count(*)` })
+          .from(usersTable)
+          .where(finalWhereCondition); // Aplicar el filtro a la tabla users directamente
 
       const total = countResult[0].count;
       
@@ -177,10 +215,11 @@ async getPaginatedUsers(
           name: usersTable.name,
           lastname: usersTable.lastname,
           email: usersTable.email,
-          role: roleTable.name,
+          // role: roleTable.name,
+          roles_ids: usersTable.roles_ids,
         })
         .from(usersTable)
-        .innerJoin(roleTable, eq(usersTable.roles_id, roleTable.id))
+        // .innerJoin(roleTable, eq(usersTable.roles_ids, roleTable.id))
         .where(finalWhereCondition) 
         .limit(limit)
         .offset(offset);
@@ -259,11 +298,12 @@ async getPaginatedUsers(
           url_image: usersTable.url_image,
           created_at: usersTable.created_at,
           updated_at: usersTable.updated_at,
-          role: roleTable.name, // Nombre del rol
+          roles_ids: usersTable.roles_ids,
+          // role: roleTable.name, // Nombre del rol
           // Añade aquí cualquier otro campo que necesites: telefono, direccion, historial, etc.
         })
         .from(usersTable)
-        .innerJoin(roleTable, eq(usersTable.roles_id, roleTable.id))
+        // .innerJoin(roleTable, eq(usersTable.roles_ids, roleTable.id))
         .where(eq(usersTable.id, id)) 
         .limit(1); 
 
@@ -273,7 +313,19 @@ async getPaginatedUsers(
         throw new NotFoundException(`Usuario con ID ${id} no encontrado.`);
       }
 
-      return user;
+      // 2. Obtener los nombres de los roles basados en los IDs
+      const roles = await this.db
+            .select({ name: roleTable.name })
+            .from(roleTable)
+            .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
+            // O, si Drizzle soporta el operador ANY:
+            //  .where(sql`${roleTable.id} = ANY(${user.roles_ids})`); 
+
+        // 3. Devolver el objeto de usuario enriquecido
+        return {
+            ...user,
+            roles: roles.map(r => r.name), // Arreglo de strings con los nombres de roles
+        };
 
     } catch (err) {
       if (err instanceof NotFoundException) {

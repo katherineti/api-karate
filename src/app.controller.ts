@@ -7,7 +7,8 @@ export class AppController {
   constructor(private readonly appService: AppService) { }
 
   @Get()
-  getHello() {
-    return this.appService.getUsers();
+  async getHello(): Promise<string> {
+    const users = await this.appService.getUsers();
+    return 'API SVRAM está funcionando correctamente. Usuarios encontrados: ' + JSON.stringify(users, null, 2);
   }
 }

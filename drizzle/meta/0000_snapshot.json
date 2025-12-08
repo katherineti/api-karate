@@ -1,5 +1,5 @@
 {
-  "id": "e29fbac9-ee43-4f9b-8105-215e9e3f6024",
+  "id": "8c92f634-0c10-40b6-9434-c4d2788617e9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -138,11 +138,12 @@
           "notNull": false,
           "default": null
         },
-        "roles_id": {
-          "name": "roles_id",
-          "type": "integer",
+        "roles_ids": {
+          "name": "roles_ids",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "created_at": {
           "name": "created_at",
@@ -167,19 +168,6 @@
           "tableTo": "status",
           "columnsFrom": [
             "status"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "users_roles_id_roles_id_fk": {
-          "name": "users_roles_id_roles_id_fk",
-          "tableFrom": "users",
-          "tableTo": "roles",
-          "columnsFrom": [
-            "roles_id"
           ],
           "columnsTo": [
             "id"
