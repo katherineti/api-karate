@@ -143,8 +143,28 @@ let UsersService = class UsersService {
                 .where(finalWhereCondition)
                 .limit(limit)
                 .offset(offset);
+            if (total === 0) {
+                throw new common_1.NotFoundException(`No se encontraron usuarios con los filtros proporcionados.`);
+            }
+            const allRoles = await this.db
+                .select({ id: schema_1.roleTable.id, name: schema_1.roleTable.name })
+                .from(schema_1.roleTable);
+            const roleMap = allRoles.reduce((map, role) => {
+                map[role.id] = { id: role.id, name: role.name };
+                return map;
+            }, {});
+            const enrichedData = data.map(user => {
+                const roles = user.roles_ids
+                    .map(id => roleMap[id])
+                    .filter(role => role !== undefined);
+                const { roles_ids, ...userData } = user;
+                return {
+                    ...userData,
+                    roles: roles,
+                };
+            });
             return {
-                data,
+                data: enrichedData,
                 total,
                 page,
                 limit,

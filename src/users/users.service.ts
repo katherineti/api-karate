@@ -161,7 +161,7 @@ async getPaginatedUsers(
       const whereConditions: SQL<unknown>[] = [];
 
       if (search) {
-        // Filtro OR: busca en name, lastname o email (usando LIKE para 'contiene')
+        // Filtro OR: busca en name, lastname o email
         const searchPattern = `%${search.toLowerCase()}%`;
         whereConditions.push(
           or(
@@ -173,24 +173,20 @@ async getPaginatedUsers(
       }
 
       if (roleName) {
-          // 💡 Filtro por Rol: Verifica si el arreglo 'roles_ids' contiene el ID del rol
-          // Primero, encuentra el ID del rol por su nombre
-          const role = await this.db.select({ id: roleTable.id })
-              .from(roleTable)
-              .where(eq(roleTable.name, roleName))
-              .limit(1);
+        // Filtro por Rol: Obtiene ID y aplica filtro JSONB '@>'
+        const role = await this.db.select({ id: roleTable.id })
+            .from(roleTable)
+            .where(eq(roleTable.name, roleName))
+            .limit(1);
 
-          if (role.length > 0) {
-              const roleId = role[0].id;
-              // Uso del operador PostgreSQL JSONB '@>' (Contiene)
-              // Ejemplo: usersTable.roles_ids @> '[5]'
-              whereConditions.push(
-                  sql`${usersTable.roles_ids} @> ${sql.raw(`'[${roleId}]'`)}` as SQL<unknown>
-              );
-          } else {
-              // Si el rol no existe, forzamos una condición falsa
-              whereConditions.push(sql`false` as SQL<unknown>);
-          }
+        if (role.length > 0) {
+            const roleId = role[0].id;
+            whereConditions.push(
+                sql`${usersTable.roles_ids} @> ${sql.raw(`'[${roleId}]'`)}` as SQL<unknown>
+            );
+        } else {
+            whereConditions.push(sql`false` as SQL<unknown>);
+        }
       }
       
       // Combinar todos los filtros en una sola expresión OR si existe, 
@@ -224,8 +220,41 @@ async getPaginatedUsers(
         .limit(limit)
         .offset(offset);
 
+     if (total === 0) {
+          throw new NotFoundException(`No se encontraron usuarios con los filtros proporcionados.`);
+      }
+
+      // a. Obtener TODOS los roles de la DB
+      const allRoles = await this.db
+        .select({ id: roleTable.id, name: roleTable.name }) 
+        .from(roleTable);
+
+      // b. Mapear roles a un objeto para búsqueda rápida O(1)
+      const roleMap = allRoles.reduce((map, role) => {
+          map[role.id] = { id: role.id, name: role.name }; 
+          return map;
+      }, {} as Record<number, { id: number, name: string }>);
+
+      // c. Mapear los datos de usuario para incluir el array de objetos de roles
+      const enrichedData = data.map(user => {
+          
+          // 1. Crear el array de objetos de rol
+          const roles = user.roles_ids
+              .map(id => roleMap[id]) 
+              .filter(role => role !== undefined);
+          
+          // 2. Desestructurar y omitir roles_ids
+          const { roles_ids, ...userData } = user; // 💥 Omitir roles_ids
+          
+          return {
+              ...userData, // Contiene id, name, lastname, email, etc.
+              roles: roles, // Array de objetos {id, name}
+          };
+      });
+      // ----------------------------------------------------------------
+
       return {
-        data,
+        data: enrichedData,
         total,
         page,
         limit,
