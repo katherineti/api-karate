@@ -12,6 +12,7 @@ async function bootstrap() {
             frontendUrl,
             'https://studio.firebase.google.com/',
             'https://6000-firebase-studio-1764097833286.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev',
+            'https://6000-firebase-studio-1764097833286.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev',
             'https://9000-firebase-studio-1764097833286.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev',
             '*'
         ],
