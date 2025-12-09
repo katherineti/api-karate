@@ -42,5 +42,5 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], PaginationDto.prototype, "roleName", void 0);
+], PaginationDto.prototype, "roleFilter", void 0);
 //# sourceMappingURL=pagination.dto.js.map

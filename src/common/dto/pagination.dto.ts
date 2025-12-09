@@ -18,9 +18,9 @@ export class PaginationDto {
 
   @IsString()
   @IsOptional()
-  search?: string; // 💡 Nuevo: Búsqueda por name, lastname, email
+  search?: string; //  Nuevo: Búsqueda por name, lastname, email
 
   @IsString()
   @IsOptional()
-  roleName?: string; // 💡 Nuevo: Búsqueda por rol //debe estart completo el string
+  roleFilter?: string; //  Nuevo: Búsqueda por rol //debe estart completo el string
 }

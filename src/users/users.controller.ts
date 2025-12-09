@@ -23,7 +23,7 @@ export class UsersController {
       query.page, 
       query.limit, 
       query.search,  
-      query.roleName 
+      query.roleFilter
     );
   }
 

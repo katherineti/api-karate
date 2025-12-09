@@ -6,6 +6,7 @@ import { eq, like, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { CreateUserDto } from './dto/create-user.dto';
 import { SignupDto } from '../auth/signup.dto';
+import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
 
 export type User = {
     id: number;
@@ -146,124 +147,125 @@ export class UsersService {
    * Obtiene la lista de usuarios paginada.
    * @param page - Número de página.
    * @param limit - Límite de registros por página.
+   * @param roleFilter Filtra por ID de rol (number en string) o lista todos (con 'all').
    * @returns Un objeto con los datos, el total y la paginación.
    */
-async getPaginatedUsers(
-    page: number = 1, 
-    limit: number = 10,
-    search?: string, // Búsqueda por nombre, apellido, email
-    roleName?: string, // Búsqueda por nombre de rol
-  ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
-    try {
-      const offset = (page - 1) * limit;
+    async getPaginatedUsers(
+        page: number = 1, 
+        limit: number = 10,
+        search?: string, 
+        roleFilter?: string, 
+    ): Promise<IPaginatedResponse> {
+        try {
+            const offset = (page - 1) * limit;
+            const whereConditions: SQL<unknown>[] = [];
 
-      // --- 1. Crear el filtro de búsqueda dinámico ---
-      const whereConditions: SQL<unknown>[] = [];
+            // --- 1. Lógica de Filtrado por Búsqueda (Search) ---
+            if (search) {
+                const searchPattern = `%${search.toLowerCase()}%`;
+                whereConditions.push(
+                    or(
+                        like(usersTable.name, searchPattern),
+                        like(usersTable.lastname, searchPattern),
+                        like(usersTable.email, searchPattern)
+                    ) as SQL<unknown>
+                );
+            }
 
-      if (search) {
-        // Filtro OR: busca en name, lastname o email
-        const searchPattern = `%${search.toLowerCase()}%`;
-        whereConditions.push(
-          or(
-            like(usersTable.name, searchPattern),
-            like(usersTable.lastname, searchPattern),
-            like(usersTable.email, searchPattern)
-          ) as SQL<unknown>
-        );
-      }
+            // --- 2. Lógica de Filtrado por Rol (ID Numérico o 'all') ---
+            let roleIdToFilter: number | null = null;
+            
+            if (roleFilter && roleFilter.toLowerCase() !== 'all') {
+                
+                const possibleId = parseInt(roleFilter, 10);
 
-      if (roleName) {
-        // Filtro por Rol: Obtiene ID y aplica filtro JSONB '@>'
-        const role = await this.db.select({ id: roleTable.id })
-            .from(roleTable)
-            .where(eq(roleTable.name, roleName))
-            .limit(1);
+                if (!isNaN(possibleId) && possibleId > 0) {
+                    roleIdToFilter = possibleId;
+                } else {
+                    // Si no es 'all' ni un ID numérico válido, forzamos resultado vacío
+                    whereConditions.push(sql`false` as SQL<unknown>);
+                }
+            }
 
-        if (role.length > 0) {
-            const roleId = role[0].id;
-            whereConditions.push(
-                sql`${usersTable.roles_ids} @> ${sql.raw(`'[${roleId}]'`)}` as SQL<unknown>
-            );
-        } else {
-            whereConditions.push(sql`false` as SQL<unknown>);
+            if (roleIdToFilter !== null) {
+                // Filtro para verificar si el array JSONB 'roles_ids' contiene el 'roleIdToFilter'
+                whereConditions.push(
+                    sql`${usersTable.roles_ids} @> ${sql.raw(`'[${roleIdToFilter}]'`)}` as SQL<unknown>
+                );
+            }
+            
+            // --- 3. Combinar las Condiciones WHERE ---
+            const finalWhereCondition = whereConditions.length > 0 
+                ? (whereConditions.length === 1 ? whereConditions[0] : sql.join(whereConditions, sql` AND `))
+                : undefined;
+
+            // --- 4. Consulta para obtener el TOTAL (COUNT) ---
+            const countResult = await this.db
+                .select({ count: sql<number>`count(*)` })
+                .from(usersTable)
+                .where(finalWhereCondition); 
+
+            const total = countResult[0].count;
+            
+            if (total === 0) {
+                throw new NotFoundException(`No se encontraron usuarios con los filtros proporcionados.`);
+            }
+
+            // --- 5. Consulta para obtener los DATOS paginados ---
+            const data = await this.db
+                .select({
+                    id: usersTable.id,
+                    name: usersTable.name,
+                    lastname: usersTable.lastname,
+                    email: usersTable.email,
+                    roles_ids: usersTable.roles_ids,
+                })
+                .from(usersTable)
+                .where(finalWhereCondition) 
+                .limit(limit)
+                .offset(offset);
+
+            // --- 6. ENRIQUECIMIENTO: Mapear IDs de Rol a Objetos de Rol ---
+            // Optimizamos obteniendo todos los roles una sola vez
+            const allRoles = await this.db
+                .select({ id: roleTable.id, name: roleTable.name }) 
+                .from(roleTable);
+
+            const roleMap = allRoles.reduce((map, role) => {
+                map[role.id] = { id: role.id, name: role.name };
+                return map;
+            }, {} as Record<number, IRole>);
+
+            const enrichedData: IPaginatedUser[] = data.map(user => {
+                const roles: IRole[] = user.roles_ids
+                    .map(id => roleMap[id]) 
+                    .filter(role => role !== undefined) as IRole[];
+                
+                // Usamos destructuring para excluir 'roles_ids' del objeto final
+                const { roles_ids, ...userData } = user;
+                
+                return {
+                    ...userData,
+                    roles: roles,
+                } as IPaginatedUser;
+            });
+
+            // --- 7. Retorno Final ---
+            return {
+                data: enrichedData,
+                total,
+                page,
+                limit,
+            };
+
+        } catch (err) {
+            console.error('Error al obtener usuarios paginados:', err);
+            if (err instanceof NotFoundException) {
+                throw err;
+            }
+            throw new Error('Error al obtener la lista de usuarios.');
         }
-      }
-      
-      // Combinar todos los filtros en una sola expresión OR si existe, 
-      // pero para la función where(), simplemente pasaremos el resultado de 'or()' si hay condiciones.
-      const finalWhereCondition = whereConditions.length > 0 
-        ? (whereConditions.length === 1 ? whereConditions[0] : sql.join(whereConditions, sql` AND `))
-        : undefined;
-
-
-      // --- 2. Consulta para obtener el TOTAL (COUNT) ---
-      const countResult = await this.db
-          .select({ count: sql<number>`count(*)` })
-          .from(usersTable)
-          .where(finalWhereCondition); // Aplicar el filtro a la tabla users directamente
-
-      const total = countResult[0].count;
-      
-      // --- 3. Consulta para obtener los DATOS PAGINADOS ---
-      const data = await this.db
-        .select({
-          id: usersTable.id,
-          name: usersTable.name,
-          lastname: usersTable.lastname,
-          email: usersTable.email,
-          // role: roleTable.name,
-          roles_ids: usersTable.roles_ids,
-        })
-        .from(usersTable)
-        // .innerJoin(roleTable, eq(usersTable.roles_ids, roleTable.id))
-        .where(finalWhereCondition) 
-        .limit(limit)
-        .offset(offset);
-
-     if (total === 0) {
-          throw new NotFoundException(`No se encontraron usuarios con los filtros proporcionados.`);
-      }
-
-      // a. Obtener TODOS los roles de la DB
-      const allRoles = await this.db
-        .select({ id: roleTable.id, name: roleTable.name }) 
-        .from(roleTable);
-
-      // b. Mapear roles a un objeto para búsqueda rápida O(1)
-      const roleMap = allRoles.reduce((map, role) => {
-          map[role.id] = { id: role.id, name: role.name }; 
-          return map;
-      }, {} as Record<number, { id: number, name: string }>);
-
-      // c. Mapear los datos de usuario para incluir el array de objetos de roles
-      const enrichedData = data.map(user => {
-          
-          // 1. Crear el array de objetos de rol
-          const roles = user.roles_ids
-              .map(id => roleMap[id]) 
-              .filter(role => role !== undefined);
-          
-          // 2. Desestructurar y omitir roles_ids
-          const { roles_ids, ...userData } = user; // 💥 Omitir roles_ids
-          
-          return {
-              ...userData, // Contiene id, name, lastname, email, etc.
-              roles: roles, // Array de objetos {id, name}
-          };
-      });
-      // ----------------------------------------------------------------
-
-      return {
-        data: enrichedData,
-        total,
-        page,
-        limit,
-      };
-    } catch (err) {
-      console.error('Error al obtener usuarios paginados:', err);
-      throw new Error('Error al obtener la lista de usuarios.');
     }
-  }
 
 /*   async getPaginatedUsers(page: number, limit: number): Promise<any> {
     const offset = (page - 1) * limit;

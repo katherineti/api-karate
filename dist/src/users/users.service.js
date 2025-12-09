@@ -102,7 +102,7 @@ let UsersService = class UsersService {
             throw new Error("Error al actualizar un usuario " + err);
         }
     }
-    async getPaginatedUsers(page = 1, limit = 10, search, roleName) {
+    async getPaginatedUsers(page = 1, limit = 10, search, roleFilter) {
         try {
             const offset = (page - 1) * limit;
             const whereConditions = [];
@@ -110,18 +110,18 @@ let UsersService = class UsersService {
                 const searchPattern = `%${search.toLowerCase()}%`;
                 whereConditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.like)(schema_1.usersTable.name, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.lastname, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.email, searchPattern)));
             }
-            if (roleName) {
-                const role = await this.db.select({ id: schema_1.roleTable.id })
-                    .from(schema_1.roleTable)
-                    .where((0, drizzle_orm_1.eq)(schema_1.roleTable.name, roleName))
-                    .limit(1);
-                if (role.length > 0) {
-                    const roleId = role[0].id;
-                    whereConditions.push((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${drizzle_orm_1.sql.raw(`'[${roleId}]'`)}`);
+            let roleIdToFilter = null;
+            if (roleFilter && roleFilter.toLowerCase() !== 'all') {
+                const possibleId = parseInt(roleFilter, 10);
+                if (!isNaN(possibleId) && possibleId > 0) {
+                    roleIdToFilter = possibleId;
                 }
                 else {
                     whereConditions.push((0, drizzle_orm_1.sql) `false`);
                 }
+            }
+            if (roleIdToFilter !== null) {
+                whereConditions.push((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${drizzle_orm_1.sql.raw(`'[${roleIdToFilter}]'`)}`);
             }
             const finalWhereCondition = whereConditions.length > 0
                 ? (whereConditions.length === 1 ? whereConditions[0] : drizzle_orm_1.sql.join(whereConditions, (0, drizzle_orm_1.sql) ` AND `))
@@ -131,6 +131,9 @@ let UsersService = class UsersService {
                 .from(schema_1.usersTable)
                 .where(finalWhereCondition);
             const total = countResult[0].count;
+            if (total === 0) {
+                throw new common_1.NotFoundException(`No se encontraron usuarios con los filtros proporcionados.`);
+            }
             const data = await this.db
                 .select({
                 id: schema_1.usersTable.id,
@@ -143,9 +146,6 @@ let UsersService = class UsersService {
                 .where(finalWhereCondition)
                 .limit(limit)
                 .offset(offset);
-            if (total === 0) {
-                throw new common_1.NotFoundException(`No se encontraron usuarios con los filtros proporcionados.`);
-            }
             const allRoles = await this.db
                 .select({ id: schema_1.roleTable.id, name: schema_1.roleTable.name })
                 .from(schema_1.roleTable);
@@ -172,6 +172,9 @@ let UsersService = class UsersService {
         }
         catch (err) {
             console.error('Error al obtener usuarios paginados:', err);
+            if (err instanceof common_1.NotFoundException) {
+                throw err;
+            }
             throw new Error('Error al obtener la lista de usuarios.');
         }
     }
