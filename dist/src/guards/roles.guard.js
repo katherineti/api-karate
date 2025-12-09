@@ -22,15 +22,15 @@ let RolesGuard = class RolesGuard {
             context.getHandler(),
             context.getClass(),
         ]);
-        if (!requiredRoles) {
+        if (!requiredRoles || requiredRoles.length === 0) {
             return true;
         }
         const request = context.switchToHttp().getRequest();
-        const { user } = request;
-        if (!user || !user.role) {
-            return false;
+        const userRoles = request['user']?.roles;
+        if (!userRoles || userRoles.length === 0) {
+            throw new common_1.ForbiddenException('Acceso denegado. El usuario no tiene roles de autorización.');
         }
-        return requiredRoles.some((requiredRole) => user.role === requiredRole);
+        return requiredRoles.some((requiredRole) => userRoles.includes(requiredRole));
     }
 };
 exports.RolesGuard = RolesGuard;

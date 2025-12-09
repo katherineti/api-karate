@@ -14,11 +14,10 @@ export class UsersController {
   // A. Usar AuthGuard: Verifica que haya un token JWT válido.
   // B. Usar RolesGuard: Verifica que el rol en el token esté permitido.
 
-  // 1. 🔒 Endpoint de LISTA PAGINADA PROTEGIDA (GET /users?page=1&limit=5)
+  // 1. Endpoint de LISTA PAGINADA PROTEGIDA (GET /users?page=1&limit=5)
   @Get()
   @UseGuards(AuthGuard, RolesGuard) 
   @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
-  
   async getPaginatedList(@Query() query: PaginationDto) {
     return this.usersService.getPaginatedUsers(
       query.page, 
@@ -34,8 +33,7 @@ export class UsersController {
   @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
   async getUserDetail(@Param('id') id: string) {
     const userId = parseInt(id, 10);
-    
-    // 💡 Llamada actualizada al método renombrado
+    // Llamada actualizada al método renombrado
     return this.usersService.findUserDetailById(userId);
   }
 }

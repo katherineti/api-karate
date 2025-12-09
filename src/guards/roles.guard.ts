@@ -1,9 +1,9 @@
-// src/auth/roles.guard.ts (Código corregido)
+// src/guards/roles.guard.ts
 
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from 'src/decorators/role.decorators';
-import { RoleType } from 'types'; // Asegúrate de importar RoleType
+import { RoleType } from 'types'; 
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -11,26 +11,31 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
   
+    // 1. Obtener los roles requeridos para la ruta (@Roles(...))
     const requiredRoles = this.reflector.getAllAndOverride<RoleType[] | undefined>(ROLES_KEY, [
       context.getHandler(), 
       context.getClass(),
     ]);
 
-    if (!requiredRoles) {
-      return true; // Si no hay roles requeridos, permite el acceso.
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true; // Si no hay roles requeridos en el decorador, permite el acceso.
     }
 
     const request = context.switchToHttp().getRequest();
-    // 💡 IMPORTANTE: 'user' viene del payload JWT adjuntado por AuthGuard
-    const { user } = request; 
+    
+    // 2. Obtener el array de roles del usuario del JWT (adjuntado por AuthGuard)
+    const userRoles: string[] = request['user']?.roles; // 💥 CAMBIO CRÍTICO: Leer el array 'roles'
 
-    if (!user || !user.role) {
-      // El AuthGuard debería haber adjuntado el rol. Si no está, se niega el acceso.
-      return false;
+    if (!userRoles || userRoles.length === 0) {
+      // El usuario está autenticado, pero no tiene roles asignados.
+      throw new ForbiddenException('Acceso denegado. El usuario no tiene roles de autorización.'); 
     }
     
-    // 💡 Corrección Clave: Compara el rol del usuario (user.role) con los roles requeridos.
-    // user.role es el string del nombre del rol (ej: 'Admin')
-    return requiredRoles.some((requiredRole) => user.role === requiredRole);
-  } 
+    // 3. Lógica de Autorización: Verificar si existe una superposición.
+    // Retorna true si AL MENOS UNO de los roles requeridos coincide 
+    // con AL MENOS UNO de los roles del usuario.
+    return requiredRoles.some((requiredRole) => 
+      userRoles.includes(requiredRole as string)
+    );
+  }
 }
