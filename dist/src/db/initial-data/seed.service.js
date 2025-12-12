@@ -22,6 +22,29 @@ async function seed() {
         { status: 'activo' },
         { status: 'inactivo' },
     ];
+    const rawSchoolsData = [
+        { slug: 'antonio-diaz-dojo', name: 'Antonio Díaz Dojo' },
+        { slug: 'shito-ryu-karate', name: 'Shito-Ryu Karate' },
+        { slug: 'dojo-okinawa', name: 'Dojo Okinawa' },
+        { slug: 'bushido-vzla', name: 'Bushido Vzla' },
+        { slug: 'shotokan-caracas', name: 'Shotokan Caracas' },
+        { slug: 'gensei-ryu-miranda', name: 'Gensei-Ryu Miranda' },
+        { slug: 'wado-ryu-valencia', name: 'Wado-Ryu Valencia' },
+        { slug: 'kyokushin-maracay', name: 'Kyokushin Maracay' },
+        { slug: 'shorin-ryu-barquisimeto', name: 'Shorin-Ryu Barquisimeto' },
+        { slug: 'goju-ryu-merida', name: 'Goju-Ryu Mérida' },
+        { slug: 'isshin-ryu-san-cristobal', name: 'Isshin-Ryu San Cristóbal' },
+        { slug: 'kenpo-karate-zulia', name: 'Kenpo Karate Zulia' },
+        { slug: 'ryuei-ryu-anzoategui', name: 'Ryuei-Ryu Anzoátegui' },
+        { slug: 'shudokan-bolivar', name: 'Shudokan Bolívar' },
+        { slug: 'yoshukai-sucre', name: 'Yoshukai Sucre' },
+    ];
+    const schoolsToInsert = rawSchoolsData
+        .filter(school => school.name && school.slug)
+        .map(school => ({
+        name: school.name.trim(),
+        slug: school.slug.trim(),
+    }));
     const client = new pg_1.Client({
         connectionString: connectionString,
         ssl: {
@@ -38,13 +61,18 @@ async function seed() {
             target: schema_1.roleTable.name
         });
         console.log('✅ Seeding de roles completado.');
-        console.log('  -> 2/2: Insertando estados (Status)...');
+        console.log('  -> 2/2: Insertando estados (status)...');
         await db.insert(schema_1.statusTable)
             .values(statusToInsert)
             .onConflictDoNothing({
             target: schema_1.statusTable.status
         });
         console.log('✅ Status completado.');
+        console.log('  -> 3/3: Insertando escuelas (schools)...');
+        await db.insert(schema_1.schoolTable)
+            .values(schoolsToInsert)
+            .onConflictDoNothing({ target: schema_1.schoolTable.slug });
+        console.log(`✅ Schools completado. Se insertaron ${schoolsToInsert.length} escuelas.`);
         console.log('Seeding de datos iniciales finalizado correctamente.');
     }
     catch (error) {

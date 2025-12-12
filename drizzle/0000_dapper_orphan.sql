@@ -7,7 +7,9 @@ CREATE TABLE "roles" (
 CREATE TABLE "schools" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
-	CONSTRAINT "schools_name_unique" UNIQUE("name")
+	"slug" varchar(255) NOT NULL,
+	CONSTRAINT "schools_name_unique" UNIQUE("name"),
+	CONSTRAINT "schools_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
 CREATE TABLE "status" (

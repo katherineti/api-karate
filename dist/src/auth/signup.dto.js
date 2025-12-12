@@ -30,4 +30,9 @@ __decorate([
     (0, class_validator_1.IsNumber)({}, { each: true }),
     __metadata("design:type", Array)
 ], SignupDto.prototype, "roles_ids", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], SignupDto.prototype, "school_id", void 0);
 //# sourceMappingURL=signup.dto.js.map

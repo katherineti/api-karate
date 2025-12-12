@@ -12,7 +12,8 @@ export const roleTable = pgTable("roles",{
 
 export const schoolTable = pgTable("schools",{
   id: serial().primaryKey(),
-  name: varchar({ length: 255 }).notNull().unique() ,
+  name: varchar({ length: 255 }).notNull().unique(), // Nombre amigable (con acentos/espacios)
+  slug: varchar({ length: 255 }).notNull().unique(), // Identificador limpio (sin acentos/espacios)
 })
 
 export const usersTable = pgTable("users", {

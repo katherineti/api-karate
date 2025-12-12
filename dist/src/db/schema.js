@@ -13,6 +13,7 @@ exports.roleTable = (0, pg_core_1.pgTable)("roles", {
 exports.schoolTable = (0, pg_core_1.pgTable)("schools", {
     id: (0, pg_core_1.serial)().primaryKey(),
     name: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
+    slug: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
 });
 exports.usersTable = (0, pg_core_1.pgTable)("users", {
     id: (0, pg_core_1.integer)().primaryKey().generatedAlwaysAsIdentity(),

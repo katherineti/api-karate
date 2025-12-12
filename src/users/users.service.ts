@@ -9,17 +9,17 @@ import { SignupDto } from '../auth/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
 
 export type User = {
-    id: number;
-    name: string;
-    lastname: string;
-    // age: number;
-    email: string;
-    password: string;
-    created_at: Date;
-    // roles_id: number;
-    // role: string;
-    roles_ids: number[];
+  id: number;
+  name?: string;
+  lastname?: string;
+  // age: number;
+  email: string;
+  password: string;
+  school_id?: number;
+  status?: number;
+  roles_ids: number[];
     roles?:string[];
+  created_at: Date;
 };
 
 @Injectable()
@@ -98,7 +98,6 @@ export class UsersService {
             const newUser = {
               ...createUser,
               password: hash, 
-              // roles_id: 1,
               status: STATUS_ACTIVO
             };
       
