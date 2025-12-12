@@ -188,11 +188,12 @@ let UsersService = class UsersService {
                 email: schema_1.usersTable.email,
                 birthdate: schema_1.usersTable.birthdate,
                 url_image: schema_1.usersTable.url_image,
-                created_at: schema_1.usersTable.created_at,
-                updated_at: schema_1.usersTable.updated_at,
                 roles_ids: schema_1.usersTable.roles_ids,
+                school_id: schema_1.usersTable.school_id,
+                school_name: schema_1.schoolTable.name,
             })
                 .from(schema_1.usersTable)
+                .innerJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, id))
                 .limit(1);
             const user = userResult[0];

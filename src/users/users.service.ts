@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, STATUS_ACTIVO, STATUS_UPDATED } from 'src/constants';
-import { roleTable, usersTable } from 'src/db/schema';
+import { roleTable, usersTable, schoolTable } from 'src/db/schema';
 import { eq, like, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { CreateUserDto } from './dto/create-user.dto';
@@ -325,14 +325,14 @@ export class UsersService {
           email: usersTable.email,
           birthdate: usersTable.birthdate,
           url_image: usersTable.url_image,
-          created_at: usersTable.created_at,
-          updated_at: usersTable.updated_at,
           roles_ids: usersTable.roles_ids,
-          // role: roleTable.name, // Nombre del rol
-          // Añade aquí cualquier otro campo que necesites: telefono, direccion, historial, etc.
+          school_id: usersTable.school_id,
+          school_name: schoolTable.name,
+          // created_at: usersTable.created_at,
+          // updated_at: usersTable.updated_at,
         })
         .from(usersTable)
-        // .innerJoin(roleTable, eq(usersTable.roles_ids, roleTable.id))
+        .innerJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
         .where(eq(usersTable.id, id)) 
         .limit(1); 
 
