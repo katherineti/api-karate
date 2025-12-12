@@ -183,6 +183,8 @@ let UsersService = class UsersService {
                 id: schema_1.usersTable.id,
                 name: schema_1.usersTable.name,
                 lastname: schema_1.usersTable.lastname,
+                document_type: schema_1.usersTable.document_type,
+                document_number: schema_1.usersTable.document_number,
                 email: schema_1.usersTable.email,
                 birthdate: schema_1.usersTable.birthdate,
                 url_image: schema_1.usersTable.url_image,

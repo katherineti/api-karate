@@ -21,7 +21,7 @@ exports.usersTable = (0, pg_core_1.pgTable)("users", {
     lastname: (0, pg_core_1.varchar)({ length: 255 }).default(null),
     document_type: (0, pg_core_1.varchar)({ length: 1 }).default(null),
     document_number: (0, pg_core_1.varchar)({ length: 255 }).default(null),
-    birthdate: (0, pg_core_1.varchar)().default(null),
+    birthdate: (0, pg_core_1.date)().default(null),
     email: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
     password: (0, pg_core_1.varchar)({ length: 255 }).notNull(),
     url_image: (0, pg_core_1.varchar)({ length: 255 }).default(null),

@@ -320,6 +320,8 @@ export class UsersService {
           id: usersTable.id,
           name: usersTable.name,
           lastname: usersTable.lastname,
+          document_type: usersTable.document_type, 
+          document_number: usersTable.document_number,
           email: usersTable.email,
           birthdate: usersTable.birthdate,
           url_image: usersTable.url_image,

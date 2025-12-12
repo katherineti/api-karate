@@ -24,7 +24,7 @@ CREATE TABLE "users" (
 	"lastname" varchar(255) DEFAULT null,
 	"document_type" varchar(1) DEFAULT null,
 	"document_number" varchar(255) DEFAULT null,
-	"birthdate" varchar DEFAULT null,
+	"birthdate" date DEFAULT null,
 	"email" varchar(255) NOT NULL,
 	"password" varchar(255) NOT NULL,
 	"url_image" varchar(255) DEFAULT null,

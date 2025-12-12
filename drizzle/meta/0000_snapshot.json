@@ -1,5 +1,5 @@
 {
-  "id": "4aaeb029-044a-4d06-92ab-a3710fc159d5",
+  "id": "bdb3df23-cd65-4f17-8dbe-b282d83e307b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -167,7 +167,7 @@
         },
         "birthdate": {
           "name": "birthdate",
-          "type": "varchar",
+          "type": "date",
           "primaryKey": false,
           "notNull": false,
           "default": null

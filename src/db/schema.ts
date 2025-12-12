@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
+import { date, integer, jsonb, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 
 export const statusTable = pgTable("status",{
   id: serial().primaryKey(),
@@ -22,9 +22,8 @@ export const usersTable = pgTable("users", {
     lastname: varchar({ length: 255 }).default(null),
     document_type: varchar({ length: 1 }).default(null),
     document_number: varchar({ length: 255 }).default(null), 
-    birthdate: varchar().default(null),
+    birthdate: date().default(null),
     email: varchar({ length: 255 }).notNull().unique(),
-    // username: varchar({ length: 255 }).notNull().unique(),
     password: varchar({ length: 255 }).notNull(),
     url_image: varchar({ length: 255 }).default(null),
     school_id: integer().default(null).references(() => schoolTable.id),
