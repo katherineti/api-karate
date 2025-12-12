@@ -33,9 +33,9 @@ export class AuthService {
             const payload = { 
               sub: user.id, 
               email: user.email,
-              //  role: user.role
-              roles_ids: user.roles_ids,
-              roles: (user.roles_ids.length > 0) ? user.roles : null
+              // roles_ids: user.roles_ids,
+              roles: (user.roles_ids.length > 0) ? user.roles : null,
+              school_id: user.school_id,
             };
             console.log("JWTSecret " , JWTSecret)
             console.log("payload " , payload)

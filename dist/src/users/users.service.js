@@ -26,12 +26,10 @@ let UsersService = class UsersService {
     async findOnByEmail(email, isSignUp = false) {
         const result = await this.db.select({
             id: schema_1.usersTable.id,
-            name: schema_1.usersTable.name,
-            lastname: schema_1.usersTable.lastname,
             email: schema_1.usersTable.email,
             password: schema_1.usersTable.password,
-            created_at: schema_1.usersTable.created_at,
             roles_ids: schema_1.usersTable.roles_ids,
+            school_id: schema_1.usersTable.school_id,
         })
             .from(schema_1.usersTable)
             .where((0, drizzle_orm_1.eq)(schema_1.usersTable.email, email));

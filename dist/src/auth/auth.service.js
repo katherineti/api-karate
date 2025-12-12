@@ -37,8 +37,8 @@ let AuthService = class AuthService {
         const payload = {
             sub: user.id,
             email: user.email,
-            roles_ids: user.roles_ids,
-            roles: (user.roles_ids.length > 0) ? user.roles : null
+            roles: (user.roles_ids.length > 0) ? user.roles : null,
+            school_id: user.school_id,
         };
         console.log("JWTSecret ", constants_1.JWTSecret);
         console.log("payload ", payload);

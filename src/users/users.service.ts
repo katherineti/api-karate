@@ -19,7 +19,7 @@ export type User = {
   status?: number;
   roles_ids: number[];
     roles?:string[];
-  created_at: Date;
+  created_at?: Date;
 };
 
 @Injectable()
@@ -32,14 +32,11 @@ export class UsersService {
         const result = await  
         this.db.select({
           id:  usersTable.id,
-          name: usersTable.name,
-          lastname: usersTable.lastname,
           email: usersTable.email,
           password: usersTable.password,
-          created_at: usersTable.created_at,
-          // Obtener el arreglo de IDs:
           roles_ids: usersTable.roles_ids,
-          // role: roleTable.name,
+          school_id: usersTable.school_id,
+          // created_at: usersTable.created_at,
         })
         .from(usersTable)
         // .innerJoin( roleTable, or( ...usersTable.roles_ids.map( id => eq( id, roleTable.id ) ) ) )  
