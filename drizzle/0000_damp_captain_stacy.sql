@@ -4,6 +4,12 @@ CREATE TABLE "roles" (
 	CONSTRAINT "roles_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
+CREATE TABLE "schools" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(255) NOT NULL,
+	CONSTRAINT "schools_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
 CREATE TABLE "status" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"status" varchar(255) NOT NULL,
@@ -18,6 +24,7 @@ CREATE TABLE "users" (
 	"email" varchar(255) NOT NULL,
 	"password" varchar(255) NOT NULL,
 	"url_image" varchar(255) DEFAULT null,
+	"school_id" integer DEFAULT null,
 	"status" integer DEFAULT null,
 	"roles_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now(),
@@ -25,4 +32,5 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_school_id_schools_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."schools"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_status_status_id_fk" FOREIGN KEY ("status") REFERENCES "public"."status"("id") ON DELETE no action ON UPDATE no action;

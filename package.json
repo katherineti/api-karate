@@ -17,7 +17,13 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+
+    "migrate:generate": "drizzle-kit generate:pg",
+    "migrate:apply": "drizzle-kit migrate:pg",
+    "db:push": "drizzle-kit push:pg",
+    "seed-autonomo": "ts-node src/db/initial-data/seed.service.ts",
+    "db:setup": "npm run db:push && npm run seed-autonomo"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

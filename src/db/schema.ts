@@ -10,6 +10,11 @@ export const roleTable = pgTable("roles",{
   name: varchar({ length: 255 }).notNull().unique() ,
 })
 
+export const schoolTable = pgTable("schools",{
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull().unique() ,
+})
+
 export const usersTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar({ length: 255 }).default(null),
@@ -20,9 +25,11 @@ export const usersTable = pgTable("users", {
     // username: varchar({ length: 255 }).notNull().unique(),
     password: varchar({ length: 255 }).notNull(),
     url_image: varchar({ length: 255 }).default(null),
+    school_id: integer().default(null).references(() => schoolTable.id),
     status: integer().default(null).references(() => statusTable.id),
     // roles_id: integer().notNull().references(() => roleTable.id),
     roles_ids: jsonb('roles_ids').$type<number[]>().notNull().default([]),
     created_at: timestamp().defaultNow(),
     updated_at: timestamp().defaultNow(),
 });
+

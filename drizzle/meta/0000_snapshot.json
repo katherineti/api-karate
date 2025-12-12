@@ -1,5 +1,5 @@
 {
-  "id": "8c92f634-0c10-40b6-9434-c4d2788617e9",
+  "id": "be72c87d-171b-4330-a88b-e64950df702f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -27,6 +27,39 @@
       "uniqueConstraints": {
         "roles_name_unique": {
           "name": "roles_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.schools": {
+      "name": "schools",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "schools_name_unique": {
+          "name": "schools_name_unique",
           "nullsNotDistinct": false,
           "columns": [
             "name"
@@ -131,6 +164,13 @@
           "notNull": false,
           "default": null
         },
+        "school_id": {
+          "name": "school_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
         "status": {
           "name": "status",
           "type": "integer",
@@ -162,6 +202,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "users_school_id_schools_id_fk": {
+          "name": "users_school_id_schools_id_fk",
+          "tableFrom": "users",
+          "tableTo": "schools",
+          "columnsFrom": [
+            "school_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "users_status_status_id_fk": {
           "name": "users_status_status_id_fk",
           "tableFrom": "users",
