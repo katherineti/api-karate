@@ -332,7 +332,7 @@ export class UsersService {
           // updated_at: usersTable.updated_at,
         })
         .from(usersTable)
-        .innerJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
+        .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
         .where(eq(usersTable.id, id)) 
         .limit(1); 
 
