@@ -200,12 +200,16 @@ let UsersService = class UsersService {
                 throw new common_1.NotFoundException(`Usuario con ID ${id} no encontrado.`);
             }
             const roles = await this.db
-                .select({ name: schema_1.roleTable.name })
+                .select({
+                id: schema_1.roleTable.id,
+                name: schema_1.roleTable.name
+            })
                 .from(schema_1.roleTable)
                 .where((0, drizzle_orm_1.sql) `${schema_1.roleTable.id} IN (${drizzle_orm_1.sql.join(user.roles_ids.map(id => drizzle_orm_1.sql.raw(`${id}`)), (0, drizzle_orm_1.sql) `, `)})`);
+            const { roles_ids, ...userData } = user;
             return {
-                ...user,
-                roles: roles.map(r => r.name),
+                ...userData,
+                roles: roles,
             };
         }
         catch (err) {

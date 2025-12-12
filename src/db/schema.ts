@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 
 export const statusTable = pgTable("status",{
   id: serial().primaryKey(),
@@ -20,7 +20,8 @@ export const usersTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar({ length: 255 }).default(null),
     lastname: varchar({ length: 255 }).default(null),
-    // gender: varchar({ length: 1 }).notNull(), 
+    document_type: varchar({ length: 1 }).default(null),
+    document_number: varchar({ length: 255 }).default(null), 
     birthdate: varchar().default(null),
     email: varchar({ length: 255 }).notNull().unique(),
     // username: varchar({ length: 255 }).notNull().unique(),
@@ -28,9 +29,11 @@ export const usersTable = pgTable("users", {
     url_image: varchar({ length: 255 }).default(null),
     school_id: integer().default(null).references(() => schoolTable.id),
     status: integer().default(null).references(() => statusTable.id),
-    // roles_id: integer().notNull().references(() => roleTable.id),
     roles_ids: jsonb('roles_ids').$type<number[]>().notNull().default([]),
     created_at: timestamp().defaultNow(),
     updated_at: timestamp().defaultNow(),
+}, (table) => {
+   return [
+    unique('document_unique').on(table.document_type, table.document_number),
+   ];
 });
-

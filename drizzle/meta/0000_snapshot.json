@@ -1,5 +1,5 @@
 {
-  "id": "37244a9a-6cfd-4831-adb9-f71e39e00353",
+  "id": "4aaeb029-044a-4d06-92ab-a3710fc159d5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -151,6 +151,20 @@
           "notNull": false,
           "default": null
         },
+        "document_type": {
+          "name": "document_type",
+          "type": "varchar(1)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "document_number": {
+          "name": "document_number",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
         "birthdate": {
           "name": "birthdate",
           "type": "varchar",
@@ -249,6 +263,14 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
+          ]
+        },
+        "document_unique": {
+          "name": "document_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "document_type",
+            "document_number"
           ]
         }
       },

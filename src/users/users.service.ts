@@ -345,16 +345,21 @@ export class UsersService {
 
       // 2. Obtener los nombres de los roles basados en los IDs
       const roles = await this.db
-            .select({ name: roleTable.name })
+            .select({ 
+                id: roleTable.id, 
+                name: roleTable.name 
+            })
             .from(roleTable)
             .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
             // O, si Drizzle soporta el operador ANY:
             //  .where(sql`${roleTable.id} = ANY(${user.roles_ids})`); 
 
         // 3. Devolver el objeto de usuario enriquecido
+        const { roles_ids, ...userData } = user;
+
         return {
-            ...user,
-            roles: roles.map(r => r.name), // Arreglo de strings con los nombres de roles
+            ...userData,
+            roles: roles, // Arreglo de objetos { id: number, name: string }
         };
 
     } catch (err) {
