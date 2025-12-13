@@ -27,6 +27,8 @@ export const usersTable = pgTable("users", {
     password: varchar({ length: 255 }).notNull(),
     url_image: varchar({ length: 255 }).default(null),
     school_id: integer().default(null).references(() => schoolTable.id),
+    representative_id: integer().default(null),
+    // representative_id: integer().default(null).references(() => usersTable.id),
     status: integer().default(null).references(() => statusTable.id),
     roles_ids: jsonb('roles_ids').$type<number[]>().notNull().default([]),
     created_at: timestamp().defaultNow(),

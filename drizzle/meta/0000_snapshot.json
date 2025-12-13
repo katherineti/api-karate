@@ -1,5 +1,5 @@
 {
-  "id": "bdb3df23-cd65-4f17-8dbe-b282d83e307b",
+  "id": "6c607795-c29b-4556-86de-cb695966df3f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -193,6 +193,13 @@
         },
         "school_id": {
           "name": "school_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "representative_id": {
+          "name": "representative_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

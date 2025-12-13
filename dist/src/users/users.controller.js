@@ -35,6 +35,9 @@ let UsersController = class UsersController {
     update(user) {
         return this.usersService.updateUser(user);
     }
+    async getUsersByRole(roleId) {
+        return this.usersService.getByRol(roleId);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -59,13 +62,22 @@ __decorate([
 __decorate([
     (0, common_1.Post)('update'),
     (0, common_1.UsePipes)(common_1.ValidationPipe),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
     (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "update", null);
+__decorate([
+    (0, common_1.Get)('by-role/:roleId'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master, types_1.RoleType.Juez),
+    __param(0, (0, common_1.Param)('roleId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getUsersByRole", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),

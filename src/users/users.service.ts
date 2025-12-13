@@ -15,6 +15,7 @@ export type User = {
   email: string;
   password: string;
   school_id?: number;
+  representative_id?: number;
   status?: number;
   roles_ids: number[];
   roles?:string[];
@@ -73,6 +74,20 @@ export class UsersService {
       }
     }
 
+    async getByRol(rol_id:number): Promise<User[]> {
+      try{
+        const result = await this.db.select()
+          .from(usersTable)
+          .where(sql`${usersTable.roles_ids} @> ${sql.raw(`'[${rol_id}]'`)}`);
+    
+        return result || [];
+        
+      }catch(err){
+        console.error("Error en la base de datos al buscar usuarios por rol " + rol_id + ": ", err);
+        throw new Error("Error al obtener usuarios por rol " + rol_id + " " + err);
+      }
+    }
+
     async createUser( createUser : SignupDto){
       try {
           const hash = await argon2.hash( createUser.password );
@@ -115,6 +130,7 @@ export class UsersService {
           birthdate: user.birthdate,
           email: user.email,
           school_id: user.school_id,
+          representative_id: user.representative_id,//representante del alumno
           status: STATUS_UPDATED,
           roles_ids: user.roles_ids,
           updated_at: new Date(),
@@ -273,6 +289,7 @@ export class UsersService {
           roles_ids: usersTable.roles_ids,
           school_id: usersTable.school_id,
           school_name: schoolTable.name,
+          representative_id: usersTable.representative_id,
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))

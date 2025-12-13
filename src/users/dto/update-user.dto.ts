@@ -38,6 +38,10 @@ export class UpdateUserDto{
     @IsOptional()
     school_id: number;
 
+    @IsNumber()
+    @IsOptional()
+    representative_id: number;
+
     @IsArray() 
     @IsNotEmpty() 
     @IsNumber({}, { each: true })

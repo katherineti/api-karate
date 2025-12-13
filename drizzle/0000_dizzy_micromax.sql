@@ -29,6 +29,7 @@ CREATE TABLE "users" (
 	"password" varchar(255) NOT NULL,
 	"url_image" varchar(255) DEFAULT null,
 	"school_id" integer DEFAULT null,
+	"representative_id" integer DEFAULT null,
 	"status" integer DEFAULT null,
 	"roles_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now(),

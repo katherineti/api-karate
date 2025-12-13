@@ -61,6 +61,18 @@ let UsersService = class UsersService {
             throw new Error("Error al obtener el usuario " + id + " " + err);
         }
     }
+    async getByRol(rol_id) {
+        try {
+            const result = await this.db.select()
+                .from(schema_1.usersTable)
+                .where((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${drizzle_orm_1.sql.raw(`'[${rol_id}]'`)}`);
+            return result || [];
+        }
+        catch (err) {
+            console.error("Error en la base de datos al buscar usuarios por rol " + rol_id + ": ", err);
+            throw new Error("Error al obtener usuarios por rol " + rol_id + " " + err);
+        }
+    }
     async createUser(createUser) {
         try {
             const hash = await argon2.hash(createUser.password);
@@ -95,6 +107,7 @@ let UsersService = class UsersService {
                 birthdate: user.birthdate,
                 email: user.email,
                 school_id: user.school_id,
+                representative_id: user.representative_id,
                 status: constants_1.STATUS_UPDATED,
                 roles_ids: user.roles_ids,
                 updated_at: new Date(),
@@ -199,6 +212,7 @@ let UsersService = class UsersService {
                 roles_ids: schema_1.usersTable.roles_ids,
                 school_id: schema_1.usersTable.school_id,
                 school_name: schema_1.schoolTable.name,
+                representative_id: schema_1.usersTable.representative_id,
             })
                 .from(schema_1.usersTable)
                 .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
