@@ -171,6 +171,7 @@ export class UsersService {
       try {
         const updated = {
           email: user.email,
+          roles_ids: user.roles_ids,
           status: STATUS_INACTIVO,
           updated_at: new Date(),
         }

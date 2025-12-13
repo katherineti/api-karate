@@ -140,6 +140,7 @@ let UsersService = class UsersService {
         try {
             const updated = {
                 email: user.email,
+                roles_ids: user.roles_ids,
                 status: constants_1.STATUS_INACTIVO,
                 updated_at: new Date(),
             };
