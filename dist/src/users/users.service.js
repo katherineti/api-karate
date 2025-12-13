@@ -220,9 +220,11 @@ let UsersService = class UsersService {
                 school_id: schema_1.usersTable.school_id,
                 school_name: schema_1.schoolTable.name,
                 representative_id: schema_1.usersTable.representative_id,
+                representative_name: schema_1.usersTable.name,
             })
                 .from(schema_1.usersTable)
                 .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
+                .leftJoin(schema_1.usersTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.representative_id, schema_1.usersTable.id))
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, id))
                 .limit(1);
             const user = userResult[0];

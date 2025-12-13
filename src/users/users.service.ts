@@ -299,9 +299,11 @@ export class UsersService {
           school_id: usersTable.school_id,
           school_name: schoolTable.name,
           representative_id: usersTable.representative_id,
+          representative_name: (usersTable as any).name,
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
+        .leftJoin(usersTable as any, eq(usersTable.representative_id, (usersTable as any).id))
         .where(eq(usersTable.id, id)) 
         .limit(1); 
 
