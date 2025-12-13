@@ -55,8 +55,8 @@ async function seed() {
         {id:3, category: 'Juvenil', age_range: '12-13 años' },
         {id:4, category: 'Cadete', age_range: '14-15 años' },
         {id:5, category: 'Junior', age_range: '16-17 años' },
-        {id:7, category: 'Sub-21', age_range: '18-20 años' },
-        {id:8, category: 'Senior', age_range: '21 años y más' },
+        {id:6, category: 'Sub-21', age_range: '18-20 años' },
+        {id:7, category: 'Senior', age_range: '21 años y más' },
     ];
 
     const karateBeltsToInsert = [
