@@ -147,8 +147,8 @@ export class UsersService {
           representative_id: user.representative_id,//representante del alumno
           status: STATUS_UPDATED,
           roles_ids: user.roles_ids,
-          karate_category_id: user.category_id,
-          karate_belt_id: user.belt_id,
+          category_id: user.category_id,
+          belt_id: user.belt_id,
           updated_at: new Date(),
         }
         
@@ -307,10 +307,10 @@ export class UsersService {
           representative_id: representativeTable.id,
           representative_name: representativeTable.name,
           representative_lastname: representativeTable.lastname,
-          karate_category_id: usersTable.category_id,
-          karate_category_name: karateCategoriesTable.category,
-          karate_belt_id: usersTable.belt_id,
-          karate_belt_name: karateBeltsTable.belt,
+          category_id: usersTable.category_id,
+          category_name: karateCategoriesTable.category,
+          belt_id: usersTable.belt_id,
+          belt_name: karateBeltsTable.belt,
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
