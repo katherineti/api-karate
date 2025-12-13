@@ -315,6 +315,8 @@ export class UsersService {
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
         .leftJoin(representativeTable, eq(usersTable.representative_id, representativeTable.id))
+        .leftJoin(karateCategoriesTable, eq(usersTable.category_id, karateCategoriesTable.id))
+        .leftJoin(karateBeltsTable, eq(usersTable.belt_id, karateBeltsTable.id))
         .where(eq(usersTable.id, id)) 
         .limit(1); 
 
