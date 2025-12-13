@@ -1,14 +1,9 @@
-// drizzle/seed.ts (Coloca este archivo en la raíz o en una carpeta 'drizzle')
-
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
-import 'dotenv/config'; // Necesario para cargar DATABASE_URL
-// 💥 Importaciones relativas: AJUSTA LA RUTA DE TU ESQUEMA
+import 'dotenv/config';
 import * as schema from '../schema'; 
 import { roleTable, statusTable, schoolTable } from '../schema'; 
 async function seed() {
-    
-    // 1. Verificar la cadena de conexión
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
         console.error('❌ Error: La variable DATABASE_URL no está definida en .env');
@@ -26,6 +21,7 @@ async function seed() {
     const statusToInsert = [
         { status: 'activo' },
         { status: 'inactivo' }, 
+        { status: 'actualizado' }, 
     ];
 
     const rawSchoolsData = [
@@ -37,7 +33,7 @@ async function seed() {
         { slug: 'gensei-ryu-miranda', name: 'Gensei-Ryu Miranda'},
         { slug: 'wado-ryu-valencia', name: 'Wado-Ryu Valencia' },
         { slug: 'kyokushin-maracay', name: 'Kyokushin Maracay'},
-        { slug: 'shorin-ryu-barquisimeto', name: 'Shorin-Ryu Barquisimeto'}, // 💥 Corregido el objeto
+        { slug: 'shorin-ryu-barquisimeto', name: 'Shorin-Ryu Barquisimeto'}, 
         { slug: 'goju-ryu-merida', name: 'Goju-Ryu Mérida'},
         { slug: 'isshin-ryu-san-cristobal', name: 'Isshin-Ryu San Cristóbal' },
         { slug: 'kenpo-karate-zulia', name: 'Kenpo Karate Zulia' },
@@ -45,7 +41,7 @@ async function seed() {
         { slug: 'shudokan-bolivar', name: 'Shudokan Bolívar' },
         { slug: 'yoshukai-sucre', name: 'Yoshukai Sucre' },
     ];
-    // Mapeo directo: el nombre de la propiedad ya coincide con la columna
+
     const schoolsToInsert = rawSchoolsData
         .filter(school => school.name && school.slug)
         .map(school => ({
@@ -67,7 +63,7 @@ async function seed() {
 
         console.log('1/2: Iniciando seeding de roles (Autónomo)...');
 
-        // 3. Ejecutar el insert con ON CONFLICT (para idempotencia)
+        //Ejecutar el insert con ON CONFLICT (para idempotencia)
         await db.insert(roleTable)
             .values(rolesToInsert)
             .onConflictDoNothing({ 
@@ -98,7 +94,7 @@ async function seed() {
         console.error('❌ Error CRÍTICO durante el seeding:', error);
         process.exit(1);
     } finally {
-        // 4. Cerrar la conexión
+        //Cerrar la conexión
         await client.end(); 
     }
 }

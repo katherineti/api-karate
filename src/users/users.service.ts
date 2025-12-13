@@ -4,21 +4,20 @@ import { PG_CONNECTION, STATUS_ACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable } from 'src/db/schema';
 import { eq, like, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
-import { CreateUserDto } from './dto/create-user.dto';
 import { SignupDto } from '../auth/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 export type User = {
   id: number;
   name?: string;
   lastname?: string;
-  // age: number;
   email: string;
   password: string;
   school_id?: number;
   status?: number;
   roles_ids: number[];
-    roles?:string[];
+  roles?:string[];
   created_at?: Date;
 };
 
@@ -27,7 +26,6 @@ export class UsersService {
 
  constructor(@Inject(PG_CONNECTION) private db: NeonDatabase) {}
 
-    // async findOnByEmail(email: string, isSignUp=false): Promise<User | undefined> {
     async findOnByEmail(email: string, isSignUp=false): Promise<User | undefined> {
         const result = await  
         this.db.select({
@@ -36,12 +34,9 @@ export class UsersService {
           password: usersTable.password,
           roles_ids: usersTable.roles_ids,
           school_id: usersTable.school_id,
-          // created_at: usersTable.created_at,
         })
         .from(usersTable)
-        // .innerJoin( roleTable, or( ...usersTable.roles_ids.map( id => eq( id, roleTable.id ) ) ) )  
         .where(eq(usersTable.email , email ));
-        // return result[0];
 
       const user = result[0];
 
@@ -53,25 +48,19 @@ export class UsersService {
         return user;
       }
 
-      // 2. Obtener los nombres de los roles basados en los IDs
       const roles = await this.db
             .select({ name: roleTable.name })
             .from(roleTable)
             .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
-            // O, si Drizzle soporta el operador ANY:
-            // .where(sql`${roleTable.id} = ANY(${user.roles_ids})`); 
-  
-      // 3. Devolver el objeto de usuario enriquecido
+            
       return {
           ...user,
-          roles: roles.map(r => r.name), // Arreglo de strings con los nombres de roles
+          roles: roles.map(r => r.name)
       };
     }
 
     async getUserbyId(id:number) {
-    
       try{
-  
         const result = await this.db.select()
           .from(usersTable)
           .where(eq( usersTable.id, id ));
@@ -84,68 +73,68 @@ export class UsersService {
       }
     }
 
-      async createUser( createUser : SignupDto){
-    
-        try {
-     
-            const hash = await argon2.hash( createUser.password );
- 
-            await  this.db.select().from(usersTable)
+    async createUser( createUser : SignupDto){
+      try {
+          const hash = await argon2.hash( createUser.password );
 
-            const newUser = {
-              ...createUser,
-              password: hash, 
-              status: STATUS_ACTIVO
-            };
-      
-          await this.db.insert(usersTable).values(newUser);
+          await  this.db.select().from(usersTable)
+
+          const newUser = {
+            ...createUser,
+            password: hash, 
+            status: STATUS_ACTIVO
+          };
     
-        } catch (err) {
-    
-          throw new Error("Error al crear un usuario " + err);
-        }
-    
-         return "Usuario registrado";
+        await this.db.insert(usersTable).values(newUser);
+  
+      } catch (err) {
+  
+        throw new Error("Error al crear un usuario " + err);
+      }
+  
+        return "Usuario registrado";
+    }
+
+    async updateUser(user:UpdateUserDto): Promise<any> {
+      let email = await this.findOnByEmail(user.email)
+      if( !email){
+        throw new Error("No existe el email");
       }
 
-      async updateUser( createUser: CreateUserDto){
-        try {
-          const upd = {
-          name: createUser.name,
-          lastname: createUser.lastname,
-          birthdate: createUser.birthdate,
-          email: createUser.email,
-          password: createUser.password,
-          url_image: createUser.url_image,
+      let id= await this.getUserbyId(user.id);
+      if( !id ){
+        throw new Error("No existe el id usuario");
+      }
+
+      try {
+        const updated = {
+          name: user.name,
+          lastname: user.lastname,
+          birthdate: user.birthdate,
+          email: user.email,
+          school_id: user.school_id,
           status: STATUS_UPDATED,
-          roles_id: createUser.roles_ids,
+          roles_ids: user.roles_ids,
           updated_at: new Date(),
         }
-          
-        await this.getUserbyId(createUser.id)        
-
+        
         return  await this.db.update(usersTable)
-          .set(upd)
-          .where(eq(usersTable.id,  createUser.id))
+          .set(updated)
+          .where(eq(usersTable.id,  user.id))
           .returning({ updatedId: usersTable.id }); //salida: [{"updatedId": 2 }]
 
-        } catch (err) {
-    
-          throw new Error("Error al actualizar un usuario " + err);
-        }
+      } catch (err) {
+        throw new Error("Error al actualizar un usuario " + err);
       }
+    }
 
-/*       delete(id:number){
-        return this.db.delete(usersTable).where(eq(usersTable.id, id));
-      } */
-
-/**
-   * Obtiene la lista de usuarios paginada.
-   * @param page - Número de página.
-   * @param limit - Límite de registros por página.
-   * @param roleFilter Filtra por ID de rol (number en string) o lista todos (con 'all').
-   * @returns Un objeto con los datos, el total y la paginación.
-   */
+    /**
+     * Obtiene la lista de usuarios paginada.
+     * @param page - Número de página.
+     * @param limit - Límite de registros por página.
+     * @param roleFilter Filtra por ID de rol (number en string) o lista todos (con 'all').
+     * @returns Un objeto con los datos, el total y la paginación.
+     */
     async getPaginatedUsers(
         page: number = 1, 
         limit: number = 10,
@@ -263,56 +252,10 @@ export class UsersService {
         }
     }
 
-/*   async getPaginatedUsers(page: number, limit: number): Promise<any> {
-    const offset = (page - 1) * limit;
-
-    try {
-      // 1. 🎯 Obtener el total de registros (CRÍTICO para la paginación)
-      // Usamos 'sql' para una consulta de conteo eficiente.
-      const countResult = await this.db
-        .select({
-          count: sql<number>`count(*)`.as('count'), // 👈 Drizzle SQL count
-        })
-        .from(usersTable);
-        
-      const totalItems = countResult[0].count;
-
-      // 2. 📝 Obtener los datos de la página actual con JOIN, LIMIT y OFFSET
-      const data = await this.db
-        .select({
-          id: usersTable.id,
-          name: usersTable.name,
-          lastname: usersTable.lastname,
-          email: usersTable.email,
-          role: roleTable.name, // Obtiene el nombre del rol para la respuesta
-        })
-        .from(usersTable)
-        .innerJoin(roleTable, eq(usersTable.roles_id, roleTable.id))
-        .limit(limit)
-        .offset(offset); // 👈 Lógica de Paginación
-
-      // 3. ✨ Retornar el objeto de respuesta completo
-      return {
-        data,
-        pagination: {
-          page,
-          limit,
-          totalItems,
-          totalPages: Math.ceil(totalItems / limit),
-        },
-      };
-
-    } catch (err) {
-      console.error('Error al obtener usuarios paginados:', err);
-      throw new Error('Error al obtener la lista de usuarios.');
-    }
-  } */
-
 /*
-   * Para el Modal: Gestión de Usuarios - Detalles del Usuario.
+   * Para el Modal: Gestión de Usuarios - Ver y Editar del Usuario.
    * Obtiene el detalle completo de un usuario por su ID.
-   * ✅ Nombre mejorado y descriptivo
-   */
+*/
   async findUserDetailById(id: number): Promise<any> {
     try {
       const userResult = await this.db
@@ -328,8 +271,6 @@ export class UsersService {
           roles_ids: usersTable.roles_ids,
           school_id: usersTable.school_id,
           school_name: schoolTable.name,
-          // created_at: usersTable.created_at,
-          // updated_at: usersTable.updated_at,
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
@@ -342,7 +283,6 @@ export class UsersService {
         throw new NotFoundException(`Usuario con ID ${id} no encontrado.`);
       }
 
-      // 2. Obtener los nombres de los roles basados en los IDs
       const roles = await this.db
             .select({ 
                 id: roleTable.id, 
@@ -350,15 +290,13 @@ export class UsersService {
             })
             .from(roleTable)
             .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
-            // O, si Drizzle soporta el operador ANY:
-            //  .where(sql`${roleTable.id} = ANY(${user.roles_ids})`); 
-
-        // 3. Devolver el objeto de usuario enriquecido
+ 
+        //Devolver el objeto de usuario enriquecido
         const { roles_ids, ...userData } = user;
 
         return {
             ...userData,
-            roles: roles, // Arreglo de objetos { id: number, name: string }
+            roles: roles, //Arreglo de objetos { id: number, name: string }
         };
 
     } catch (err) {

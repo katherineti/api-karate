@@ -1,10 +1,11 @@
-import { Controller, Get, Query, UsePipes, ValidationPipe, UseGuards, Param } from '@nestjs/common';
+import { Controller, Get, Query, UsePipes, ValidationPipe, UseGuards, Param, Body, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from 'src/decorators/role.decorators'; 
 import { RoleType } from 'types'; 
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -16,6 +17,7 @@ export class UsersController {
 
   // 1. Endpoint de LISTA PAGINADA PROTEGIDA (GET /users?page=1&limit=5)
   @Get()
+  @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard, RolesGuard) 
   @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
   async getPaginatedList(@Query() query: PaginationDto) {
@@ -27,7 +29,7 @@ export class UsersController {
     );
   }
 
-// 2. 🔒 Endpoint de DETALLE DE USUARIO (GET /users/:id)
+// 2. Endpoint del modal DETALLE DE USUARIO (GET /users/:id) y para cargar el usuario seleccionado en el modal de EDITAR USUARIO 
   @Get(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
@@ -35,5 +37,14 @@ export class UsersController {
     const userId = parseInt(id, 10);
     // Llamada actualizada al método renombrado
     return this.usersService.findUserDetailById(userId);
+  }
+
+  //el juez no edita ni elimina
+  @Post('update')
+  @UsePipes(ValidationPipe)
+  @UseGuards(AuthGuard)
+  @Roles(RoleType.Admin, RoleType.Master)
+  update( @Body() user: UpdateUserDto) {
+      return this.usersService.updateUser(user);
   }
 }

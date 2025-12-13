@@ -16,8 +16,6 @@ exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("./auth.service");
 const signIn_dto_1 = require("./signIn.dto");
-const types_1 = require("../../types");
-const role_decorators_1 = require("../decorators/role.decorators");
 const auth_guard_1 = require("../guards/auth.guard");
 const signup_dto_1 = require("./signup.dto");
 let AuthController = class AuthController {
@@ -32,9 +30,6 @@ let AuthController = class AuthController {
     }
     createByAdmin(createUser) {
         return this.authService.signUp(createUser);
-    }
-    update(createUser) {
-        return this.authService.updateUser(createUser);
     }
 };
 exports.AuthController = AuthController;
@@ -57,21 +52,13 @@ __decorate([
 ], AuthController.prototype, "signUp", null);
 __decorate([
     (0, common_1.Post)('create-user-protected'),
+    (0, common_1.UsePipes)(common_1.ValidationPipe),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [signup_dto_1.SignupDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "createByAdmin", null);
-__decorate([
-    (0, common_1.Post)('update'),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "update", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

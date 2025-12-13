@@ -20,6 +20,7 @@ const auth_guard_1 = require("../guards/auth.guard");
 const roles_guard_1 = require("../guards/roles.guard");
 const role_decorators_1 = require("../decorators/role.decorators");
 const types_1 = require("../../types");
+const update_user_dto_1 = require("./dto/update-user.dto");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
@@ -31,10 +32,14 @@ let UsersController = class UsersController {
         const userId = parseInt(id, 10);
         return this.usersService.findUserDetailById(userId);
     }
+    update(user) {
+        return this.usersService.updateUser(user);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Get)(),
+    (0, common_1.UsePipes)(common_1.ValidationPipe),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
     (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master, types_1.RoleType.Juez),
     __param(0, (0, common_1.Query)()),
@@ -51,6 +56,16 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getUserDetail", null);
+__decorate([
+    (0, common_1.Post)('update'),
+    (0, common_1.UsePipes)(common_1.ValidationPipe),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "update", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),

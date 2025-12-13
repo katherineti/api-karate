@@ -46,7 +46,7 @@ let UsersService = class UsersService {
             .where((0, drizzle_orm_1.sql) `${schema_1.roleTable.id} IN (${drizzle_orm_1.sql.join(user.roles_ids.map(id => drizzle_orm_1.sql.raw(`${id}`)), (0, drizzle_orm_1.sql) `, `)})`);
         return {
             ...user,
-            roles: roles.map(r => r.name),
+            roles: roles.map(r => r.name)
         };
     }
     async getUserbyId(id) {
@@ -77,23 +77,29 @@ let UsersService = class UsersService {
         }
         return "Usuario registrado";
     }
-    async updateUser(createUser) {
+    async updateUser(user) {
+        let email = await this.findOnByEmail(user.email);
+        if (!email) {
+            throw new Error("No existe el email");
+        }
+        let id = await this.getUserbyId(user.id);
+        if (!id) {
+            throw new Error("No existe el id usuario");
+        }
         try {
-            const upd = {
-                name: createUser.name,
-                lastname: createUser.lastname,
-                birthdate: createUser.birthdate,
-                email: createUser.email,
-                password: createUser.password,
-                url_image: createUser.url_image,
+            const updated = {
+                name: user.name,
+                lastname: user.lastname,
+                birthdate: user.birthdate,
+                email: user.email,
+                school_id: user.school_id,
                 status: constants_1.STATUS_UPDATED,
-                roles_id: createUser.roles_ids,
+                roles_ids: user.roles_ids,
                 updated_at: new Date(),
             };
-            await this.getUserbyId(createUser.id);
             return await this.db.update(schema_1.usersTable)
-                .set(upd)
-                .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, createUser.id))
+                .set(updated)
+                .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, user.id))
                 .returning({ updatedId: schema_1.usersTable.id });
         }
         catch (err) {

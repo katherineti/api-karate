@@ -5,5 +5,5 @@ require("dotenv/config");
 exports.PG_CONNECTION = 'PG_CONNECTION';
 exports.JWTSecret = process.env.JWT_SECRET;
 exports.STATUS_ACTIVO = 1;
-exports.STATUS_UPDATED = 5;
+exports.STATUS_UPDATED = 3;
 //# sourceMappingURL=constants.js.map

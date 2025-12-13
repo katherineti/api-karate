@@ -1,7 +1,6 @@
-import { IsString, IsNumber, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsNotEmpty, IsEmail, IsArray } from 'class-validator';
 
 export class UpdateUserDto{
-
     @IsNumber()
     @IsNotEmpty()
     id: number;
@@ -16,13 +15,23 @@ export class UpdateUserDto{
 
     @IsString()
     @IsOptional()
-    url_image: string;
-    
-    @IsNumber()
-    @IsOptional()
-    id_departamento: number;
+    birthdate: string;
+
+    @IsEmail()
+    @IsString()
+    @IsNotEmpty()
+    email: string;
+
+    // @IsString()
+    // @IsOptional()
+    // url_image: string;
 
     @IsNumber()
     @IsOptional()
-    id_cargo: number; 
+    school_id: number;
+
+    @IsArray() 
+    @IsNotEmpty() 
+    @IsNumber({}, { each: true })
+    roles_ids: number[];
 }

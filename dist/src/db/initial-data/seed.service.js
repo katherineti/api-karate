@@ -21,6 +21,7 @@ async function seed() {
     const statusToInsert = [
         { status: 'activo' },
         { status: 'inactivo' },
+        { status: 'actualizado' },
     ];
     const rawSchoolsData = [
         { slug: 'antonio-diaz-dojo', name: 'Antonio Díaz Dojo' },
