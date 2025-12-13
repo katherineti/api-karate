@@ -90,6 +90,8 @@ let UsersService = class UsersService {
             const updated = {
                 name: user.name,
                 lastname: user.lastname,
+                document_type: user.document_type,
+                document_number: user.document_number,
                 birthdate: user.birthdate,
                 email: user.email,
                 school_id: user.school_id,

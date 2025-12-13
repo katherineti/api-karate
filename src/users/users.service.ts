@@ -95,7 +95,7 @@ export class UsersService {
         return "Usuario registrado";
     }
 
-    async updateUser(user:UpdateUserDto): Promise<any> {
+    async updateUser(user:UpdateUserDto): Promise<{ updatedId: number }[]> {
       let email = await this.findOnByEmail(user.email)
       if( !email){
         throw new Error("No existe el email");
@@ -110,6 +110,8 @@ export class UsersService {
         const updated = {
           name: user.name,
           lastname: user.lastname,
+          document_type: user.document_type, 
+          document_number: user.document_number,
           birthdate: user.birthdate,
           email: user.email,
           school_id: user.school_id,
@@ -118,7 +120,7 @@ export class UsersService {
           updated_at: new Date(),
         }
         
-        return  await this.db.update(usersTable)
+        return await this.db.update(usersTable)
           .set(updated)
           .where(eq(usersTable.id,  user.id))
           .returning({ updatedId: usersTable.id }); //salida: [{"updatedId": 2 }]

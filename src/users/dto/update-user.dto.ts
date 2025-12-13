@@ -15,6 +15,14 @@ export class UpdateUserDto{
 
     @IsString()
     @IsOptional()
+    document_type: string;
+
+    @IsString()
+    @IsOptional()
+    document_number: string;
+
+    @IsString()
+    @IsOptional()
     birthdate: string;
 
     @IsEmail()
