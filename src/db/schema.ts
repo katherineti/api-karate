@@ -19,6 +19,7 @@ export const schoolTable = pgTable("schools",{
 export const karateCategoriesTable = pgTable("karate_categories",{
   id: serial().primaryKey(),
   category: varchar({ length: 255 }).notNull().unique(),
+  age_range: varchar({ length: 100 }).notNull().unique(),
 })
 
 export const karateBeltsTable = pgTable("karate_belts",{

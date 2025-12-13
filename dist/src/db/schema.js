@@ -18,6 +18,7 @@ exports.schoolTable = (0, pg_core_1.pgTable)("schools", {
 exports.karateCategoriesTable = (0, pg_core_1.pgTable)("karate_categories", {
     id: (0, pg_core_1.serial)().primaryKey(),
     category: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
+    age_range: (0, pg_core_1.varchar)({ length: 100 }).notNull().unique(),
 });
 exports.karateBeltsTable = (0, pg_core_1.pgTable)("karate_belts", {
     id: (0, pg_core_1.serial)().primaryKey(),

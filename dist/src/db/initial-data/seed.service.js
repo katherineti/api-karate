@@ -47,10 +47,13 @@ async function seed() {
         slug: school.slug.trim(),
     }));
     const karateCategoriesToInsert = [
-        { id: 1, category: 'Cadete' },
-        { id: 2, category: 'Infantil C' },
-        { id: 3, category: 'Junior' },
-        { id: 4, category: 'Adulto' },
+        { id: 1, category: 'Hasta 5 años (mixto)', age_range: '0-5 años' },
+        { id: 2, category: 'Infantil', age_range: '10-11 años' },
+        { id: 3, category: 'Juvenil', age_range: '12-13 años' },
+        { id: 4, category: 'Cadete', age_range: '14-15 años' },
+        { id: 5, category: 'Junior', age_range: '16-17 años' },
+        { id: 7, category: 'Sub-21', age_range: '18-20 años' },
+        { id: 8, category: 'Senior', age_range: '21 años y más' },
     ];
     const karateBeltsToInsert = [
         { id: 1, belt: 'Blanco' },
@@ -60,6 +63,7 @@ async function seed() {
         { id: 5, belt: 'Azul' },
         { id: 6, belt: 'Púrpura' },
         { id: 7, belt: 'Marrón' },
+        { id: 8, belt: 'Negro' },
     ];
     const client = new pg_1.Client({
         connectionString: connectionString,
