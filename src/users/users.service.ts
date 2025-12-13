@@ -7,6 +7,7 @@ import * as argon2 from "argon2";
 import { SignupDto } from '../auth/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { alias } from 'drizzle-orm/pg-core';
 
 export type User = {
   id: number;
@@ -285,6 +286,7 @@ export class UsersService {
 */
   async findUserDetailById(id: number): Promise<any> {
     try {
+      const representativeTable = alias(usersTable, 'representative_user');
       const userResult = await this.db
         .select({
           id: usersTable.id,
@@ -298,12 +300,13 @@ export class UsersService {
           roles_ids: usersTable.roles_ids,
           school_id: usersTable.school_id,
           school_name: schoolTable.name,
-          representative_id: usersTable.representative_id,
-          representative_name: (usersTable as any).name,
+          representative_id: representativeTable.id,
+          representative_name: representativeTable.name,
+          representative_lastname: representativeTable.lastname,
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
-        .leftJoin(usersTable as any, eq(usersTable.representative_id, (usersTable as any).id))
+        .leftJoin(representativeTable, eq(usersTable.representative_id, representativeTable.id))
         .where(eq(usersTable.id, id)) 
         .limit(1); 
 

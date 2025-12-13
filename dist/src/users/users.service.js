@@ -19,6 +19,7 @@ const constants_1 = require("../constants");
 const schema_1 = require("../db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
 const argon2 = require("argon2");
+const pg_core_1 = require("drizzle-orm/pg-core");
 let UsersService = class UsersService {
     constructor(db) {
         this.db = db;
@@ -206,6 +207,7 @@ let UsersService = class UsersService {
     }
     async findUserDetailById(id) {
         try {
+            const representativeTable = (0, pg_core_1.alias)(schema_1.usersTable, 'representative_user');
             const userResult = await this.db
                 .select({
                 id: schema_1.usersTable.id,
@@ -219,12 +221,13 @@ let UsersService = class UsersService {
                 roles_ids: schema_1.usersTable.roles_ids,
                 school_id: schema_1.usersTable.school_id,
                 school_name: schema_1.schoolTable.name,
-                representative_id: schema_1.usersTable.representative_id,
-                representative_name: schema_1.usersTable.name,
+                representative_id: representativeTable.id,
+                representative_name: representativeTable.name,
+                representative_lastname: representativeTable.lastname,
             })
                 .from(schema_1.usersTable)
                 .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
-                .leftJoin(schema_1.usersTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.representative_id, schema_1.usersTable.id))
+                .leftJoin(representativeTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.representative_id, representativeTable.id))
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, id))
                 .limit(1);
             const user = userResult[0];
