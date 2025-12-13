@@ -1,13 +1,13 @@
-CREATE TABLE "karate_categories" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"category" varchar(255) NOT NULL,
-	CONSTRAINT "karate_categories_category_unique" UNIQUE("category")
-);
---> statement-breakpoint
 CREATE TABLE "karate_belts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"belt" varchar(255) NOT NULL,
 	CONSTRAINT "karate_belts_belt_unique" UNIQUE("belt")
+);
+--> statement-breakpoint
+CREATE TABLE "karate_categories" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"category" varchar(255) NOT NULL,
+	CONSTRAINT "karate_categories_category_unique" UNIQUE("category")
 );
 --> statement-breakpoint
 CREATE TABLE "roles" (
@@ -44,8 +44,8 @@ CREATE TABLE "users" (
 	"representative_id" integer DEFAULT null,
 	"status" integer DEFAULT null,
 	"roles_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
-	"category" integer DEFAULT null,
-	"belt" integer DEFAULT null,
+	"category_id" integer DEFAULT null,
+	"belt_id" integer DEFAULT null,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
@@ -54,5 +54,5 @@ CREATE TABLE "users" (
 --> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_school_id_schools_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."schools"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_status_status_id_fk" FOREIGN KEY ("status") REFERENCES "public"."status"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_category_karate_categories_id_fk" FOREIGN KEY ("category") REFERENCES "public"."karate_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_belt_karate_belts_id_fk" FOREIGN KEY ("belt") REFERENCES "public"."karate_belts"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "users" ADD CONSTRAINT "users_category_id_karate_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."karate_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_belt_id_karate_belts_id_fk" FOREIGN KEY ("belt_id") REFERENCES "public"."karate_belts"("id") ON DELETE no action ON UPDATE no action;

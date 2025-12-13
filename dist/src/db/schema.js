@@ -37,8 +37,8 @@ exports.usersTable = (0, pg_core_1.pgTable)("users", {
     representative_id: (0, pg_core_1.integer)().default(null),
     status: (0, pg_core_1.integer)().default(null).references(() => exports.statusTable.id),
     roles_ids: (0, pg_core_1.jsonb)('roles_ids').$type().notNull().default([]),
-    category: (0, pg_core_1.integer)().default(null).references(() => exports.karateCategoriesTable.id),
-    belt: (0, pg_core_1.integer)().default(null).references(() => exports.karateBeltsTable.id),
+    category_id: (0, pg_core_1.integer)().default(null).references(() => exports.karateCategoriesTable.id),
+    belt_id: (0, pg_core_1.integer)().default(null).references(() => exports.karateBeltsTable.id),
     created_at: (0, pg_core_1.timestamp)().defaultNow(),
     updated_at: (0, pg_core_1.timestamp)().defaultNow(),
 }, (table) => {

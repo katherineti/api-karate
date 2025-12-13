@@ -46,4 +46,12 @@ export class UpdateUserDto{
     @IsNotEmpty() 
     @IsNumber({}, { each: true })
     roles_ids: number[];
+
+    @IsNumber()
+    @IsOptional()
+    category_id: number;
+
+    @IsNumber()
+    @IsOptional()
+    belt_id: number;
 }

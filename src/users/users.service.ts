@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
-import { roleTable, usersTable, schoolTable } from 'src/db/schema';
+import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable } from 'src/db/schema';
 import { and, eq, like, ne, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { SignupDto } from '../auth/signup.dto';
@@ -21,8 +21,8 @@ export type User = {
   status?: number;
   roles_ids: number[];
   roles?:string[];
-  category?: number;
-  belt?: number;
+  category_id?: number;
+  belt_id?: number;
   created_at?: Date;
 };
 
@@ -147,6 +147,8 @@ export class UsersService {
           representative_id: user.representative_id,//representante del alumno
           status: STATUS_UPDATED,
           roles_ids: user.roles_ids,
+          karate_category_id: user.category_id,
+          karate_belt_id: user.belt_id,
           updated_at: new Date(),
         }
         
@@ -211,12 +213,12 @@ export class UsersService {
                 );
             }
             
-            // --- 3. Combinar las Condiciones WHERE ---
+            // Combinar las Condiciones WHERE ---
             const finalWhereCondition = whereConditions.length > 0 
                 ? (whereConditions.length === 1 ? whereConditions[0] : sql.join(whereConditions, sql` AND `))
                 : undefined;
 
-            // --- 4. Consulta para obtener el TOTAL (COUNT) ---
+            // Consulta para obtener el TOTAL (COUNT) ---
             const countResult = await this.db
                 .select({ count: sql<number>`count(*)` })
                 .from(usersTable)
@@ -228,7 +230,7 @@ export class UsersService {
                 throw new NotFoundException(`No se encontraron usuarios con los filtros proporcionados.`);
             }
 
-            // --- 5. Consulta para obtener los DATOS paginados ---
+            // Consulta para obtener los DATOS paginados ---
             const data = await this.db
                 .select({
                     id: usersTable.id,
@@ -242,8 +244,7 @@ export class UsersService {
                 .limit(limit)
                 .offset(offset);
 
-            // --- 6. ENRIQUECIMIENTO: Mapear IDs de Rol a Objetos de Rol ---
-            // Optimizamos obteniendo todos los roles una sola vez
+            // Mapear IDs de Rol a Objetos de Rol ---
             const allRoles = await this.db
                 .select({ id: roleTable.id, name: roleTable.name }) 
                 .from(roleTable);
@@ -267,7 +268,6 @@ export class UsersService {
                 } as IPaginatedUser;
             });
 
-            // --- 7. Retorno Final ---
             return {
                 data: enrichedData,
                 total,
@@ -307,6 +307,10 @@ export class UsersService {
           representative_id: representativeTable.id,
           representative_name: representativeTable.name,
           representative_lastname: representativeTable.lastname,
+          karate_category_id: usersTable.category_id,
+          karate_category_name: karateCategoriesTable.category,
+          karate_belt_id: usersTable.belt_id,
+          karate_belt_name: karateBeltsTable.belt,
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))

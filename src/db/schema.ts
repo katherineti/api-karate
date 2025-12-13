@@ -40,8 +40,8 @@ export const usersTable = pgTable("users", {
     representative_id: integer().default(null),
     status: integer().default(null).references(() => statusTable.id),
     roles_ids: jsonb('roles_ids').$type<number[]>().notNull().default([]),
-    category: integer().default(null).references(() => karateCategoriesTable.id),
-    belt: integer().default(null).references(() => karateBeltsTable.id),
+    category_id: integer().default(null).references(() => karateCategoriesTable.id),
+    belt_id: integer().default(null).references(() => karateBeltsTable.id),
     created_at: timestamp().defaultNow(),
     updated_at: timestamp().defaultNow(),
 }, (table) => {

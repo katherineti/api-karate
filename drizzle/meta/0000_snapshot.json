@@ -1,42 +1,9 @@
 {
-  "id": "86f95fee-d688-4b82-b14a-65e6e00d0980",
+  "id": "f281e8de-486d-4866-be64-c2eb1c003bfb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.karate_categories": {
-      "name": "karate_categories",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "category": {
-          "name": "category",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "karate_categories_category_unique": {
-          "name": "karate_categories_category_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "category"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.karate_belts": {
       "name": "karate_belts",
       "schema": "",
@@ -63,6 +30,39 @@
           "nullsNotDistinct": false,
           "columns": [
             "belt"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.karate_categories": {
+      "name": "karate_categories",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "karate_categories_category_unique": {
+          "name": "karate_categories_category_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "category"
           ]
         }
       },
@@ -285,15 +285,15 @@
           "notNull": true,
           "default": "'[]'::jsonb"
         },
-        "category": {
-          "name": "category",
+        "category_id": {
+          "name": "category_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "default": null
         },
-        "belt": {
-          "name": "belt",
+        "belt_id": {
+          "name": "belt_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -342,12 +342,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "users_category_karate_categories_id_fk": {
-          "name": "users_category_karate_categories_id_fk",
+        "users_category_id_karate_categories_id_fk": {
+          "name": "users_category_id_karate_categories_id_fk",
           "tableFrom": "users",
           "tableTo": "karate_categories",
           "columnsFrom": [
-            "category"
+            "category_id"
           ],
           "columnsTo": [
             "id"
@@ -355,12 +355,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "users_belt_karate_belts_id_fk": {
-          "name": "users_belt_karate_belts_id_fk",
+        "users_belt_id_karate_belts_id_fk": {
+          "name": "users_belt_id_karate_belts_id_fk",
           "tableFrom": "users",
           "tableTo": "karate_belts",
           "columnsFrom": [
-            "belt"
+            "belt_id"
           ],
           "columnsTo": [
             "id"

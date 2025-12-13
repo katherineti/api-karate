@@ -119,6 +119,8 @@ let UsersService = class UsersService {
                 representative_id: user.representative_id,
                 status: constants_1.STATUS_UPDATED,
                 roles_ids: user.roles_ids,
+                karate_category_id: user.category_id,
+                karate_belt_id: user.belt_id,
                 updated_at: new Date(),
             };
             return await this.db.update(schema_1.usersTable)
@@ -225,6 +227,10 @@ let UsersService = class UsersService {
                 representative_id: representativeTable.id,
                 representative_name: representativeTable.name,
                 representative_lastname: representativeTable.lastname,
+                karate_category_id: schema_1.usersTable.category_id,
+                karate_category_name: schema_1.karateCategoriesTable.category,
+                karate_belt_id: schema_1.usersTable.belt_id,
+                karate_belt_name: schema_1.karateBeltsTable.belt,
             })
                 .from(schema_1.usersTable)
                 .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
