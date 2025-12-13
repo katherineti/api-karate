@@ -15,11 +15,14 @@ export type User = {
   lastname?: string;
   email: string;
   password: string;
+  profile_picture?: string;
   school_id?: number;
   representative_id?: number;
   status?: number;
   roles_ids: number[];
   roles?:string[];
+  category?: number;
+  belt?: number;
   created_at?: Date;
 };
 
@@ -139,6 +142,7 @@ export class UsersService {
           document_number: user.document_number,
           birthdate: user.birthdate,
           email: user.email,
+          profile_picture: user.profile_picture,
           school_id: user.school_id,
           representative_id: user.representative_id,//representante del alumno
           status: STATUS_UPDATED,
@@ -296,7 +300,7 @@ export class UsersService {
           document_number: usersTable.document_number,
           email: usersTable.email,
           birthdate: usersTable.birthdate,
-          url_image: usersTable.url_image,
+          profile_picture: usersTable.profile_picture,
           roles_ids: usersTable.roles_ids,
           school_id: usersTable.school_id,
           school_name: schoolTable.name,

@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import 'dotenv/config';
 import * as schema from '../schema'; 
-import { roleTable, statusTable, schoolTable } from '../schema'; 
+import { roleTable, statusTable, schoolTable, karateCategoriesTable, karateBeltsTable } from '../schema'; 
 async function seed() {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
@@ -48,6 +48,23 @@ async function seed() {
             name: school.name.trim(), 
             slug: school.slug.trim(), 
         }));
+
+    const karateCategoriesToInsert = [
+        {id:1, category: 'Cadete' },
+        {id:2, category: 'Infantil C' },
+        {id:3, category: 'Junior' },
+        {id:4, category: 'Adulto' },
+    ];
+
+    const karateBeltsToInsert = [
+        { id:1, belt: 'Blanco' },
+        { id:2, belt: 'Amarillo' },
+        { id:3, belt: 'Naranja' },
+        { id:4, belt: 'Verde' },
+        { id:5, belt: 'Azul' },
+        { id:6, belt: 'Púrpura' },
+        { id:7, belt: 'Marrón' },
+    ];
     
     // 2. Crear y conectar el cliente PG (autónomo)
     const client = new Client({
@@ -87,6 +104,20 @@ async function seed() {
             // Usamos el campo 'slug' como target para evitar duplicados, ya que es el identificador único.
             .onConflictDoNothing({ target: schoolTable.slug }); 
         console.log(`✅ Schools completado. Se insertaron ${schoolsToInsert.length} escuelas.`);
+
+        // SEEDING DE CATEGORÍAS DE KARATE
+        console.log('  -> 4/4: Insertando categorías de karate (karateCategories)...');
+        await db.insert(karateCategoriesTable)
+            .values(karateCategoriesToInsert)
+            .onConflictDoNothing({ target: karateCategoriesTable.category }); 
+        console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
+
+        // SEEDING DE NIVELES DE KARATE
+        console.log('  -> 5/5: Insertando cinturones de karate (karateBelts)...');
+        await db.insert(karateBeltsTable)
+            .values(karateBeltsToInsert)
+            .onConflictDoNothing({ target: karateBeltsTable.belt }); 
+        console.log(`✅ Karate Belts completado. Se insertaron ${karateBeltsToInsert.length} cinturones.`);
 
         console.log('Seeding de datos iniciales finalizado correctamente.');
 

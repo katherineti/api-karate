@@ -46,6 +46,21 @@ async function seed() {
         name: school.name.trim(),
         slug: school.slug.trim(),
     }));
+    const karateCategoriesToInsert = [
+        { id: 1, category: 'Cadete' },
+        { id: 2, category: 'Infantil C' },
+        { id: 3, category: 'Junior' },
+        { id: 4, category: 'Adulto' },
+    ];
+    const karateBeltsToInsert = [
+        { id: 1, belt: 'Blanco' },
+        { id: 2, belt: 'Amarillo' },
+        { id: 3, belt: 'Naranja' },
+        { id: 4, belt: 'Verde' },
+        { id: 5, belt: 'Azul' },
+        { id: 6, belt: 'Púrpura' },
+        { id: 7, belt: 'Marrón' },
+    ];
     const client = new pg_1.Client({
         connectionString: connectionString,
         ssl: {
@@ -74,6 +89,16 @@ async function seed() {
             .values(schoolsToInsert)
             .onConflictDoNothing({ target: schema_1.schoolTable.slug });
         console.log(`✅ Schools completado. Se insertaron ${schoolsToInsert.length} escuelas.`);
+        console.log('  -> 4/4: Insertando categorías de karate (karateCategories)...');
+        await db.insert(schema_1.karateCategoriesTable)
+            .values(karateCategoriesToInsert)
+            .onConflictDoNothing({ target: schema_1.karateCategoriesTable.category });
+        console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
+        console.log('  -> 5/5: Insertando cinturones de karate (karateBelts)...');
+        await db.insert(schema_1.karateBeltsTable)
+            .values(karateBeltsToInsert)
+            .onConflictDoNothing({ target: schema_1.karateBeltsTable.belt });
+        console.log(`✅ Karate Belts completado. Se insertaron ${karateBeltsToInsert.length} cinturones.`);
         console.log('Seeding de datos iniciales finalizado correctamente.');
     }
     catch (error) {

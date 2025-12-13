@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.usersTable = exports.schoolTable = exports.roleTable = exports.statusTable = void 0;
+exports.usersTable = exports.karateBeltsTable = exports.karateCategoriesTable = exports.schoolTable = exports.roleTable = exports.statusTable = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 exports.statusTable = (0, pg_core_1.pgTable)("status", {
     id: (0, pg_core_1.serial)().primaryKey(),
@@ -15,6 +15,14 @@ exports.schoolTable = (0, pg_core_1.pgTable)("schools", {
     name: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
     slug: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
 });
+exports.karateCategoriesTable = (0, pg_core_1.pgTable)("karate_categories", {
+    id: (0, pg_core_1.serial)().primaryKey(),
+    category: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
+});
+exports.karateBeltsTable = (0, pg_core_1.pgTable)("karate_belts", {
+    id: (0, pg_core_1.serial)().primaryKey(),
+    belt: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
+});
 exports.usersTable = (0, pg_core_1.pgTable)("users", {
     id: (0, pg_core_1.integer)().primaryKey().generatedAlwaysAsIdentity(),
     name: (0, pg_core_1.varchar)({ length: 255 }).default(null),
@@ -24,11 +32,13 @@ exports.usersTable = (0, pg_core_1.pgTable)("users", {
     birthdate: (0, pg_core_1.date)().default(null),
     email: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
     password: (0, pg_core_1.varchar)({ length: 255 }).notNull(),
-    url_image: (0, pg_core_1.varchar)({ length: 255 }).default(null),
+    profile_picture: (0, pg_core_1.varchar)({ length: 255 }).default(null),
     school_id: (0, pg_core_1.integer)().default(null).references(() => exports.schoolTable.id),
     representative_id: (0, pg_core_1.integer)().default(null),
     status: (0, pg_core_1.integer)().default(null).references(() => exports.statusTable.id),
     roles_ids: (0, pg_core_1.jsonb)('roles_ids').$type().notNull().default([]),
+    category: (0, pg_core_1.integer)().default(null).references(() => exports.karateCategoriesTable.id),
+    belt: (0, pg_core_1.integer)().default(null).references(() => exports.karateBeltsTable.id),
     created_at: (0, pg_core_1.timestamp)().defaultNow(),
     updated_at: (0, pg_core_1.timestamp)().defaultNow(),
 }, (table) => {

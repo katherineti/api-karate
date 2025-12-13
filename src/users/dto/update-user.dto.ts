@@ -30,9 +30,9 @@ export class UpdateUserDto{
     @IsNotEmpty()
     email: string;
 
-    // @IsString()
-    // @IsOptional()
-    // url_image: string;
+    @IsString()
+    @IsOptional()
+    profile_picture: string;
 
     @IsNumber()
     @IsOptional()

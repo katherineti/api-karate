@@ -16,6 +16,16 @@ export const schoolTable = pgTable("schools",{
   slug: varchar({ length: 255 }).notNull().unique(), // Identificador limpio (sin acentos/espacios)
 })
 
+export const karateCategoriesTable = pgTable("karate_categories",{
+  id: serial().primaryKey(),
+  category: varchar({ length: 255 }).notNull().unique(),
+})
+
+export const karateBeltsTable = pgTable("karate_belts",{
+  id: serial().primaryKey(),
+  belt: varchar({ length: 255 }).notNull().unique(),
+})
+
 export const usersTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar({ length: 255 }).default(null),
@@ -25,12 +35,13 @@ export const usersTable = pgTable("users", {
     birthdate: date().default(null),
     email: varchar({ length: 255 }).notNull().unique(),
     password: varchar({ length: 255 }).notNull(),
-    url_image: varchar({ length: 255 }).default(null),
+    profile_picture: varchar({ length: 255 }).default(null),
     school_id: integer().default(null).references(() => schoolTable.id),
     representative_id: integer().default(null),
-    // representative_id: integer().default(null).references(() => usersTable.id),
     status: integer().default(null).references(() => statusTable.id),
     roles_ids: jsonb('roles_ids').$type<number[]>().notNull().default([]),
+    category: integer().default(null).references(() => karateCategoriesTable.id),
+    belt: integer().default(null).references(() => karateBeltsTable.id),
     created_at: timestamp().defaultNow(),
     updated_at: timestamp().defaultNow(),
 }, (table) => {
