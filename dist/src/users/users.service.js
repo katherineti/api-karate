@@ -63,9 +63,16 @@ let UsersService = class UsersService {
     }
     async getByRol(rol_id) {
         try {
-            const result = await this.db.select()
+            const roleCondition = (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${drizzle_orm_1.sql.raw(`'[${rol_id}]'`)}`;
+            const statusCondition = (0, drizzle_orm_1.ne)(schema_1.usersTable.status, constants_1.STATUS_INACTIVO);
+            const result = await this.db.select({
+                id: schema_1.usersTable.id,
+                name: schema_1.usersTable.name,
+                lastname: schema_1.usersTable.lastname,
+                roles_ids: schema_1.usersTable.roles_ids,
+            })
                 .from(schema_1.usersTable)
-                .where((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${drizzle_orm_1.sql.raw(`'[${rol_id}]'`)}`);
+                .where((0, drizzle_orm_1.and)(roleCondition, statusCondition));
             return result || [];
         }
         catch (err) {

@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { PG_CONNECTION, STATUS_ACTIVO, STATUS_UPDATED } from 'src/constants';
+import { PG_CONNECTION, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable } from 'src/db/schema';
-import { eq, like, or, SQL, sql } from 'drizzle-orm'
+import { and, eq, like, ne, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { SignupDto } from '../auth/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
@@ -74,11 +74,20 @@ export class UsersService {
       }
     }
 
-    async getByRol(rol_id:number): Promise<User[]> {
+    async getByRol(rol_id:number): Promise<any[]> {
       try{
-        const result = await this.db.select()
+        const roleCondition = sql`${usersTable.roles_ids} @> ${sql.raw(`'[${rol_id}]'`)}`;
+
+        const statusCondition = ne(usersTable.status, STATUS_INACTIVO);
+        
+        const result = await this.db.select({
+          id: usersTable.id,
+          name: usersTable.name,
+          lastname: usersTable.lastname,
+          roles_ids: usersTable.roles_ids,
+        })
           .from(usersTable)
-          .where(sql`${usersTable.roles_ids} @> ${sql.raw(`'[${rol_id}]'`)}`);
+          .where(and(roleCondition, statusCondition));
     
         return result || [];
         
