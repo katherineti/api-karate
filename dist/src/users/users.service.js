@@ -132,6 +132,26 @@ let UsersService = class UsersService {
             throw new Error("Error al actualizar un usuario " + err);
         }
     }
+    async deleteUser(user) {
+        let id = await this.getUserbyId(user.id);
+        if (!id) {
+            throw new Error("No existe el id usuario");
+        }
+        try {
+            const updated = {
+                email: user.email,
+                status: constants_1.STATUS_INACTIVO,
+                updated_at: new Date(),
+            };
+            return await this.db.update(schema_1.usersTable)
+                .set(updated)
+                .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, user.id))
+                .returning({ updatedId: schema_1.usersTable.id });
+        }
+        catch (err) {
+            throw new Error("Error al actualizar un usuario " + err);
+        }
+    }
     async getPaginatedUsers(page = 1, limit = 10, search, roleFilter) {
         try {
             const offset = (page - 1) * limit;

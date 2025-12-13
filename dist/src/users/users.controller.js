@@ -32,11 +32,14 @@ let UsersController = class UsersController {
         const userId = parseInt(id, 10);
         return this.usersService.findUserDetailById(userId);
     }
+    async getUsersByRole(roleId) {
+        return this.usersService.getByRol(roleId);
+    }
     update(user) {
         return this.usersService.updateUser(user);
     }
-    async getUsersByRole(roleId) {
-        return this.usersService.getByRol(roleId);
+    delete(user) {
+        return this.usersService.deleteUser(user);
     }
 };
 exports.UsersController = UsersController;
@@ -60,6 +63,15 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getUserDetail", null);
 __decorate([
+    (0, common_1.Get)('by-role/:roleId'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master, types_1.RoleType.Juez),
+    __param(0, (0, common_1.Param)('roleId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getUsersByRole", null);
+__decorate([
     (0, common_1.Post)('update'),
     (0, common_1.UsePipes)(common_1.ValidationPipe),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
@@ -70,14 +82,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "update", null);
 __decorate([
-    (0, common_1.Get)('by-role/:roleId'),
+    (0, common_1.Post)('delete'),
+    (0, common_1.UsePipes)(common_1.ValidationPipe),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master, types_1.RoleType.Juez),
-    __param(0, (0, common_1.Param)('roleId')),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", Promise)
-], UsersController.prototype, "getUsersByRole", null);
+    __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "delete", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),

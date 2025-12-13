@@ -162,6 +162,29 @@ export class UsersService {
       }
     }
 
+    async deleteUser(user:UpdateUserDto): Promise<{ updatedId: number }[]> {
+      let id= await this.getUserbyId(user.id);
+      if( !id ){
+        throw new Error("No existe el id usuario");
+      }
+
+      try {
+        const updated = {
+          email: user.email,
+          status: STATUS_INACTIVO,
+          updated_at: new Date(),
+        }
+        
+        return await this.db.update(usersTable)
+          .set(updated)
+          .where(eq(usersTable.id,  user.id))
+          .returning({ updatedId: usersTable.id }); //salida: [{"updatedId": 2 }]
+
+      } catch (err) {
+        throw new Error("Error al actualizar un usuario " + err);
+      }
+    }
+
     /**
      * Obtiene la lista de usuarios paginada.
      * @param page - Número de página.

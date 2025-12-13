@@ -39,6 +39,13 @@ export class UsersController {
     return this.usersService.findUserDetailById(userId);
   }
 
+  @Get('by-role/:roleId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
+  async getUsersByRole(@Param('roleId') roleId: number) {
+    return this.usersService.getByRol(roleId);
+  }
+
   //el juez no edita ni elimina
   @Post('update')
   @UsePipes(ValidationPipe)
@@ -48,10 +55,12 @@ export class UsersController {
       return this.usersService.updateUser(user);
   }
 
-  @Get('by-role/:roleId')
+  @Post('delete')
+  @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
-  async getUsersByRole(@Param('roleId') roleId: number) {
-    return this.usersService.getByRol(roleId);
+  @Roles(RoleType.Admin, RoleType.Master)
+  delete( @Body() user: UpdateUserDto) {
+      return this.usersService.deleteUser(user);
   }
+
 }
