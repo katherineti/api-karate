@@ -31,8 +31,8 @@ export class UsersController {
 
 // 2. Endpoint del modal DETALLE DE USUARIO (GET /users/:id) y para cargar el usuario seleccionado en el modal de EDITAR USUARIO 
   @Get(':id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
+  @UseGuards(AuthGuard)
+  // @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
   async getUserDetail(@Param('id') id: string) {
     const userId = parseInt(id, 10);
     // Llamada actualizada al método renombrado
