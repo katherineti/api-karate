@@ -262,6 +262,7 @@ export class UsersService {
                     lastname: usersTable.lastname,
                     email: usersTable.email,
                     roles_ids: usersTable.roles_ids,
+                    status: usersTable.status,
                 })
                 .from(usersTable)
                 .where(finalWhereCondition) 

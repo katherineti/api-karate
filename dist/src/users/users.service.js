@@ -192,6 +192,7 @@ let UsersService = class UsersService {
                 lastname: schema_1.usersTable.lastname,
                 email: schema_1.usersTable.email,
                 roles_ids: schema_1.usersTable.roles_ids,
+                status: schema_1.usersTable.status,
             })
                 .from(schema_1.usersTable)
                 .where(finalWhereCondition)

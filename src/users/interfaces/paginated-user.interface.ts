@@ -8,6 +8,7 @@ export interface IPaginatedUser {
     lastname: string;
     email: string;
     roles: IRole[]; 
+    status: number;
 }
 
 /**
