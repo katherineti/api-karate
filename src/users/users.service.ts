@@ -162,7 +162,7 @@ export class UsersService {
       }
     }
 
-    async deleteUser(user:UpdateUserDto): Promise<{ updatedId: number }[]> {
+    async changeStatus(user:UpdateUserDto): Promise<{ updatedId: number }[]> {
       let id= await this.getUserbyId(user.id);
       if( !id ){
         throw new Error("No existe el id usuario");
@@ -172,7 +172,7 @@ export class UsersService {
         const updated = {
           email: user.email,
           roles_ids: user.roles_ids,
-          status: STATUS_INACTIVO,
+          status: user.status,
           updated_at: new Date(),
         }
         

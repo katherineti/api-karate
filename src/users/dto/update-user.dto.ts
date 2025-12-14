@@ -54,4 +54,8 @@ export class UpdateUserDto{
     @IsNumber()
     @IsOptional()
     belt_id: number;
+
+    @IsNumber()
+    @IsOptional()
+    status: number;
 }

@@ -132,7 +132,7 @@ let UsersService = class UsersService {
             throw new Error("Error al actualizar un usuario " + err);
         }
     }
-    async deleteUser(user) {
+    async changeStatus(user) {
         let id = await this.getUserbyId(user.id);
         if (!id) {
             throw new Error("No existe el id usuario");
@@ -141,7 +141,7 @@ let UsersService = class UsersService {
             const updated = {
                 email: user.email,
                 roles_ids: user.roles_ids,
-                status: constants_1.STATUS_INACTIVO,
+                status: user.status,
                 updated_at: new Date(),
             };
             return await this.db.update(schema_1.usersTable)

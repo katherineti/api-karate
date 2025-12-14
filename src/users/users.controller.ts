@@ -55,12 +55,12 @@ export class UsersController {
       return this.usersService.updateUser(user);
   }
 
-  @Post('delete')
+  @Post('change-status')
   @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(RoleType.Admin, RoleType.Master)
-  delete( @Body() user: UpdateUserDto) {
-      return this.usersService.deleteUser(user);
+  changeStatus( @Body() user: UpdateUserDto) {
+      return this.usersService.changeStatus(user);
   }
 
 }

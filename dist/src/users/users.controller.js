@@ -38,8 +38,8 @@ let UsersController = class UsersController {
     update(user) {
         return this.usersService.updateUser(user);
     }
-    delete(user) {
-        return this.usersService.deleteUser(user);
+    changeStatus(user) {
+        return this.usersService.changeStatus(user);
     }
 };
 exports.UsersController = UsersController;
@@ -82,7 +82,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "update", null);
 __decorate([
-    (0, common_1.Post)('delete'),
+    (0, common_1.Post)('change-status'),
     (0, common_1.UsePipes)(common_1.ValidationPipe),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
     (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master),
@@ -90,7 +90,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "delete", null);
+], UsersController.prototype, "changeStatus", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
