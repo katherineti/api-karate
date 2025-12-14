@@ -28,7 +28,7 @@ let ShoolsService = class ShoolsService {
                 name: schema_1.schoolTable.name,
                 slug: schema_1.schoolTable.slug
             }).from(schema_1.schoolTable);
-            return result[0] || null;
+            return result || null;
         }
         catch (err) {
             console.error("Error en la base de datos al buscar las escuelas: ", err);

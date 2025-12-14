@@ -16,7 +16,7 @@ export class ShoolsService {
             slug: schoolTable.slug 
         }).from(schoolTable);
     
-        return result[0] || null;
+        return result || null;
         
       }catch(err){
         console.error("Error en la base de datos al buscar las escuelas: ", err);
