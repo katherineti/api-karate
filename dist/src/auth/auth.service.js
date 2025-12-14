@@ -36,6 +36,8 @@ let AuthService = class AuthService {
         }
         const payload = {
             sub: user.id,
+            name: user.name,
+            lastname: user.lastname,
             email: user.email,
             roles: (user.roles_ids.length > 0) ? user.roles : null,
             school_id: user.school_id,

@@ -31,6 +31,8 @@ export class AuthService {
 
         const payload = { 
           sub: user.id, 
+          name: user.name,
+          lastname: user.lastname,
           email: user.email,
           // roles_ids: user.roles_ids,
           roles: (user.roles_ids.length > 0) ? user.roles : null,
