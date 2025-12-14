@@ -39,9 +39,9 @@ export class UsersController {
     return this.usersService.findUserDetailById(userId);
   }
 
-  @Get('by-role/:roleId')
+  @Get('by-role/:roleId')//lista representantes en el form de editar usuario
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
+  @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez, RoleType.Alumno) 
   async getUsersByRole(@Param('roleId') roleId: number) {
     return this.usersService.getByRol(roleId);
   }
@@ -49,8 +49,8 @@ export class UsersController {
   //el juez no edita ni elimina
   @Post('update')
   @UsePipes(ValidationPipe)
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.Admin, RoleType.Master)
+  @UseGuards(AuthGuard)
+  // @Roles(RoleType.Admin, RoleType.Master)
   update( @Body() user: UpdateUserDto) {
       return this.usersService.updateUser(user);
   }
