@@ -5,3 +5,5 @@ export const JWTSecret = process.env.JWT_SECRET; //accede a la variable JWT_SECR
 export const STATUS_ACTIVO = 1;
 export const STATUS_INACTIVO = 2;
 export const STATUS_UPDATED = 3;
+
+export const ROL_ALUMNO = 5;

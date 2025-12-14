@@ -7,6 +7,7 @@ import { DrizzleDbConecctionModule } from './db/db.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ShoolsModule } from './shools/shools.module';
+import { PuntuationModule } from './puntuation/puntuation.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ShoolsModule } from './shools/shools.module';
      AuthModule,
      UsersModule,
      ShoolsModule,
+     PuntuationModule,
     // RolesModule,
   ],
   controllers: [AppController],

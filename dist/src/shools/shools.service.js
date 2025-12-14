@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const constants_1 = require("../constants");
 const neon_serverless_1 = require("drizzle-orm/neon-serverless");
 const schema_1 = require("../db/schema");
+const drizzle_orm_1 = require("drizzle-orm");
 let ShoolsService = class ShoolsService {
     constructor(db) {
         this.db = db;
@@ -33,6 +34,18 @@ let ShoolsService = class ShoolsService {
         catch (err) {
             console.error("Error en la base de datos al buscar las escuelas: ", err);
             throw new Error("Error al obtener las escuelas " + err);
+        }
+    }
+    async getById(id) {
+        try {
+            const result = await this.db.select({ id: schema_1.schoolTable.id })
+                .from(schema_1.schoolTable)
+                .where((0, drizzle_orm_1.eq)(schema_1.schoolTable.id, id));
+            return result[0] || null;
+        }
+        catch (err) {
+            console.error("Error en la base de datos al buscar el usuario " + id + ": ", err);
+            throw new Error("Error al obtener el usuario " + id + " " + err);
         }
     }
 };

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { schoolTable } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class ShoolsService {
@@ -24,4 +25,17 @@ export class ShoolsService {
       }
     }
     
+    async getById(id:number) {
+      try{
+        const result = await this.db.select({id:schoolTable.id})
+          .from(schoolTable)
+          .where(eq( schoolTable.id, id ));
+    
+        return result[0] || null;
+        
+      }catch(err){
+        console.error("Error en la base de datos al buscar el usuario " + id + ": ", err);
+        throw new Error("Error al obtener el usuario " + id + " " + err);
+      }
+    }
 }

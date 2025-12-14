@@ -12,4 +12,6 @@ export class ShoolsController {
     async getAll() {
     return this.shoolsService.getAll();
     }
+
+
 }
