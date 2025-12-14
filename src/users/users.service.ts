@@ -332,6 +332,7 @@ export class UsersService {
           representative_id: representativeTable.id,
           representative_name: representativeTable.name,
           representative_lastname: representativeTable.lastname,
+          representative_email: representativeTable.email,
           category_id: usersTable.category_id,
           category_name: karateCategoriesTable.category,
           belt_id: usersTable.belt_id,

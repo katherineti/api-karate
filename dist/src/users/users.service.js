@@ -249,6 +249,7 @@ let UsersService = class UsersService {
                 representative_id: representativeTable.id,
                 representative_name: representativeTable.name,
                 representative_lastname: representativeTable.lastname,
+                representative_email: representativeTable.email,
                 category_id: schema_1.usersTable.category_id,
                 category_name: schema_1.karateCategoriesTable.category,
                 belt_id: schema_1.usersTable.belt_id,
