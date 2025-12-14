@@ -27,6 +27,8 @@ let UsersService = class UsersService {
     async findOnByEmail(email, isSignUp = false) {
         const result = await this.db.select({
             id: schema_1.usersTable.id,
+            name: schema_1.usersTable.name,
+            lastname: schema_1.usersTable.lastname,
             email: schema_1.usersTable.email,
             password: schema_1.usersTable.password,
             roles_ids: schema_1.usersTable.roles_ids,

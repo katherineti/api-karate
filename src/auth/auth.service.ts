@@ -41,7 +41,7 @@ export class AuthService {
         console.log("JWTSecret " , JWTSecret)
         console.log("payload " , payload)
 
-        return { //TOKEN es la firma 
+        return {
           access_token: await this.jwtService.signAsync(payload, {
             secret: JWTSecret
           }),

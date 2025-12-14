@@ -31,10 +31,12 @@ export class UsersService {
 
  constructor(@Inject(PG_CONNECTION) private db: NeonDatabase) {}
 
-    async findOnByEmail(email: string, isSignUp=false): Promise<User | undefined> {
+    async findOnByEmail(email: string, isSignUp=false): Promise<User | undefined> {//se usa en el signIn y signUp
         const result = await  
         this.db.select({
           id:  usersTable.id,
+          name: usersTable.name,
+          lastname: usersTable.lastname,
           email: usersTable.email,
           password: usersTable.password,
           roles_ids: usersTable.roles_ids,
