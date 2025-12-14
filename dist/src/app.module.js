@@ -15,6 +15,7 @@ const validation_env_schema_1 = require("./config/validation-env.schema");
 const db_module_1 = require("./db/db.module");
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
+const shools_module_1 = require("./shools/shools.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,6 +34,7 @@ exports.AppModule = AppModule = __decorate([
             }),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
+            shools_module_1.ShoolsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
