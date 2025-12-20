@@ -100,13 +100,14 @@ let UsersService = class UsersService {
         return "Usuario registrado";
     }
     async updateUser(user) {
-        let email = await this.findOnByEmail(user.email);
-        if (!email) {
-            throw new Error("No existe el email");
+        console.log("userupdate", user);
+        const userToUpdate = await this.getUserbyId(user.id);
+        if (!userToUpdate) {
+            throw new common_1.NotFoundException(`No existe el usuario con ID ${user.id} para actualizar.`);
         }
-        let id = await this.getUserbyId(user.id);
-        if (!id) {
-            throw new Error("No existe el id usuario");
+        const existingEmailUser = await this.findOneByEmailExcludingId(user.email, user.id);
+        if (existingEmailUser) {
+            throw new common_1.ConflictException(`El email ${user.email} ya está registrado por otro usuario.`);
         }
         try {
             const updated = {
@@ -125,6 +126,7 @@ let UsersService = class UsersService {
                 belt_id: user.belt_id,
                 updated_at: new Date(),
             };
+            console.log("update-obj que se envia a BD: ", updated);
             return await this.db.update(schema_1.usersTable)
                 .set(updated)
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, user.id))
@@ -288,6 +290,15 @@ let UsersService = class UsersService {
             console.error('Error al obtener el detalle del usuario:', err);
             throw new Error('Error interno al buscar el usuario.');
         }
+    }
+    async findOneByEmailExcludingId(email, excludeId) {
+        const result = await this.db.select({
+            id: schema_1.usersTable.id,
+            email: schema_1.usersTable.email,
+        })
+            .from(schema_1.usersTable)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.email, email), (0, drizzle_orm_1.ne)(schema_1.usersTable.id, excludeId)));
+        return result[0];
     }
 };
 exports.UsersService = UsersService;

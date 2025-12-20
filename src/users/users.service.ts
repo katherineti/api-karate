@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable } from 'src/db/schema';
@@ -125,15 +125,18 @@ export class UsersService {
         return "Usuario registrado";
     }
 
-    async updateUser(user:UpdateUserDto): Promise<{ updatedId: number }[]> {
-      let email = await this.findOnByEmail(user.email)
-      if( !email){
-        throw new Error("No existe el email");
+   async updateUser(user:UpdateUserDto): Promise<{ updatedId: number }[]> { console.log("userupdate",user)
+      // 1. Validar que el ID del usuario a actualizar existe
+      const userToUpdate = await this.getUserbyId(user.id);
+      if (!userToUpdate) {
+          // Lanza 404
+          throw new NotFoundException(`No existe el usuario con ID ${user.id} para actualizar.`);
       }
-
-      let id= await this.getUserbyId(user.id);
-      if( !id ){
-        throw new Error("No existe el id usuario");
+      // 2. Validar conflicto de email: El email nuevo no debe pertenecer a otro usuario
+      const existingEmailUser = await this.findOneByEmailExcludingId(user.email, user.id);
+      if (existingEmailUser) {
+          // Lanza 409
+          throw new ConflictException(`El email ${user.email} ya está registrado por otro usuario.`);
       }
 
       try {
@@ -153,7 +156,7 @@ export class UsersService {
           belt_id: user.belt_id,
           updated_at: new Date(),
         }
-        
+        console.log("update-obj que se envia a BD: ",updated)
         return await this.db.update(usersTable)
           .set(updated)
           .where(eq(usersTable.id,  user.id))
@@ -378,4 +381,24 @@ export class UsersService {
       throw new Error('Error interno al buscar el usuario.');
     }
   }
+
+/**
+     * Busca un usuario por email, excluyendo un ID específico.
+     * @param email - Correo a buscar.
+     * @param excludeId - ID del usuario actual que se debe excluir de la búsqueda de conflicto.
+     * @returns El usuario encontrado o undefined.
+     */
+    async findOneByEmailExcludingId(email: string, excludeId: number): Promise<any> {
+        const result = await this.db.select({
+            id: usersTable.id,
+            email: usersTable.email,
+        })
+        .from(usersTable)
+        .where(and(
+            eq(usersTable.email, email),
+            ne(usersTable.id, excludeId) // Excluir el ID del usuario que se está actualizando
+        ));
+        
+        return result[0];
+    }
 }

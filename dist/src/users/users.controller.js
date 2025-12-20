@@ -36,6 +36,7 @@ let UsersController = class UsersController {
         return this.usersService.getByRol(roleId);
     }
     update(user) {
+        console.log("user", user);
         return this.usersService.updateUser(user);
     }
     changeStatus(user) {

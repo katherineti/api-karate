@@ -51,7 +51,7 @@ export class UsersController {
   @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard)
   // @Roles(RoleType.Admin, RoleType.Master)
-  update( @Body() user: UpdateUserDto) {
+  update( @Body() user: UpdateUserDto) {console.log("user",user)
       return this.usersService.updateUser(user);
   }
 
