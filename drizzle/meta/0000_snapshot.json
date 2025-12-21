@@ -1,5 +1,5 @@
 {
-  "id": "f281e8de-486d-4866-be64-c2eb1c003bfb",
+  "id": "1e7e1665-25b3-4e18-b253-f9941b0930c0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -52,6 +52,12 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "age_range": {
+          "name": "age_range",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -63,6 +69,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "category"
+          ]
+        },
+        "karate_categories_age_range_unique": {
+          "name": "karate_categories_age_range_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "age_range"
           ]
         }
       },
@@ -266,10 +279,10 @@
         },
         "representative_id": {
           "name": "representative_id",
-          "type": "integer",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
-          "default": null
+          "default": "'[]'::jsonb"
         },
         "status": {
           "name": "status",

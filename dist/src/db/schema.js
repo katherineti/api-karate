@@ -35,7 +35,7 @@ exports.usersTable = (0, pg_core_1.pgTable)("users", {
     password: (0, pg_core_1.varchar)({ length: 255 }).notNull(),
     profile_picture: (0, pg_core_1.varchar)({ length: 255 }).default(null),
     school_id: (0, pg_core_1.integer)().default(null).references(() => exports.schoolTable.id),
-    representative_id: (0, pg_core_1.integer)().default(null),
+    representative_id: (0, pg_core_1.jsonb)('representative_id').$type().default([]),
     status: (0, pg_core_1.integer)().default(null).references(() => exports.statusTable.id),
     roles_ids: (0, pg_core_1.jsonb)('roles_ids').$type().notNull().default([]),
     category_id: (0, pg_core_1.integer)().default(null).references(() => exports.karateCategoriesTable.id),

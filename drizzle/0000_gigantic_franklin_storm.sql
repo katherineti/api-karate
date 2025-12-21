@@ -7,7 +7,9 @@ CREATE TABLE "karate_belts" (
 CREATE TABLE "karate_categories" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"category" varchar(255) NOT NULL,
-	CONSTRAINT "karate_categories_category_unique" UNIQUE("category")
+	"age_range" varchar(100) NOT NULL,
+	CONSTRAINT "karate_categories_category_unique" UNIQUE("category"),
+	CONSTRAINT "karate_categories_age_range_unique" UNIQUE("age_range")
 );
 --> statement-breakpoint
 CREATE TABLE "roles" (
@@ -41,7 +43,7 @@ CREATE TABLE "users" (
 	"password" varchar(255) NOT NULL,
 	"profile_picture" varchar(255) DEFAULT null,
 	"school_id" integer DEFAULT null,
-	"representative_id" integer DEFAULT null,
+	"representative_id" jsonb DEFAULT '[]'::jsonb,
 	"status" integer DEFAULT null,
 	"roles_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"category_id" integer DEFAULT null,

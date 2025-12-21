@@ -130,9 +130,13 @@ export class UpdateUserDto{
     school_id?: number;
 
     // ID de Representante
-    @IsNumber({}, { message: 'El ID del representante debe ser un número válido.' })
+/*     @IsNumber({}, { message: 'El ID del representante debe ser un número válido.' })
     @IsOptional()
-    representative_id?: number;
+    representative_id?: number; */
+    @IsArray({ message: 'Los representantes deben ser proporcionados como un arreglo (representative_id).' }) 
+    @IsOptional()
+    @IsNumber({}, { each: true, message: 'Cada elemento en representative_id debe ser un número (ID de representante).' })
+    representative_id: number[];
 
     // Roles (Arreglo de IDs)
     @IsArray({ message: 'Los roles deben ser proporcionados como un arreglo (roles_ids).' }) 

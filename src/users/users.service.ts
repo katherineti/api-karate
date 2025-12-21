@@ -2,7 +2,7 @@ import { ConflictException, Inject, Injectable, NotFoundException } from '@nestj
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable } from 'src/db/schema';
-import { and, eq, like, ne, or, SQL, sql } from 'drizzle-orm'
+import { and, eq, inArray, like, ne, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { SignupDto } from '../auth/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
@@ -17,7 +17,7 @@ export type User = {
   password: string;
   profile_picture?: string;
   school_id?: number;
-  representative_id?: number;
+  representative_id?: number[];
   status?: number;
   roles_ids: number[];
   roles?:string[];
@@ -149,9 +149,9 @@ export class UsersService {
           email: user.email,
           profile_picture: user.profile_picture,
           school_id: user.school_id,
-          representative_id: user.representative_id,//representante del alumno
+          representative_id: user.representative_id ?? [],//representante del alumno
           status: STATUS_UPDATED,
-          roles_ids: user.roles_ids,
+          roles_ids: user.roles_ids ?? [],
           category_id: user.category_id,
           belt_id: user.belt_id,
           updated_at: new Date(),
@@ -334,10 +334,10 @@ export class UsersService {
           roles_ids: usersTable.roles_ids,
           school_id: usersTable.school_id,
           school_name: schoolTable.name,
-          representative_id: representativeTable.id,
-          representative_name: representativeTable.name,
+          representative_id: usersTable.representative_id,
+/*           representative_name: representativeTable.name,
           representative_lastname: representativeTable.lastname,
-          representative_email: representativeTable.email,
+          representative_email: representativeTable.email, */
           category_id: usersTable.category_id,
           category_name: karateCategoriesTable.category,
           belt_id: usersTable.belt_id,
@@ -345,7 +345,7 @@ export class UsersService {
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
-        .leftJoin(representativeTable, eq(usersTable.representative_id, representativeTable.id))
+        // .leftJoin(representativeTable, eq(usersTable.representative_id, representativeTable.id))
         .leftJoin(karateCategoriesTable, eq(usersTable.category_id, karateCategoriesTable.id))
         .leftJoin(karateBeltsTable, eq(usersTable.belt_id, karateBeltsTable.id))
         .where(eq(usersTable.id, id)) 
@@ -364,13 +364,27 @@ export class UsersService {
             })
             .from(roleTable)
             .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
- 
+
+      let representatives = [];
+        if (user.representative_id && user.representative_id.length > 0) {
+          representatives = await this.db
+            .select({
+              id: usersTable.id,
+              name: usersTable.name,
+              lastname: usersTable.lastname,
+              email: usersTable.email,
+            })
+            .from(usersTable)
+          .where(inArray(usersTable.id, user.representative_id));
+      }
+
         //Devolver el objeto de usuario enriquecido
-        const { roles_ids, ...userData } = user;
+        const { roles_ids, representative_id, ...userData } = user;
 
         return {
             ...userData,
             roles: roles, //Arreglo de objetos { id: number, name: string }
+            representatives: representatives,
         };
 
     } catch (err) {

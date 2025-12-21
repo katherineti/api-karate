@@ -119,9 +119,9 @@ let UsersService = class UsersService {
                 email: user.email,
                 profile_picture: user.profile_picture,
                 school_id: user.school_id,
-                representative_id: user.representative_id,
+                representative_id: user.representative_id ?? [],
                 status: constants_1.STATUS_UPDATED,
-                roles_ids: user.roles_ids,
+                roles_ids: user.roles_ids ?? [],
                 category_id: user.category_id,
                 belt_id: user.belt_id,
                 updated_at: new Date(),
@@ -250,10 +250,7 @@ let UsersService = class UsersService {
                 roles_ids: schema_1.usersTable.roles_ids,
                 school_id: schema_1.usersTable.school_id,
                 school_name: schema_1.schoolTable.name,
-                representative_id: representativeTable.id,
-                representative_name: representativeTable.name,
-                representative_lastname: representativeTable.lastname,
-                representative_email: representativeTable.email,
+                representative_id: schema_1.usersTable.representative_id,
                 category_id: schema_1.usersTable.category_id,
                 category_name: schema_1.karateCategoriesTable.category,
                 belt_id: schema_1.usersTable.belt_id,
@@ -261,7 +258,6 @@ let UsersService = class UsersService {
             })
                 .from(schema_1.usersTable)
                 .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
-                .leftJoin(representativeTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.representative_id, representativeTable.id))
                 .leftJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.category_id, schema_1.karateCategoriesTable.id))
                 .leftJoin(schema_1.karateBeltsTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.belt_id, schema_1.karateBeltsTable.id))
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, id))
@@ -277,10 +273,23 @@ let UsersService = class UsersService {
             })
                 .from(schema_1.roleTable)
                 .where((0, drizzle_orm_1.sql) `${schema_1.roleTable.id} IN (${drizzle_orm_1.sql.join(user.roles_ids.map(id => drizzle_orm_1.sql.raw(`${id}`)), (0, drizzle_orm_1.sql) `, `)})`);
-            const { roles_ids, ...userData } = user;
+            let representatives = [];
+            if (user.representative_id && user.representative_id.length > 0) {
+                representatives = await this.db
+                    .select({
+                    id: schema_1.usersTable.id,
+                    name: schema_1.usersTable.name,
+                    lastname: schema_1.usersTable.lastname,
+                    email: schema_1.usersTable.email,
+                })
+                    .from(schema_1.usersTable)
+                    .where((0, drizzle_orm_1.inArray)(schema_1.usersTable.id, user.representative_id));
+            }
+            const { roles_ids, representative_id, ...userData } = user;
             return {
                 ...userData,
                 roles: roles,
+                representatives: representatives,
             };
         }
         catch (err) {

@@ -1,2 +1,0 @@
-ALTER TABLE "karate_categories" ADD COLUMN "age_range" varchar(100) NOT NULL;--> statement-breakpoint
-ALTER TABLE "karate_categories" ADD CONSTRAINT "karate_categories_age_range_unique" UNIQUE("age_range");

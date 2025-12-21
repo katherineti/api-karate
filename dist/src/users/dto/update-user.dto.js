@@ -64,9 +64,10 @@ __decorate([
     __metadata("design:type", Number)
 ], UpdateUserDto.prototype, "school_id", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)({}, { message: 'El ID del representante debe ser un número válido.' }),
+    (0, class_validator_1.IsArray)({ message: 'Los representantes deben ser proporcionados como un arreglo (representative_id).' }),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Number)
+    (0, class_validator_1.IsNumber)({}, { each: true, message: 'Cada elemento en representative_id debe ser un número (ID de representante).' }),
+    __metadata("design:type", Array)
 ], UpdateUserDto.prototype, "representative_id", void 0);
 __decorate([
     (0, class_validator_1.IsArray)({ message: 'Los roles deben ser proporcionados como un arreglo (roles_ids).' }),
