@@ -90,6 +90,7 @@ export class UsersService {
           id: usersTable.id,
           name: usersTable.name,
           lastname: usersTable.lastname,
+          email: usersTable.email,
           roles_ids: usersTable.roles_ids,
         })
           .from(usersTable)

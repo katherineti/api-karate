@@ -72,6 +72,7 @@ let UsersService = class UsersService {
                 id: schema_1.usersTable.id,
                 name: schema_1.usersTable.name,
                 lastname: schema_1.usersTable.lastname,
+                email: schema_1.usersTable.email,
                 roles_ids: schema_1.usersTable.roles_ids,
             })
                 .from(schema_1.usersTable)
