@@ -1,4 +1,4 @@
-import { date, integer, jsonb, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
+import { boolean, date, integer, jsonb, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 
 export const statusTable = pgTable("status",{
   id: serial().primaryKey(),
@@ -50,4 +50,94 @@ export const usersTable = pgTable("users", {
    return [
     unique('document_unique').on(table.document_type, table.document_number),
    ];
+});
+
+
+// Tabla: events (Reemplaza a competitionsTable)
+// Propósito: Almacena los torneos, seminarios y eventos mayores del dashboard.
+export const eventsTable = pgTable("events", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(), // Ej: "Campeonato Nacional Juvenil"
+  description: varchar("description", { length: 500 }),
+  date: date("date").notNull(),
+  location: varchar("location", { length: 255 }), 
+  
+  // Tipo de Evento (Competencia, Seminario, Exhibición)
+  type: varchar("type", { length: 50 }).notNull(), 
+  
+  // Estado (Programado, En Curso, Finalizado, Cancelado)
+  status: varchar("status", { length: 50 }).notNull().default('Programado'), 
+  
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+//Puntuaciones
+// Tabla: modalities
+// Propósito: Lista maestra de los tipos de competencia (Forma, Combate, etc.)
+export const modalitiesTable = pgTable("modalities", {
+  id: serial("id").primaryKey(),
+  // Almacena el nombre único de la modalidad (Ej: 'Forma Tradicional')
+  name: varchar("name", { length: 255 }).notNull().unique(), 
+});
+
+// Tabla: scoring_divisions (Definición de Reglas de Puntuación)
+// Propósito: Define una división sujeta a puntuación dentro de un Evento.
+export const scoringDivisionsTable = pgTable("scoring_divisions", {
+  id: serial("id").primaryKey(),
+  
+  // Conexión al EVENTO MAYOR (Ej: 'Torneo Regional')
+  event_id: integer("event_id")
+    .notNull()
+    .references(() => eventsTable.id), 
+  
+  // Conexión a la división de edad/peso (Ej: Junior)
+  karate_category_id: integer("karate_category_id")
+    .notNull()
+    .references(() => karateCategoriesTable.id),
+
+  // NUEVA CLAVE FORÁNEA: Conexión a la Modalidad maestra
+  modality_id: integer("modality_id") 
+    .notNull()
+    .references(() => modalitiesTable.id), 
+  
+  // Estado de la división de puntuación
+  phase: varchar("phase", { length: 100 }).notNull().default('Clasificación'), 
+  is_active: boolean("is_active").notNull().default(true),
+
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return [
+    // Restricción: No puede haber dos veces la misma modalidad para la misma categoría en el mismo evento.
+    unique("unique_modality_per_event").on(table.event_id, table.karate_category_id, table.modality_id),
+  ];
+});
+
+// Tabla: kata_performances (Ejecución de Kata)
+// Propósito: Registra una única ejecución de Kata por un atleta en una ronda específica.
+export const kataPerformancesTable = pgTable("kata_performances", {
+  id: serial("id").primaryKey(),
+  
+  // Conexión a la regla de puntuación específica (Evento + Categoría + Modalidad).
+  scoring_division_id: integer("scoring_division_id") 
+    .notNull()
+    .references(() => scoringDivisionsTable.id), 
+
+  // Conexión al atleta que ejecutó el Kata.
+  athlete_id: integer("athlete_id")
+    .notNull()
+    .references(() => usersTable.id), // Asumiendo que los atletas están en usersTable
+
+  // El nombre del Kata ejecutado.
+  kata_name: varchar("kata_name", { length: 255 }), 
+
+  // Número de ronda.
+  round_number: integer("round_number").notNull().default(1), 
+
+  // Puntuación oficial final (entero, ya redondeado/truncado).
+  final_score: integer("final_score").default(null), 
+
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
 });

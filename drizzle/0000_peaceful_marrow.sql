@@ -1,3 +1,15 @@
+CREATE TABLE "events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"description" varchar(500),
+	"date" date NOT NULL,
+	"location" varchar(255),
+	"type" varchar(50) NOT NULL,
+	"status" varchar(50) DEFAULT 'Programado' NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "karate_belts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"belt" varchar(255) NOT NULL,
@@ -12,6 +24,23 @@ CREATE TABLE "karate_categories" (
 	CONSTRAINT "karate_categories_age_range_unique" UNIQUE("age_range")
 );
 --> statement-breakpoint
+CREATE TABLE "kata_performances" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"scoring_division_id" integer NOT NULL,
+	"athlete_id" integer NOT NULL,
+	"kata_name" varchar(255),
+	"round_number" integer DEFAULT 1 NOT NULL,
+	"final_score" integer DEFAULT null,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "modalities" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(255) NOT NULL,
+	CONSTRAINT "modalities_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
 CREATE TABLE "roles" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -24,6 +53,18 @@ CREATE TABLE "schools" (
 	"slug" varchar(255) NOT NULL,
 	CONSTRAINT "schools_name_unique" UNIQUE("name"),
 	CONSTRAINT "schools_slug_unique" UNIQUE("slug")
+);
+--> statement-breakpoint
+CREATE TABLE "scoring_divisions" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"event_id" integer NOT NULL,
+	"karate_category_id" integer NOT NULL,
+	"modality_id" integer NOT NULL,
+	"phase" varchar(100) DEFAULT 'Clasificación' NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "unique_modality_per_event" UNIQUE("event_id","karate_category_id","modality_id")
 );
 --> statement-breakpoint
 CREATE TABLE "status" (
@@ -54,6 +95,11 @@ CREATE TABLE "users" (
 	CONSTRAINT "document_unique" UNIQUE("document_type","document_number")
 );
 --> statement-breakpoint
+ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_scoring_division_id_scoring_divisions_id_fk" FOREIGN KEY ("scoring_division_id") REFERENCES "public"."scoring_divisions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_athlete_id_users_id_fk" FOREIGN KEY ("athlete_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "scoring_divisions" ADD CONSTRAINT "scoring_divisions_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "scoring_divisions" ADD CONSTRAINT "scoring_divisions_karate_category_id_karate_categories_id_fk" FOREIGN KEY ("karate_category_id") REFERENCES "public"."karate_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "scoring_divisions" ADD CONSTRAINT "scoring_divisions_modality_id_modalities_id_fk" FOREIGN KEY ("modality_id") REFERENCES "public"."modalities"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_school_id_schools_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."schools"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_status_status_id_fk" FOREIGN KEY ("status") REFERENCES "public"."status"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_category_id_karate_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."karate_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
