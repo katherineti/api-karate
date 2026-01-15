@@ -124,8 +124,39 @@ let EventsService = class EventsService {
             throw new common_1.InternalServerErrorException('Error al crear el evento.');
         }
     }
-    findOne(id) {
-        return `This action returns a #${id} event`;
+    async findOne(id) {
+        try {
+            const [event] = await this.db
+                .select({
+                id: schema_1.eventsTable.id,
+                name: schema_1.eventsTable.name,
+                description: schema_1.eventsTable.description,
+                date: schema_1.eventsTable.date,
+                location: schema_1.eventsTable.location,
+                status: schema_1.statusTable.status,
+                subtype: schema_1.subtypesEventsTable.subtype,
+                type: schema_1.typesEventsTable.type,
+            })
+                .from(schema_1.eventsTable)
+                .leftJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.status_id, schema_1.statusTable.id))
+                .leftJoin(schema_1.subtypesEventsTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.subtype_id, schema_1.subtypesEventsTable.id))
+                .leftJoin(schema_1.typesEventsTable, (0, drizzle_orm_1.eq)(schema_1.subtypesEventsTable.type_id, schema_1.typesEventsTable.id))
+                .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, id))
+                .limit(1);
+            if (!event) {
+                throw new common_1.BadRequestException(`El evento con ID ${id} no fue encontrado.`);
+            }
+            return {
+                success: true,
+                data: event,
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.BadRequestException)
+                throw error;
+            console.error(`[EventsService.findOne] Error:`, error);
+            throw new common_1.InternalServerErrorException('Error al obtener los detalles del evento.');
+        }
     }
     async update(id, updateEventDto) {
         try {

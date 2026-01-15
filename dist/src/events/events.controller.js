@@ -29,7 +29,7 @@ let EventsController = class EventsController {
         return this.eventsService.findAll(query);
     }
     findOne(id) {
-        return this.eventsService.findOne(+id);
+        return this.eventsService.findOne(id);
     }
     async update(id, updateEventDto) {
         console.log("parametros recibidos: ", id, updateEventDto);
@@ -56,9 +56,9 @@ __decorate([
 ], EventsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], EventsController.prototype, "findOne", null);
 __decorate([

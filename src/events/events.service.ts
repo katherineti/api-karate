@@ -143,8 +143,42 @@ try {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} event`;
+  async findOne(id: number) {   
+    try {
+        const [event] = await this.db
+        .select({
+            id: eventsTable.id,
+            name: eventsTable.name,
+            description: eventsTable.description,
+            date: eventsTable.date,
+            location: eventsTable.location,
+            status: statusTable.status,
+            subtype: subtypesEventsTable.subtype,
+            type: typesEventsTable.type,
+        })
+        .from(eventsTable)
+        .leftJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
+        .leftJoin(subtypesEventsTable, eq(eventsTable.subtype_id, subtypesEventsTable.id))
+        .leftJoin(typesEventsTable, eq(subtypesEventsTable.type_id, typesEventsTable.id))
+        .where(eq(eventsTable.id, id))
+        .limit(1);
+
+        // 2. Manejo de error si el ID no existe en la base de datos
+        if (!event) {
+        throw new BadRequestException(`El evento con ID ${id} no fue encontrado.`);
+        }
+
+        return {
+        success: true,
+        data: event,
+        };
+
+    } catch (error) {
+        if (error instanceof BadRequestException) throw error;
+        
+        console.error(`[EventsService.findOne] Error:`, error);
+        throw new InternalServerErrorException('Error al obtener los detalles del evento.');
+    }
   }
 
   async update(id: number, updateEventDto: UpdateEventDto) {
