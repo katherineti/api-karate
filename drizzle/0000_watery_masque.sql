@@ -4,8 +4,10 @@ CREATE TABLE "events" (
 	"description" varchar(500),
 	"date" date NOT NULL,
 	"location" varchar(255),
-	"type" varchar(50) NOT NULL,
-	"status" varchar(50) DEFAULT 'Programado' NOT NULL,
+	"subtype_id" integer,
+	"status_id" integer DEFAULT 4 NOT NULL,
+	"max_evaluation_score" integer DEFAULT 0 NOT NULL,
+	"max_participants" integer DEFAULT 0 NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
@@ -73,6 +75,19 @@ CREATE TABLE "status" (
 	CONSTRAINT "status_status_unique" UNIQUE("status")
 );
 --> statement-breakpoint
+CREATE TABLE "subtypes_events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"type_id" integer NOT NULL,
+	"subtype" varchar(50),
+	CONSTRAINT "unique_subtype_per_type" UNIQUE("type_id","subtype")
+);
+--> statement-breakpoint
+CREATE TABLE "types_events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"type" varchar(50) NOT NULL,
+	CONSTRAINT "types_events_type_unique" UNIQUE("type")
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "users_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"name" varchar(255) DEFAULT null,
@@ -95,11 +110,13 @@ CREATE TABLE "users" (
 	CONSTRAINT "document_unique" UNIQUE("document_type","document_number")
 );
 --> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_status_id_status_id_fk" FOREIGN KEY ("status_id") REFERENCES "public"."status"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_scoring_division_id_scoring_divisions_id_fk" FOREIGN KEY ("scoring_division_id") REFERENCES "public"."scoring_divisions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_athlete_id_users_id_fk" FOREIGN KEY ("athlete_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "scoring_divisions" ADD CONSTRAINT "scoring_divisions_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "scoring_divisions" ADD CONSTRAINT "scoring_divisions_karate_category_id_karate_categories_id_fk" FOREIGN KEY ("karate_category_id") REFERENCES "public"."karate_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "scoring_divisions" ADD CONSTRAINT "scoring_divisions_modality_id_modalities_id_fk" FOREIGN KEY ("modality_id") REFERENCES "public"."modalities"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "subtypes_events" ADD CONSTRAINT "subtypes_events_type_id_types_events_id_fk" FOREIGN KEY ("type_id") REFERENCES "public"."types_events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_school_id_schools_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."schools"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_status_status_id_fk" FOREIGN KEY ("status") REFERENCES "public"."status"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_category_id_karate_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."karate_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

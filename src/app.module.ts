@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ShoolsModule } from './shools/shools.module';
 import { PuntuationModule } from './puntuation/puntuation.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PuntuationModule } from './puntuation/puntuation.module';
      UsersModule,
      ShoolsModule,
      PuntuationModule,
+     EventsModule,
     // RolesModule,
   ],
   controllers: [AppController],

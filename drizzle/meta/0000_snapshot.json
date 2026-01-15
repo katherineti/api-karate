@@ -1,5 +1,5 @@
 {
-  "id": "0fe1e984-9c24-40a1-a880-0577901fbff6",
+  "id": "4e3831d9-84bc-481e-84c5-d41ed330d46a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -38,18 +38,32 @@
           "primaryKey": false,
           "notNull": false
         },
-        "type": {
-          "name": "type",
-          "type": "varchar(50)",
+        "subtype_id": {
+          "name": "subtype_id",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "status": {
-          "name": "status",
-          "type": "varchar(50)",
+        "status_id": {
+          "name": "status_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'Programado'"
+          "default": 4
+        },
+        "max_evaluation_score": {
+          "name": "max_evaluation_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "max_participants": {
+          "name": "max_participants",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",
@@ -67,7 +81,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "events_status_id_status_id_fk": {
+          "name": "events_status_id_status_id_fk",
+          "tableFrom": "events",
+          "tableTo": "status",
+          "columnsFrom": [
+            "status_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -498,6 +526,93 @@
           "nullsNotDistinct": false,
           "columns": [
             "status"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.subtypes_events": {
+      "name": "subtypes_events",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type_id": {
+          "name": "type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subtype": {
+          "name": "subtype",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "subtypes_events_type_id_types_events_id_fk": {
+          "name": "subtypes_events_type_id_types_events_id_fk",
+          "tableFrom": "subtypes_events",
+          "tableTo": "types_events",
+          "columnsFrom": [
+            "type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_subtype_per_type": {
+          "name": "unique_subtype_per_type",
+          "nullsNotDistinct": false,
+          "columns": [
+            "type_id",
+            "subtype"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.types_events": {
+      "name": "types_events",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "types_events_type_unique": {
+          "name": "types_events_type_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "type"
           ]
         }
       },

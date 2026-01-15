@@ -1,0 +1,287 @@
+import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { eventsTable, eventStatus_scheduled, statusTable, subtypesEventsTable, typesEventsTable } from '../db/schema';
+import { PG_CONNECTION } from '../constants';
+import { NeonDatabase } from 'drizzle-orm/neon-serverless';
+import { and, eq, gte, ilike, lte, or, sql, SQL } from 'drizzle-orm';
+import { PaginationEventsDto } from './dto/pagination-events.dto';
+
+@Injectable()
+export class EventsService {
+
+  constructor(@Inject(PG_CONNECTION) private readonly db: NeonDatabase) {}
+
+  async findAll(query: PaginationEventsDto) {
+const { page, limit, search, typeFilter, statusFilter, startDateFilter, endDateFilter } = query;
+
+try {
+    const offset = (page - 1) * limit;
+    const whereConditions: SQL[] = [];
+
+    // 1. Filtro de búsqueda (Búsqueda insensible a mayúsculas)
+    if (search) {
+    whereConditions.push(
+        or(
+        ilike(eventsTable.name, `%${search}%`),
+        ilike(eventsTable.location, `%${search}%`)
+        )
+    );
+    }
+
+    // 2. Filtros por ID (Validación de tipos ya viene del DTO)
+    if (typeFilter) whereConditions.push(eq(subtypesEventsTable.type_id, typeFilter));
+    if (statusFilter) whereConditions.push(eq(eventsTable.status_id, statusFilter));
+
+    // 3. Lógica de Fechas (Rango vs Única)
+    if (startDateFilter && endDateFilter) {
+    whereConditions.push(and(gte(eventsTable.date, startDateFilter), lte(eventsTable.date, endDateFilter)));
+    } else if (startDateFilter) {
+    whereConditions.push(eq(eventsTable.date, startDateFilter));
+    }
+
+    const finalWhere = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+    // 4. Ejecución de consultas en paralelo para mejorar rendimiento
+    const [totalResult, data] = await Promise.all([
+    this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(eventsTable)
+        .where(finalWhere),
+    this.db
+        .select({
+        id: eventsTable.id,
+        name: eventsTable.name,
+        description: eventsTable.description,
+        date: eventsTable.date,
+        location: eventsTable.location,
+        max_participants: eventsTable.max_participants,
+        // Unimos con las tablas de nombres para que el front no reciba solo IDs
+        type: typesEventsTable.type,
+        subtype: subtypesEventsTable.subtype,
+        status: statusTable.status,
+        })
+        .from(eventsTable)
+        .leftJoin(subtypesEventsTable, eq(eventsTable.subtype_id, subtypesEventsTable.id))
+        .leftJoin(typesEventsTable, eq(subtypesEventsTable.type_id, typesEventsTable.id))
+        .leftJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
+        .where(finalWhere)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(sql`${eventsTable.date} DESC`) // Ordenar por fecha más reciente
+    ]);
+
+    const total = Number(totalResult[0]?.count ?? 0);
+
+    // 5. Gestión de error de lógica: Página fuera de rango
+    const totalPages = Math.ceil(total / limit);
+    if (page > totalPages && total > 0) {
+    throw new BadRequestException(`La página ${page} no existe. El máximo es ${totalPages}.`);
+    }
+
+    return {
+    data,
+    meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+    },
+    };
+
+} catch (error) {
+    // Si es un error controlado por nosotros, lo relanzamos
+    if (error instanceof BadRequestException) throw error;
+
+    // Error de sintaxis en la base de datos (ej: formato de fecha inválido que saltó el DTO)
+    if (error.code === '22007' || error.code === '22P02') {
+    throw new BadRequestException('El formato de los filtros (fecha o IDs) es inválido.');
+    }
+
+    console.error('ERROR_FINDALL_EVENTS:', error);
+    throw new InternalServerErrorException('Error al procesar la lista de eventos. Por favor, contacte al administrador.');
+}
+  }
+
+  async create(createEventDto: CreateEventDto) {
+    try {
+    // 1. Validación de existencia del subtipo
+    const subtypeExists = await this.db
+        .select()
+        .from(subtypesEventsTable)
+        .where(eq(subtypesEventsTable.id, createEventDto.subtype_id))
+        .limit(1);
+
+    if (subtypeExists.length === 0) {
+        throw new BadRequestException(`El subtipo de evento (${createEventDto.subtype_id}) no es válido.`);
+    }
+
+    // 2. Preparación de datos con valores por defecto
+    const params = {
+        ...createEventDto,
+        status_id: eventStatus_scheduled,
+        max_participants: createEventDto.max_participants ?? 0,
+        max_evaluation_score: createEventDto.max_evaluation_score ?? 0, 
+    };
+
+    // 3. Inserción
+    const [newEvent] = await this.db
+        .insert(eventsTable)
+        .values(params)
+        .returning();
+
+    return {
+        message: 'Evento creado exitosamente',
+        data: newEvent,
+    };
+
+    } catch (error) {
+    if (error instanceof BadRequestException) throw error;
+    
+    console.error('ERROR_CREATING_EVENT:', error);
+    throw new InternalServerErrorException('Error al crear el evento.');
+    }
+  }
+
+  findOne(id: number) {
+    return `This action returns a #${id} event`;
+  }
+
+  async update(id: number, updateEventDto: UpdateEventDto) {
+    try {
+      // 1. Verificar existencia del evento y obtener su estado actual
+      const [currentEvent] = await this.db
+        .select({ 
+          id: eventsTable.id, 
+          status_id: eventsTable.status_id 
+        })
+        .from(eventsTable)
+        .where(eq(eventsTable.id, id))
+        .limit(1);
+
+      if (!currentEvent) {
+        throw new BadRequestException(`El evento con ID ${id} no existe.`);
+      }
+
+      // 2. Lógica de negocio: No permitir editar eventos finalizados o cancelados
+      // Asumiendo IDs de tu seed: 6 (Finalizado), 7 (Cancelado)
+      if ([6, 7].includes(currentEvent.status_id)) {
+        throw new BadRequestException(
+          'No se puede modificar un evento que ya ha sido finalizado o cancelado.'
+        );
+      }
+
+      // 3. Validar integridad de subtype_id (si se incluye en el body)
+      if (updateEventDto.subtype_id) {
+        const [subtype] = await this.db
+          .select()
+          .from(subtypesEventsTable)
+          .where(eq(subtypesEventsTable.id, updateEventDto.subtype_id))
+          .limit(1);
+
+        if (!subtype) {
+          throw new BadRequestException(
+            `El subtipo de evento (${updateEventDto.subtype_id}) no es válido.`
+          );
+        }
+      }
+
+      // 4. Validar integridad de status_id (si se incluye en el body)
+      if (updateEventDto.status_id) {
+        const [status] = await this.db
+          .select()
+          .from(statusTable)
+          .where(eq(statusTable.id, updateEventDto.status_id))
+          .limit(1);
+
+        if (!status) {
+          throw new BadRequestException(
+            `El estado (${updateEventDto.status_id}) no existe en la base de datos.`
+          );
+        }
+      }
+
+      // 5. Ejecutar la actualización
+       const params = {
+          ...updateEventDto,
+          updated_at: new Date(), // Actualización manual del timestamp
+       }
+
+      const [updatedEvent] = await this.db
+        .update(eventsTable)
+        .set(params)
+        .where(eq(eventsTable.id, id))
+        .returning();
+
+      return {
+        message: 'Evento actualizado exitosamente',
+        data: updatedEvent,
+      };
+
+    } catch (error) {
+      // Manejo de excepciones controladas
+      if (error instanceof BadRequestException) throw error;
+
+      // Errores de base de datos (Ej: Formato de fecha inválido 22007)
+      if (error.code === '22007' || error.code === '22P02') {
+        throw new BadRequestException('Los datos proporcionados tienen un formato inválido.');
+      }
+
+      console.error('ERROR_UPDATING_EVENT:', error);
+      throw new InternalServerErrorException(
+        'Error interno al actualizar el evento. Intente más tarde.'
+      );
+    }
+  }
+
+  async disable(id: number) {
+    try {
+        // 1. Verificar existencia y estado actual
+        const [event] = await this.db
+        .select({ 
+            id: eventsTable.id, 
+            status_id: eventsTable.status_id 
+        })
+        .from(eventsTable)
+        .where(eq(eventsTable.id, id))
+        .limit(1);
+
+        if (!event) {
+        throw new BadRequestException(`El evento con ID ${id} no existe.`);
+        }
+
+        // 2. Validar si ya está cancelado (ID 7) o finalizado (ID 6) según tu seed
+        if (event.status_id === 7) {
+        throw new BadRequestException('El evento ya se encuentra inhabilitado.');
+        }
+        
+        if (event.status_id === 6) {
+        throw new BadRequestException('No se puede inhabilitar un evento que ya ha finalizado.');
+        }
+
+        // 3. Ejecutar actualización (SOLUCIÓN AL ERROR DE TIPADO)
+        // Si TypeScript sigue protestando, usamos un cast de tipo temporal.
+        const [disabledEvent] = await this.db
+        .update(eventsTable)
+        .set({
+            status_id: 7, // ID de 'Evento cancelado' en tu statusTable
+            updated_at: new Date(), //
+        } as any) // El cast 'as any' asegura que pase el chequeo si el esquema tiene desajustes de tipos
+        .where(eq(eventsTable.id, id))
+        .returning();
+
+        return {
+        message: 'Evento inhabilitado correctamente',
+        data: {
+            id: disabledEvent.id,
+            status: 'Evento cancelado',
+        },
+        };
+    } catch (error) {
+        if (error instanceof BadRequestException) throw error;
+        console.error('ERROR_DISABLING_EVENT:', error);
+        throw new InternalServerErrorException('Error al intentar inhabilitar el evento.');
+    }
+  }
+
+}

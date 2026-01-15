@@ -1,5 +1,7 @@
 import { boolean, date, integer, jsonb, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 
+export const eventStatus_scheduled = 4;
+
 export const statusTable = pgTable("status",{
   id: serial().primaryKey(),
   status: varchar({ length: 255 }).notNull().unique(),
@@ -52,6 +54,22 @@ export const usersTable = pgTable("users", {
    ];
 });
 
+export const typesEventsTable = pgTable("types_events",{
+  id: serial().primaryKey(),
+  type: varchar({ length: 50 }).notNull().unique(),
+})
+export const subtypesEventsTable = pgTable("subtypes_events",{
+  id: serial().primaryKey(),
+  type_id: integer("type_id")
+    .notNull()
+    .references(() => typesEventsTable.id),
+  subtype: varchar({ length: 50 }),
+}, (table) => {
+  return [
+    // Crea una restricción única combinando ambas columnas
+    unique("unique_subtype_per_type").on(table.type_id, table.subtype),
+  ];
+})
 
 // Tabla: events (Reemplaza a competitionsTable)
 // Propósito: Almacena los torneos, seminarios y eventos mayores del dashboard.
@@ -60,14 +78,19 @@ export const eventsTable = pgTable("events", {
   name: varchar("name", { length: 255 }).notNull(), // Ej: "Campeonato Nacional Juvenil"
   description: varchar("description", { length: 500 }),
   date: date("date").notNull(),
-  location: varchar("location", { length: 255 }), 
-  
-  // Tipo de Evento (Competencia, Seminario, Exhibición)
-  type: varchar("type", { length: 50 }).notNull(), 
-  
+  location: varchar("location", { length: 255 }),
+  // Tipo de Evento (Competencia, Seminario, Exhibición, Examen de grado)
+  // type_id: integer("type_id")
+  //   .notNull()
+  //   .references(() => typesEventsTable.id),
+  subtype_id: integer("subtype_id"),
   // Estado (Programado, En Curso, Finalizado, Cancelado)
-  status: varchar("status", { length: 50 }).notNull().default('Programado'), 
-  
+  status_id: integer("status_id")
+    .notNull()
+    .default(eventStatus_scheduled)
+    .references(() => statusTable.id),
+  max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
+  max_participants: integer("max_participants").notNull().default(0),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

@@ -22,6 +22,10 @@ async function seed() {
         { status: 'activo' },
         { status: 'inactivo' },
         { status: 'actualizado' },
+        { status: 'Evento programado' },
+        { status: 'Evento en curso' },
+        { status: 'Evento finalizado' },
+        { status: 'Evento cancelado' },
     ];
     const rawSchoolsData = [
         { slug: 'antonio-diaz-dojo', name: 'Antonio Díaz Dojo' },
@@ -65,6 +69,28 @@ async function seed() {
         { id: 7, belt: 'Marrón' },
         { id: 8, belt: 'Negro' },
     ];
+    const typesEventsToInsert = [
+        { id: 1, type: 'Competencia' },
+        { id: 2, type: 'Examen de Grado' },
+        { id: 3, type: 'Seminario' },
+        { id: 4, type: 'Exhibición' },
+    ];
+    const subtypesEventsToInsert = [
+        { id: 1, type_id: 1, subtype: 'Oficial Federada (Nacional/Estadal)' },
+        { id: 2, type_id: 1, subtype: 'Copa o Invitacional (Amistosa)' },
+        { id: 3, type_id: 1, subtype: 'Liga de Élite (Serie)' },
+        { id: 4, type_id: 1, subtype: 'Chequeo o Tope' },
+        { id: 5, type_id: 2, subtype: 'Paso de Kyu (Colores)' },
+        { id: 6, type_id: 2, subtype: 'Paso de Dan (Cinturón Negro)' },
+        { id: 7, type_id: 2, subtype: 'Homologación de Grado' },
+        { id: 8, type_id: 3, subtype: 'Técnico (Kata/Kumite)' },
+        { id: 9, type_id: 3, subtype: 'Arbitraje' },
+        { id: 10, type_id: 3, subtype: 'Capacitación para Coaches' },
+        { id: 11, type_id: 3, subtype: 'Maestría (Gasshuku)' },
+        { id: 12, type_id: 4, subtype: 'Promocional' },
+        { id: 13, type_id: 4, subtype: 'Gala Marcial' },
+        { id: 14, type_id: 4, subtype: 'Protocolar' }
+    ];
     const client = new pg_1.Client({
         connectionString: connectionString,
         ssl: {
@@ -103,6 +129,20 @@ async function seed() {
             .values(karateBeltsToInsert)
             .onConflictDoNothing({ target: schema_1.karateBeltsTable.belt });
         console.log(`✅ Karate Belts completado. Se insertaron ${karateBeltsToInsert.length} cinturones.`);
+        console.log('  -> 6/6: Insertando tipos de eventos (typesEvents)...');
+        await db.insert(schema_1.typesEventsTable)
+            .values(typesEventsToInsert)
+            .onConflictDoNothing({
+            target: schema_1.typesEventsTable.type
+        });
+        console.log('✅ Types Events completado.');
+        console.log('  -> 7/7: Insertando subtipos de eventos (subtypesEvents)...');
+        await db.insert(schema_1.subtypesEventsTable)
+            .values(subtypesEventsToInsert)
+            .onConflictDoNothing({
+            target: [schema_1.subtypesEventsTable.type_id, schema_1.subtypesEventsTable.subtype]
+        });
+        console.log('✅ Subtypes Events completado.');
         console.log('Seeding de datos iniciales finalizado correctamente.');
     }
     catch (error) {
