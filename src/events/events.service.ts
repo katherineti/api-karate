@@ -13,94 +13,96 @@ export class EventsService {
   constructor(@Inject(PG_CONNECTION) private readonly db: NeonDatabase) {}
 
   async findAll(query: PaginationEventsDto) {
-const { page, limit, search, typeFilter, statusFilter, startDateFilter, endDateFilter } = query;
+    const { page, limit, search, typeFilter, statusFilter, startDateFilter, endDateFilter } = query;
 
-try {
-    const offset = (page - 1) * limit;
-    const whereConditions: SQL[] = [];
+    try {
+        const offset = (page - 1) * limit;
+        const whereConditions: SQL[] = [];
 
-    // 1. Filtro de búsqueda (Búsqueda insensible a mayúsculas)
-    if (search) {
-    whereConditions.push(
-        or(
-        ilike(eventsTable.name, `%${search}%`),
-        ilike(eventsTable.location, `%${search}%`)
-        )
-    );
+        // 1. Filtro de búsqueda (Búsqueda insensible a mayúsculas)
+        if (search) {
+        whereConditions.push(
+            or(
+            ilike(eventsTable.name, `%${search}%`),
+            ilike(eventsTable.location, `%${search}%`)
+            )
+        );
+        }
+
+        // 2. Filtros por ID (Validación de tipos ya viene del DTO)
+        if (typeFilter) whereConditions.push(eq(subtypesEventsTable.type_id, typeFilter));
+        if (statusFilter) whereConditions.push(eq(eventsTable.status_id, statusFilter));
+
+        // 3. Lógica de Fechas (Rango vs Única)
+        if (startDateFilter && endDateFilter) {
+        whereConditions.push(and(gte(eventsTable.date, startDateFilter), lte(eventsTable.date, endDateFilter)));
+        } else if (startDateFilter) {
+        whereConditions.push(eq(eventsTable.date, startDateFilter));
+        }
+
+        const finalWhere = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+        // 4. Ejecución de consultas en paralelo para mejorar rendimiento
+        const [totalResult, data] = await Promise.all([
+        this.db
+            .select({ count: sql<number>`count(*)` })
+            .from(eventsTable)
+            .where(finalWhere),
+        this.db
+            .select({
+            id: eventsTable.id,
+            name: eventsTable.name,
+            description: eventsTable.description,
+            date: eventsTable.date,
+            location: eventsTable.location,
+            max_participants: eventsTable.max_participants,
+            // Unimos con las tablas de nombres para que el front no reciba solo IDs
+            type_id: subtypesEventsTable.type_id,
+            type: typesEventsTable.type,
+            subtype: subtypesEventsTable.subtype,
+            status_id: eventsTable.status_id,
+            status: statusTable.status,
+            })
+            .from(eventsTable)
+            .leftJoin(subtypesEventsTable, eq(eventsTable.subtype_id, subtypesEventsTable.id))
+            .leftJoin(typesEventsTable, eq(subtypesEventsTable.type_id, typesEventsTable.id))
+            .leftJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
+            .where(finalWhere)
+            .limit(limit)
+            .offset(offset)
+            .orderBy(sql`${eventsTable.date} DESC`) // Ordenar por fecha más reciente
+        ]);
+
+        const total = Number(totalResult[0]?.count ?? 0);
+
+        // 5. Gestión de error de lógica: Página fuera de rango
+        const totalPages = Math.ceil(total / limit);
+        if (page > totalPages && total > 0) {
+        throw new BadRequestException(`La página ${page} no existe. El máximo es ${totalPages}.`);
+        }
+
+        return {
+        data,
+        meta: {
+            total,
+            page,
+            limit,
+            totalPages,
+        },
+        };
+
+    } catch (error) {
+        // Si es un error controlado por nosotros, lo relanzamos
+        if (error instanceof BadRequestException) throw error;
+
+        // Error de sintaxis en la base de datos (ej: formato de fecha inválido que saltó el DTO)
+        if (error.code === '22007' || error.code === '22P02') {
+        throw new BadRequestException('El formato de los filtros (fecha o IDs) es inválido.');
+        }
+
+        console.error('ERROR_FINDALL_EVENTS:', error);
+        throw new InternalServerErrorException('Error al procesar la lista de eventos. Por favor, contacte al administrador.');
     }
-
-    // 2. Filtros por ID (Validación de tipos ya viene del DTO)
-    if (typeFilter) whereConditions.push(eq(subtypesEventsTable.type_id, typeFilter));
-    if (statusFilter) whereConditions.push(eq(eventsTable.status_id, statusFilter));
-
-    // 3. Lógica de Fechas (Rango vs Única)
-    if (startDateFilter && endDateFilter) {
-    whereConditions.push(and(gte(eventsTable.date, startDateFilter), lte(eventsTable.date, endDateFilter)));
-    } else if (startDateFilter) {
-    whereConditions.push(eq(eventsTable.date, startDateFilter));
-    }
-
-    const finalWhere = whereConditions.length > 0 ? and(...whereConditions) : undefined;
-
-    // 4. Ejecución de consultas en paralelo para mejorar rendimiento
-    const [totalResult, data] = await Promise.all([
-    this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(eventsTable)
-        .where(finalWhere),
-    this.db
-        .select({
-        id: eventsTable.id,
-        name: eventsTable.name,
-        description: eventsTable.description,
-        date: eventsTable.date,
-        location: eventsTable.location,
-        max_participants: eventsTable.max_participants,
-        // Unimos con las tablas de nombres para que el front no reciba solo IDs
-        type: typesEventsTable.type,
-        subtype: subtypesEventsTable.subtype,
-        status: statusTable.status,
-        })
-        .from(eventsTable)
-        .leftJoin(subtypesEventsTable, eq(eventsTable.subtype_id, subtypesEventsTable.id))
-        .leftJoin(typesEventsTable, eq(subtypesEventsTable.type_id, typesEventsTable.id))
-        .leftJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
-        .where(finalWhere)
-        .limit(limit)
-        .offset(offset)
-        .orderBy(sql`${eventsTable.date} DESC`) // Ordenar por fecha más reciente
-    ]);
-
-    const total = Number(totalResult[0]?.count ?? 0);
-
-    // 5. Gestión de error de lógica: Página fuera de rango
-    const totalPages = Math.ceil(total / limit);
-    if (page > totalPages && total > 0) {
-    throw new BadRequestException(`La página ${page} no existe. El máximo es ${totalPages}.`);
-    }
-
-    return {
-    data,
-    meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-    },
-    };
-
-} catch (error) {
-    // Si es un error controlado por nosotros, lo relanzamos
-    if (error instanceof BadRequestException) throw error;
-
-    // Error de sintaxis en la base de datos (ej: formato de fecha inválido que saltó el DTO)
-    if (error.code === '22007' || error.code === '22P02') {
-    throw new BadRequestException('El formato de los filtros (fecha o IDs) es inválido.');
-    }
-
-    console.error('ERROR_FINDALL_EVENTS:', error);
-    throw new InternalServerErrorException('Error al procesar la lista de eventos. Por favor, contacte al administrador.');
-}
   }
 
   async create(createEventDto: CreateEventDto) {

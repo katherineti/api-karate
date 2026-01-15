@@ -54,8 +54,10 @@ let EventsService = class EventsService {
                     date: schema_1.eventsTable.date,
                     location: schema_1.eventsTable.location,
                     max_participants: schema_1.eventsTable.max_participants,
+                    type_id: schema_1.subtypesEventsTable.type_id,
                     type: schema_1.typesEventsTable.type,
                     subtype: schema_1.subtypesEventsTable.subtype,
+                    status_id: schema_1.eventsTable.status_id,
                     status: schema_1.statusTable.status,
                 })
                     .from(schema_1.eventsTable)
