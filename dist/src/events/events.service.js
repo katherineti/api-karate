@@ -134,8 +134,10 @@ let EventsService = class EventsService {
                 date: schema_1.eventsTable.date,
                 location: schema_1.eventsTable.location,
                 status: schema_1.statusTable.status,
-                subtype: schema_1.subtypesEventsTable.subtype,
                 type: schema_1.typesEventsTable.type,
+                subtype: schema_1.subtypesEventsTable.subtype,
+                max_participants: schema_1.eventsTable.max_participants,
+                max_evaluation_score: schema_1.eventsTable.max_evaluation_score,
             })
                 .from(schema_1.eventsTable)
                 .leftJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.status_id, schema_1.statusTable.id))

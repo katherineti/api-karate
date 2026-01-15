@@ -153,8 +153,10 @@ try {
             date: eventsTable.date,
             location: eventsTable.location,
             status: statusTable.status,
-            subtype: subtypesEventsTable.subtype,
             type: typesEventsTable.type,
+            subtype: subtypesEventsTable.subtype,
+            max_participants: eventsTable.max_participants,
+            max_evaluation_score: eventsTable.max_evaluation_score,
         })
         .from(eventsTable)
         .leftJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
