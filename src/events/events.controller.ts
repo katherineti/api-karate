@@ -3,6 +3,7 @@ import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PaginationEventsDto } from './dto/pagination-events.dto';
+import { ChangeStatusEventDto } from './dto/change-status-event.dto';
 
 @Controller('events')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -31,6 +32,14 @@ export class EventsController {
   ) {console.log( "parametros recibidos: ", id, updateEventDto)
     // El signo + convierte el string a number explícitamente si es necesario
     return this.eventsService.update(+id, updateEventDto);
+  }
+
+  @Patch(':id/status')
+  async changeStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() changeStatusDto: ChangeStatusEventDto,
+  ) {
+    return this.eventsService.changeStatus(id, changeStatusDto.status_id);
   }
 
   @Delete(':id')

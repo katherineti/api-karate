@@ -220,6 +220,43 @@ let EventsService = class EventsService {
             throw new common_1.InternalServerErrorException('Error interno al actualizar el evento. Intente más tarde.');
         }
     }
+    async changeStatus(id, status_id) {
+        try {
+            const [event] = await this.db
+                .select({ id: schema_1.eventsTable.id, status_id: schema_1.eventsTable.status_id })
+                .from(schema_1.eventsTable)
+                .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, id))
+                .limit(1);
+            if (!event) {
+                throw new common_1.BadRequestException(`El evento con ID ${id} no existe.`);
+            }
+            if (event.status_id === status_id) {
+                const msg = status_id === 4 ? 'habilitado' : 'inhabilitado';
+                throw new common_1.BadRequestException(`El evento ya se encuentra ${msg}.`);
+            }
+            if (event.status_id === 6) {
+                throw new common_1.BadRequestException('No se puede cambiar el estado de un evento que ya ha finalizado.');
+            }
+            const [updatedEvent] = await this.db
+                .update(schema_1.eventsTable)
+                .set({
+                status_id: status_id,
+                updated_at: new Date(),
+            })
+                .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, id))
+                .returning();
+            return {
+                message: `Evento ${status_id === 4 ? 'habilitado' : 'inhabilitado'} exitosamente`,
+                data: updatedEvent,
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.BadRequestException)
+                throw error;
+            console.error('ERROR_CHANGE_STATUS:', error);
+            throw new common_1.InternalServerErrorException('Error al procesar el cambio de estado.');
+        }
+    }
     async disable(id) {
         try {
             const [event] = await this.db

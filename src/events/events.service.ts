@@ -270,6 +270,51 @@ try {
     }
   }
 
+    async changeStatus(id: number, status_id: number) {
+    try {
+        // 1. Verificar existencia del evento
+        const [event] = await this.db
+        .select({ id: eventsTable.id, status_id: eventsTable.status_id })
+        .from(eventsTable)
+        .where(eq(eventsTable.id, id))
+        .limit(1);
+
+        if (!event) {
+        throw new BadRequestException(`El evento con ID ${id} no existe.`);
+        }
+
+        // 2. Validar transiciones prohibidas
+        if (event.status_id === status_id) {
+        const msg = status_id === 4 ? 'habilitado' : 'inhabilitado';
+        throw new BadRequestException(`El evento ya se encuentra ${msg}.`);
+        }
+
+        // No permitir re-habilitar o cancelar eventos finalizados (ID 6)
+        if (event.status_id === 6) {
+        throw new BadRequestException('No se puede cambiar el estado de un evento que ya ha finalizado.');
+        }
+
+        // 3. Ejecutar actualización
+        const [updatedEvent] = await this.db
+        .update(eventsTable)
+        .set({
+            status_id: status_id,
+            updated_at: new Date(),
+        } as any)
+        .where(eq(eventsTable.id, id))
+        .returning();
+
+        return {
+        message: `Evento ${status_id === 4 ? 'habilitado' : 'inhabilitado'} exitosamente`,
+        data: updatedEvent,
+        };
+    } catch (error) {
+        if (error instanceof BadRequestException) throw error;
+        console.error('ERROR_CHANGE_STATUS:', error);
+        throw new InternalServerErrorException('Error al procesar el cambio de estado.');
+    }
+    }
+
   async disable(id: number) {
     try {
         // 1. Verificar existencia y estado actual
@@ -319,5 +364,4 @@ try {
         throw new InternalServerErrorException('Error al intentar inhabilitar el evento.');
     }
   }
-
 }

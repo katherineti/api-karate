@@ -18,6 +18,7 @@ const events_service_1 = require("./events.service");
 const create_event_dto_1 = require("./dto/create-event.dto");
 const update_event_dto_1 = require("./dto/update-event.dto");
 const pagination_events_dto_1 = require("./dto/pagination-events.dto");
+const change_status_event_dto_1 = require("./dto/change-status-event.dto");
 let EventsController = class EventsController {
     constructor(eventsService) {
         this.eventsService = eventsService;
@@ -34,6 +35,9 @@ let EventsController = class EventsController {
     async update(id, updateEventDto) {
         console.log("parametros recibidos: ", id, updateEventDto);
         return this.eventsService.update(+id, updateEventDto);
+    }
+    async changeStatus(id, changeStatusDto) {
+        return this.eventsService.changeStatus(id, changeStatusDto.status_id);
     }
     remove(id) {
         return this.eventsService.disable(+id);
@@ -69,6 +73,14 @@ __decorate([
     __metadata("design:paramtypes", [String, update_event_dto_1.UpdateEventDto]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Patch)(':id/status'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, change_status_event_dto_1.ChangeStatusEventDto]),
+    __metadata("design:returntype", Promise)
+], EventsController.prototype, "changeStatus", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
