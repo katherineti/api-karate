@@ -155,6 +155,7 @@ export class EventsService {
             date: eventsTable.date,
             location: eventsTable.location,
             status: statusTable.status,
+            status_id: eventsTable.status_id,
             type_id: subtypesEventsTable.type_id,
             type: typesEventsTable.type,
             subtype_id: subtypesEventsTable.id,

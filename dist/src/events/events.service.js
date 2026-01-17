@@ -136,6 +136,7 @@ let EventsService = class EventsService {
                 date: schema_1.eventsTable.date,
                 location: schema_1.eventsTable.location,
                 status: schema_1.statusTable.status,
+                status_id: schema_1.eventsTable.status_id,
                 type_id: schema_1.subtypesEventsTable.type_id,
                 type: schema_1.typesEventsTable.type,
                 subtype_id: schema_1.subtypesEventsTable.id,
