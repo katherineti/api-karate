@@ -12,7 +12,7 @@ export class EventsService {
 
   constructor(@Inject(PG_CONNECTION) private readonly db: NeonDatabase) {}
 
-  async findAll(query: PaginationEventsDto) {
+  async findAll(query: PaginationEventsDto) {console.log("parametros recibidos",query);
     const { page, limit, search, typeFilter, statusFilter, startDateFilter, endDateFilter } = query;
 
     try {
@@ -28,9 +28,12 @@ export class EventsService {
             )
         );
         }
-
         // 2. Filtros por ID (Validación de tipos ya viene del DTO)
-        if (typeFilter) whereConditions.push(eq(subtypesEventsTable.type_id, typeFilter));
+        if (typeFilter) {
+            console.log("filtro por tipo de evento:",typeFilter);
+            whereConditions.push(eq(subtypesEventsTable.type_id, typeFilter));
+
+        }
         if (statusFilter) whereConditions.push(eq(eventsTable.status_id, statusFilter));
 
         // 3. Lógica de Fechas (Rango vs Única)
@@ -47,6 +50,9 @@ export class EventsService {
         this.db
             .select({ count: sql<number>`count(*)` })
             .from(eventsTable)
+            .leftJoin(subtypesEventsTable, eq(eventsTable.subtype_id, subtypesEventsTable.id))
+            .leftJoin(typesEventsTable, eq(subtypesEventsTable.type_id, typesEventsTable.id))
+            .leftJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
             .where(finalWhere),
         this.db
             .select({

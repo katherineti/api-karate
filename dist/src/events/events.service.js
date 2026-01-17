@@ -23,6 +23,7 @@ let EventsService = class EventsService {
         this.db = db;
     }
     async findAll(query) {
+        console.log("parametros recibidos", query);
         const { page, limit, search, typeFilter, statusFilter, startDateFilter, endDateFilter } = query;
         try {
             const offset = (page - 1) * limit;
@@ -30,8 +31,10 @@ let EventsService = class EventsService {
             if (search) {
                 whereConditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(schema_1.eventsTable.name, `%${search}%`), (0, drizzle_orm_1.ilike)(schema_1.eventsTable.location, `%${search}%`)));
             }
-            if (typeFilter)
+            if (typeFilter) {
+                console.log("filtro por tipo de evento:", typeFilter);
                 whereConditions.push((0, drizzle_orm_1.eq)(schema_1.subtypesEventsTable.type_id, typeFilter));
+            }
             if (statusFilter)
                 whereConditions.push((0, drizzle_orm_1.eq)(schema_1.eventsTable.status_id, statusFilter));
             if (startDateFilter && endDateFilter) {
@@ -45,6 +48,9 @@ let EventsService = class EventsService {
                 this.db
                     .select({ count: (0, drizzle_orm_1.sql) `count(*)` })
                     .from(schema_1.eventsTable)
+                    .leftJoin(schema_1.subtypesEventsTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.subtype_id, schema_1.subtypesEventsTable.id))
+                    .leftJoin(schema_1.typesEventsTable, (0, drizzle_orm_1.eq)(schema_1.subtypesEventsTable.type_id, schema_1.typesEventsTable.id))
+                    .leftJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.status_id, schema_1.statusTable.id))
                     .where(finalWhere),
                 this.db
                     .select({
