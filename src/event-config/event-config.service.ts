@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { karateBeltsTable, eventDivisionsTable, karateCategoriesTable, modalitiesTable } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 @Injectable()
 export class EventConfigService {
@@ -44,6 +44,7 @@ async getCategoriesByEvent(eventId: number) {
   // 1. Obtenemos las divisiones con sus categorías y modalidades
   const rows = await this.db.select({
     id: eventDivisionsTable.id,
+    category_id: eventDivisionsTable.category_id,
     category: karateCategoriesTable.category,
     age_range: karateCategoriesTable.age_range,
     allowed_belts_ids: karateCategoriesTable.allowed_belts, // Traemos el array de IDs [1, 2, 3]
@@ -73,6 +74,7 @@ async getCategoriesByEvent(eventId: number) {
 
     return {
       id: row.id,
+      category_id: row.category_id,
       category: row.category,
       age_range: row.age_range,
       modality: row.modality,
@@ -81,6 +83,28 @@ async getCategoriesByEvent(eventId: number) {
       allowed_belts: detailedBelts // Ahora es un array de objetos: [{id: 1, name: 'Blanco'}, ...]
     };
   });
+}
+
+async toggleCategoryStatusInEvent(eventId: number, categoryId: number, active: boolean) {
+  const result = await this.db
+    .update(eventDivisionsTable)
+    .set({ 
+      is_active: active, 
+      updated_at: new Date() 
+    } as any) // Usamos 'as any' para evitar el error de inferencia de Drizzle
+    .where(
+      and(
+        eq(eventDivisionsTable.event_id, eventId),
+        eq(eventDivisionsTable.category_id, categoryId)
+      )
+    )
+    .returning();
+
+  if (result.length === 0) {
+    throw new BadRequestException('No se encontraron divisiones para esa combinación de evento y categoría.');
+  }
+
+  return result; // Retorna un array con todas las modalidades actualizadas
 }
 
   // Eliminar una configuración del evento

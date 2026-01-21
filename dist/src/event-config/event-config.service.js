@@ -55,6 +55,7 @@ let EventConfigService = class EventConfigService {
     async getCategoriesByEvent(eventId) {
         const rows = await this.db.select({
             id: schema_1.eventDivisionsTable.id,
+            category_id: schema_1.eventDivisionsTable.category_id,
             category: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
             allowed_belts_ids: schema_1.karateCategoriesTable.allowed_belts,
@@ -78,6 +79,7 @@ let EventConfigService = class EventConfigService {
             }));
             return {
                 id: row.id,
+                category_id: row.category_id,
                 category: row.category,
                 age_range: row.age_range,
                 modality: row.modality,
@@ -86,6 +88,20 @@ let EventConfigService = class EventConfigService {
                 allowed_belts: detailedBelts
             };
         });
+    }
+    async toggleCategoryStatusInEvent(eventId, categoryId, active) {
+        const result = await this.db
+            .update(schema_1.eventDivisionsTable)
+            .set({
+            is_active: active,
+            updated_at: new Date()
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, categoryId)))
+            .returning();
+        if (result.length === 0) {
+            throw new common_1.BadRequestException('No se encontraron divisiones para esa combinación de evento y categoría.');
+        }
+        return result;
     }
     async removeDivision(divisionId) {
         return this.db.delete(schema_1.eventDivisionsTable)
