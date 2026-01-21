@@ -18,6 +18,8 @@ const users_module_1 = require("./users/users.module");
 const shools_module_1 = require("./shools/shools.module");
 const puntuation_module_1 = require("./puntuation/puntuation.module");
 const events_module_1 = require("./events/events.module");
+const categories_module_1 = require("./categories/categories.module");
+const event_config_module_1 = require("./event-config/event-config.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -39,6 +41,8 @@ exports.AppModule = AppModule = __decorate([
             shools_module_1.ShoolsModule,
             puntuation_module_1.PuntuationModule,
             events_module_1.EventsModule,
+            categories_module_1.CategoriesModule,
+            event_config_module_1.EventConfigModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

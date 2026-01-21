@@ -1,9 +1,188 @@
 {
-  "id": "4e3831d9-84bc-481e-84c5-d41ed330d46a",
+  "id": "4f197412-10fd-498c-a27e-26d2eaf1f84b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.division_judges": {
+      "name": "division_judges",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "division_id": {
+          "name": "division_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "judge_id": {
+          "name": "judge_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role_in_pool": {
+          "name": "role_in_pool",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "division_judges_division_id_event_divisions_id_fk": {
+          "name": "division_judges_division_id_event_divisions_id_fk",
+          "tableFrom": "division_judges",
+          "tableTo": "event_divisions",
+          "columnsFrom": [
+            "division_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "division_judges_judge_id_users_id_fk": {
+          "name": "division_judges_judge_id_users_id_fk",
+          "tableFrom": "division_judges",
+          "tableTo": "users",
+          "columnsFrom": [
+            "judge_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.event_divisions": {
+      "name": "event_divisions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "modality_id": {
+          "name": "modality_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_evaluation_score": {
+          "name": "max_evaluation_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "event_divisions_event_id_events_id_fk": {
+          "name": "event_divisions_event_id_events_id_fk",
+          "tableFrom": "event_divisions",
+          "tableTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_divisions_category_id_karate_categories_id_fk": {
+          "name": "event_divisions_category_id_karate_categories_id_fk",
+          "tableFrom": "event_divisions",
+          "tableTo": "karate_categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "event_divisions_modality_id_modalities_id_fk": {
+          "name": "event_divisions_modality_id_modalities_id_fk",
+          "tableFrom": "event_divisions",
+          "tableTo": "modalities",
+          "columnsFrom": [
+            "modality_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_modality_per_event": {
+          "name": "unique_modality_per_event",
+          "nullsNotDistinct": false,
+          "columns": [
+            "event_id",
+            "category_id",
+            "modality_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.events": {
       "name": "events",
       "schema": "",
@@ -42,7 +221,7 @@
           "name": "subtype_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "status_id": {
           "name": "status_id",
@@ -82,6 +261,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "events_subtype_id_subtypes_events_id_fk": {
+          "name": "events_subtype_id_subtypes_events_id_fk",
+          "tableFrom": "events",
+          "tableTo": "subtypes_events",
+          "columnsFrom": [
+            "subtype_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "events_status_id_status_id_fk": {
           "name": "events_status_id_status_id_fk",
           "tableFrom": "events",
@@ -156,23 +348,23 @@
           "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
+        },
+        "allowed_belts": {
+          "name": "allowed_belts",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "karate_categories_category_unique": {
-          "name": "karate_categories_category_unique",
+        "unique_category_age": {
+          "name": "unique_category_age",
           "nullsNotDistinct": false,
           "columns": [
-            "category"
-          ]
-        },
-        "karate_categories_age_range_unique": {
-          "name": "karate_categories_age_range_unique",
-          "nullsNotDistinct": false,
-          "columns": [
+            "category",
             "age_range"
           ]
         }
@@ -240,10 +432,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "kata_performances_scoring_division_id_scoring_divisions_id_fk": {
-          "name": "kata_performances_scoring_division_id_scoring_divisions_id_fk",
+        "kata_performances_scoring_division_id_event_divisions_id_fk": {
+          "name": "kata_performances_scoring_division_id_event_divisions_id_fk",
           "tableFrom": "kata_performances",
-          "tableTo": "scoring_divisions",
+          "tableTo": "event_divisions",
           "columnsFrom": [
             "scoring_division_id"
           ],
@@ -286,6 +478,12 @@
         "name": {
           "name": "name",
           "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
         }
@@ -385,121 +583,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.scoring_divisions": {
-      "name": "scoring_divisions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "karate_category_id": {
-          "name": "karate_category_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "modality_id": {
-          "name": "modality_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "phase": {
-          "name": "phase",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'Clasificación'"
-        },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "scoring_divisions_event_id_events_id_fk": {
-          "name": "scoring_divisions_event_id_events_id_fk",
-          "tableFrom": "scoring_divisions",
-          "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "scoring_divisions_karate_category_id_karate_categories_id_fk": {
-          "name": "scoring_divisions_karate_category_id_karate_categories_id_fk",
-          "tableFrom": "scoring_divisions",
-          "tableTo": "karate_categories",
-          "columnsFrom": [
-            "karate_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "scoring_divisions_modality_id_modalities_id_fk": {
-          "name": "scoring_divisions_modality_id_modalities_id_fk",
-          "tableFrom": "scoring_divisions",
-          "tableTo": "modalities",
-          "columnsFrom": [
-            "modality_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "unique_modality_per_event": {
-          "name": "unique_modality_per_event",
-          "nullsNotDistinct": false,
-          "columns": [
-            "event_id",
-            "karate_category_id",
-            "modality_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.status": {
       "name": "status",
       "schema": "",
@@ -580,6 +663,87 @@
           "columns": [
             "type_id",
             "subtype"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tournament_registrations": {
+      "name": "tournament_registrations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "athlete_id": {
+          "name": "athlete_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "division_id": {
+          "name": "division_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "registration_date": {
+          "name": "registration_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pendiente'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tournament_registrations_athlete_id_users_id_fk": {
+          "name": "tournament_registrations_athlete_id_users_id_fk",
+          "tableFrom": "tournament_registrations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "athlete_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tournament_registrations_division_id_event_divisions_id_fk": {
+          "name": "tournament_registrations_division_id_event_divisions_id_fk",
+          "tableFrom": "tournament_registrations",
+          "tableTo": "event_divisions",
+          "columnsFrom": [
+            "division_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_registration": {
+          "name": "unique_registration",
+          "nullsNotDistinct": false,
+          "columns": [
+            "athlete_id",
+            "division_id"
           ]
         }
       },
@@ -830,7 +994,18 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.judge_role": {
+      "name": "judge_role",
+      "schema": "public",
+      "values": [
+        "juez_central / arbitro",
+        "juez_linea / juez_esquina",
+        "anotador",
+        "juez_suplente"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},

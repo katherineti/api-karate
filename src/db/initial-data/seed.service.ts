@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import 'dotenv/config';
 import * as schema from '../schema'; 
-import { roleTable, statusTable, schoolTable, karateCategoriesTable, karateBeltsTable, typesEventsTable, subtypesEventsTable } from '../schema'; 
+import { roleTable, statusTable, schoolTable, karateCategoriesTable, karateBeltsTable, typesEventsTable, subtypesEventsTable, modalitiesTable } from '../schema'; 
 async function seed() {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
@@ -97,6 +97,16 @@ async function seed() {
         {id: 13, type_id: 4, subtype: 'Gala Marcial' },
         {id: 14, type_id: 4, subtype: 'Protocolar' }
     ];
+
+    const modalitiesToInsert = [
+        {id: 1, name: 'Forma Tradicional', type: 'kata' },
+        {id: 2, name: 'Forma con Armas', type: 'kata' }, 
+        {id: 3, name: 'Formas Extremas', type: 'kata' }, 
+        {id: 4, name: 'Kickboxing - Musical Forms', type: 'kata' },
+        {id: 5, name: 'Combate Point Fighting', type: 'combate' },
+        {id: 6, name: 'Kickboxing - Light Contact', type: 'combate' },
+        {id: 7, name: 'Kickboxing - Full Contact', type: 'combate' },
+    ];
     
     // 2. Crear y conectar el cliente PG (autónomo)
     const client = new Client({
@@ -110,7 +120,7 @@ async function seed() {
         await client.connect(); 
         const db = drizzle(client, { schema }); // Instancia Drizzle con el esquema
 
-        console.log('1/2: Iniciando seeding de roles (Autónomo)...');
+        console.log('1: Iniciando seeding de roles (Autónomo)...');
 
         //Ejecutar el insert con ON CONFLICT (para idempotencia)
         await db.insert(roleTable)
@@ -121,7 +131,7 @@ async function seed() {
 
         console.log('✅ Seeding de roles completado.');
 
-        console.log('  -> 2/2: Insertando estados (status)...');
+        console.log('  -> 2: Insertando estados (status)...');
         await db.insert(statusTable)
             .values(statusToInsert)
             .onConflictDoNothing({ 
@@ -130,7 +140,7 @@ async function seed() {
         console.log('✅ Status completado.');
 
         // SEEDING DE ESCUELAS (SCHOOLS)
-        console.log('  -> 3/3: Insertando escuelas (schools)...');
+        console.log('  -> 3: Insertando escuelas (schools)...');
         await db.insert(schoolTable)
             .values(schoolsToInsert)
             // Usamos el campo 'slug' como target para evitar duplicados, ya que es el identificador único.
@@ -138,20 +148,20 @@ async function seed() {
         console.log(`✅ Schools completado. Se insertaron ${schoolsToInsert.length} escuelas.`);
 
         // SEEDING DE CATEGORÍAS DE KARATE
-        console.log('  -> 4/4: Insertando categorías de karate (karateCategories)...');
+        console.log('  -> 4: Insertando categorías de karate (karateCategories)...');
         await db.insert(karateCategoriesTable)
             .values(karateCategoriesToInsert)
-            .onConflictDoNothing({ target: karateCategoriesTable.category }); 
+            .onConflictDoNothing({ target: [karateCategoriesTable.category, karateCategoriesTable.age_range] }); 
         console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
 
         // SEEDING DE NIVELES DE KARATE
-        console.log('  -> 5/5: Insertando cinturones de karate (karateBelts)...');
+        console.log('  -> 5: Insertando cinturones de karate (karateBelts)...');
         await db.insert(karateBeltsTable)
             .values(karateBeltsToInsert)
             .onConflictDoNothing({ target: karateBeltsTable.belt }); 
         console.log(`✅ Karate Belts completado. Se insertaron ${karateBeltsToInsert.length} cinturones.`);
 
-        console.log('  -> 6/6: Insertando tipos de eventos (typesEvents)...');
+        console.log('  -> 6: Insertando tipos de eventos (typesEvents)...');
         await db.insert(typesEventsTable)
             .values(typesEventsToInsert)
             .onConflictDoNothing({ 
@@ -159,13 +169,21 @@ async function seed() {
             });
         console.log('✅ Types Events completado.');
 
-        console.log('  -> 7/7: Insertando subtipos de eventos (subtypesEvents)...');
+        console.log('  -> 7: Insertando subtipos de eventos (subtypesEvents)...');
         await db.insert(subtypesEventsTable)
             .values(subtypesEventsToInsert)
             .onConflictDoNothing({ 
                 target: [subtypesEventsTable.type_id, subtypesEventsTable.subtype]
             });
         console.log('✅ Subtypes Events completado.');
+
+        console.log('  -> 8: Insertando modalidades (modalities)...');
+        await db.insert(modalitiesTable)
+            .values(modalitiesToInsert)
+            .onConflictDoNothing({ 
+                target: modalitiesTable.name
+            });
+        console.log('✅ Modalities completado.');
 
         console.log('Seeding de datos iniciales finalizado correctamente.');
 

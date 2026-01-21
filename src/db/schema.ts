@@ -1,4 +1,4 @@
-import { boolean, date, integer, jsonb, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
+import { boolean, date, integer, jsonb, pgEnum, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 
 export const eventStatus_scheduled = 4;
 
@@ -20,8 +20,16 @@ export const schoolTable = pgTable("schools",{
 
 export const karateCategoriesTable = pgTable("karate_categories",{
   id: serial().primaryKey(),
-  category: varchar({ length: 255 }).notNull().unique(),
-  age_range: varchar({ length: 100 }).notNull().unique(),
+  category: varchar({ length: 255 }).notNull(),
+  age_range: varchar({ length: 100 }).notNull(),
+  // Nueva Columna: Arreglo de IDs de cinturones
+  // Referencia a los IDs de la tabla karateBeltsTable
+  allowed_belts: integer("allowed_belts").array(),
+}, (table) => {
+  return [
+    // Definimos que la COMBINACIÓN de ambos debe ser única
+    unique("unique_category_age").on(table.category, table.age_range),
+  ];
 })
 
 export const karateBeltsTable = pgTable("karate_belts",{
@@ -83,7 +91,9 @@ export const eventsTable = pgTable("events", {
   // type_id: integer("type_id")
   //   .notNull()
   //   .references(() => typesEventsTable.id),
-  subtype_id: integer("subtype_id"),
+  subtype_id: integer("subtype_id")
+    .notNull()
+    .references(() => subtypesEventsTable.id),
   // Estado (Programado, En Curso, Finalizado, Cancelado)
   status_id: integer("status_id")
     .notNull()
@@ -102,11 +112,13 @@ export const modalitiesTable = pgTable("modalities", {
   id: serial("id").primaryKey(),
   // Almacena el nombre único de la modalidad (Ej: 'Forma Tradicional')
   name: varchar("name", { length: 255 }).notNull().unique(), 
+  type: varchar("type", { length: 50 }).notNull(), // 'kata' o 'combate'
 });
 
 // Tabla: scoring_divisions (Definición de Reglas de Puntuación)
 // Propósito: Define una división sujeta a puntuación dentro de un Evento.
-export const scoringDivisionsTable = pgTable("scoring_divisions", {
+// export const eventDivisionsTable = pgTable("scoring_divisions", {
+export const eventDivisionsTable = pgTable("event_divisions", {
   id: serial("id").primaryKey(),
   
   // Conexión al EVENTO MAYOR (Ej: 'Torneo Regional')
@@ -115,7 +127,7 @@ export const scoringDivisionsTable = pgTable("scoring_divisions", {
     .references(() => eventsTable.id), 
   
   // Conexión a la división de edad/peso (Ej: Junior)
-  karate_category_id: integer("karate_category_id")
+  category_id: integer("category_id")
     .notNull()
     .references(() => karateCategoriesTable.id),
 
@@ -123,9 +135,11 @@ export const scoringDivisionsTable = pgTable("scoring_divisions", {
   modality_id: integer("modality_id") 
     .notNull()
     .references(() => modalitiesTable.id), 
+
+  max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
   
   // Estado de la división de puntuación
-  phase: varchar("phase", { length: 100 }).notNull().default('Clasificación'), 
+  // phase: varchar("phase", { length: 100 }).notNull().default('Clasificación'), 
   is_active: boolean("is_active").notNull().default(true),
 
   created_at: timestamp("created_at").defaultNow(),
@@ -133,34 +147,59 @@ export const scoringDivisionsTable = pgTable("scoring_divisions", {
 }, (table) => {
   return [
     // Restricción: No puede haber dos veces la misma modalidad para la misma categoría en el mismo evento.
-    unique("unique_modality_per_event").on(table.event_id, table.karate_category_id, table.modality_id),
+    unique("unique_modality_per_event").on(table.event_id, table.category_id, table.modality_id),
   ];
 });
+
+// Definir los roles posibles para el panel de jueces
+export const judgeRoleEnum = pgEnum("judge_role", [
+  "juez_central / arbitro", 
+  "juez_linea / juez_esquina", 
+  "anotador", 
+  "juez_suplente", 
+]);
+//Asignación de Jueces a Modalidades
+export const divisionJudgesTable = pgTable("division_judges", {
+  id: serial("id").primaryKey(),
+  division_id: integer("division_id").references(() => eventDivisionsTable.id),
+  judge_id: integer("judge_id").references(() => usersTable.id), 
+  role_in_pool: varchar("role_in_pool", { length: 50 }), // 'principal', 'asistente'
+});
+
 
 // Tabla: kata_performances (Ejecución de Kata)
 // Propósito: Registra una única ejecución de Kata por un atleta en una ronda específica.
 export const kataPerformancesTable = pgTable("kata_performances", {
   id: serial("id").primaryKey(),
-  
   // Conexión a la regla de puntuación específica (Evento + Categoría + Modalidad).
   scoring_division_id: integer("scoring_division_id") 
     .notNull()
-    .references(() => scoringDivisionsTable.id), 
-
+    .references(() => eventDivisionsTable.id), 
   // Conexión al atleta que ejecutó el Kata.
   athlete_id: integer("athlete_id")
     .notNull()
     .references(() => usersTable.id), // Asumiendo que los atletas están en usersTable
-
   // El nombre del Kata ejecutado.
   kata_name: varchar("kata_name", { length: 255 }), 
-
   // Número de ronda.
   round_number: integer("round_number").notNull().default(1), 
-
   // Puntuación oficial final (entero, ya redondeado/truncado).
   final_score: integer("final_score").default(null), 
-
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
+});
+
+//Inscripciones (Atleta en Categoría diferente): Para permitir que un atleta se inscriba en una categoría distinta a la de su perfil
+export const tournamentRegistrationsTable = pgTable("tournament_registrations", {
+  id: serial("id").primaryKey(),
+  athlete_id: integer("athlete_id").references(() => usersTable.id),
+  division_id: integer("division_id").references(() => eventDivisionsTable.id),
+  registration_date: timestamp("registration_date").defaultNow(),
+  // Aquí ignoramos la category_id del perfil del usuario y usamos la de division_id
+  status: varchar("status", { length: 50 }).default('pendiente'), // pendiente, confirmado, cancelado
+}, (table) => {
+  return [
+    // Evita duplicados: Un atleta no puede inscribirse dos veces a la misma categoría/modalidad del mismo evento
+    unique("unique_registration").on(table.athlete_id, table.division_id),
+  ];
 });

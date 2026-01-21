@@ -91,6 +91,15 @@ async function seed() {
         { id: 13, type_id: 4, subtype: 'Gala Marcial' },
         { id: 14, type_id: 4, subtype: 'Protocolar' }
     ];
+    const modalitiesToInsert = [
+        { id: 1, name: 'Forma Tradicional', type: 'kata' },
+        { id: 2, name: 'Forma con Armas', type: 'kata' },
+        { id: 3, name: 'Formas Extremas', type: 'kata' },
+        { id: 4, name: 'Kickboxing - Musical Forms', type: 'kata' },
+        { id: 5, name: 'Combate Point Fighting', type: 'combate' },
+        { id: 6, name: 'Kickboxing - Light Contact', type: 'combate' },
+        { id: 7, name: 'Kickboxing - Full Contact', type: 'combate' },
+    ];
     const client = new pg_1.Client({
         connectionString: connectionString,
         ssl: {
@@ -100,49 +109,56 @@ async function seed() {
     try {
         await client.connect();
         const db = (0, node_postgres_1.drizzle)(client, { schema });
-        console.log('1/2: Iniciando seeding de roles (Autónomo)...');
+        console.log('1: Iniciando seeding de roles (Autónomo)...');
         await db.insert(schema_1.roleTable)
             .values(rolesToInsert)
             .onConflictDoNothing({
             target: schema_1.roleTable.name
         });
         console.log('✅ Seeding de roles completado.');
-        console.log('  -> 2/2: Insertando estados (status)...');
+        console.log('  -> 2: Insertando estados (status)...');
         await db.insert(schema_1.statusTable)
             .values(statusToInsert)
             .onConflictDoNothing({
             target: schema_1.statusTable.status
         });
         console.log('✅ Status completado.');
-        console.log('  -> 3/3: Insertando escuelas (schools)...');
+        console.log('  -> 3: Insertando escuelas (schools)...');
         await db.insert(schema_1.schoolTable)
             .values(schoolsToInsert)
             .onConflictDoNothing({ target: schema_1.schoolTable.slug });
         console.log(`✅ Schools completado. Se insertaron ${schoolsToInsert.length} escuelas.`);
-        console.log('  -> 4/4: Insertando categorías de karate (karateCategories)...');
+        console.log('  -> 4: Insertando categorías de karate (karateCategories)...');
         await db.insert(schema_1.karateCategoriesTable)
             .values(karateCategoriesToInsert)
-            .onConflictDoNothing({ target: schema_1.karateCategoriesTable.category });
+            .onConflictDoNothing({ target: [schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range] });
         console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
-        console.log('  -> 5/5: Insertando cinturones de karate (karateBelts)...');
+        console.log('  -> 5: Insertando cinturones de karate (karateBelts)...');
         await db.insert(schema_1.karateBeltsTable)
             .values(karateBeltsToInsert)
             .onConflictDoNothing({ target: schema_1.karateBeltsTable.belt });
         console.log(`✅ Karate Belts completado. Se insertaron ${karateBeltsToInsert.length} cinturones.`);
-        console.log('  -> 6/6: Insertando tipos de eventos (typesEvents)...');
+        console.log('  -> 6: Insertando tipos de eventos (typesEvents)...');
         await db.insert(schema_1.typesEventsTable)
             .values(typesEventsToInsert)
             .onConflictDoNothing({
             target: schema_1.typesEventsTable.type
         });
         console.log('✅ Types Events completado.');
-        console.log('  -> 7/7: Insertando subtipos de eventos (subtypesEvents)...');
+        console.log('  -> 7: Insertando subtipos de eventos (subtypesEvents)...');
         await db.insert(schema_1.subtypesEventsTable)
             .values(subtypesEventsToInsert)
             .onConflictDoNothing({
             target: [schema_1.subtypesEventsTable.type_id, schema_1.subtypesEventsTable.subtype]
         });
         console.log('✅ Subtypes Events completado.');
+        console.log('  -> 8: Insertando modalidades (modalities)...');
+        await db.insert(schema_1.modalitiesTable)
+            .values(modalitiesToInsert)
+            .onConflictDoNothing({
+            target: schema_1.modalitiesTable.name
+        });
+        console.log('✅ Modalities completado.');
         console.log('Seeding de datos iniciales finalizado correctamente.');
     }
     catch (error) {
