@@ -42,12 +42,14 @@ async setupDivision(dto: any) { // Usa tu DTO CreateEventConfigDto aquí
   }
 
 async getEventCategoriesSummary(eventId: number) {
-  // 1. Obtenemos el resumen agrupado y los IDs de los cinturones
+  // 1. Obtenemos el resumen con contadores basados en la columna 'type'
   const rows = await this.db.select({
+    event_id: eventDivisionsTable.event_id, 
     category_id: karateCategoriesTable.id,
     category_name: karateCategoriesTable.category,
     age_range: karateCategoriesTable.age_range,
-    allowed_belts_ids: karateCategoriesTable.allowed_belts, // Traemos [1, 2, 3]
+    allowed_belts_ids: karateCategoriesTable.allowed_belts,
+    // Conteo por tipo (asumiendo que agregaste la columna 'type' a modalitiesTable)
     kata_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'kata')`.mapWith(Number),
     combate_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'combate')`.mapWith(Number),
     total_modalities: sql<number>`count(${eventDivisionsTable.id})`.mapWith(Number),
@@ -57,34 +59,36 @@ async getEventCategoriesSummary(eventId: number) {
   .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
   .where(eq(eventDivisionsTable.event_id, eventId))
   .groupBy(
+    eventDivisionsTable.event_id,
     karateCategoriesTable.id, 
     karateCategoriesTable.category, 
     karateCategoriesTable.age_range,
-    // karateCategoriesTable.allowed_belts // Debemos agrupar también por esta columna
+    // karateCategoriesTable.allowed_belts
   );
 
   if (rows.length === 0) return [];
 
-  // 2. Traemos todos los cinturones para hacer el cruce de nombres
+  // 2. Traemos todos los cinturones maestros
   const allBelts = await this.db.select().from(karateBeltsTable);
 
-  // 3. Mapeamos para transformar los IDs de cinturones en objetos {id, name}
+  // 3. Mapeamos para inyectar los objetos de cinturones
   return rows.map(row => {
     const detailedBelts = allBelts
       .filter(belt => row.allowed_belts_ids?.includes(belt.id))
       .map(belt => ({
         id: belt.id,
-        name: belt.belt // Cambia a 'name' si así se llama tu columna en karateBeltsTable
+        name: belt.belt // Asegúrate de que el nombre de la columna sea 'belt' o 'name'
       }));
 
     return {
+      event_id: row.event_id,
       category_id: row.category_id,
       category_name: row.category_name,
       age_range: row.age_range,
       kata_count: row.kata_count,
       combate_count: row.combate_count,
       total_modalities: row.total_modalities,
-      allowed_belts: detailedBelts // <--- Aquí están tus cinturones
+      allowed_belts: detailedBelts
     };
   });
 }

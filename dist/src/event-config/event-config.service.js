@@ -54,6 +54,7 @@ let EventConfigService = class EventConfigService {
     }
     async getEventCategoriesSummary(eventId) {
         const rows = await this.db.select({
+            event_id: schema_1.eventDivisionsTable.event_id,
             category_id: schema_1.karateCategoriesTable.id,
             category_name: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
@@ -66,7 +67,7 @@ let EventConfigService = class EventConfigService {
             .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
             .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
-            .groupBy(schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range);
+            .groupBy(schema_1.eventDivisionsTable.event_id, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range);
         if (rows.length === 0)
             return [];
         const allBelts = await this.db.select().from(schema_1.karateBeltsTable);
@@ -78,6 +79,7 @@ let EventConfigService = class EventConfigService {
                 name: belt.belt
             }));
             return {
+                event_id: row.event_id,
                 category_id: row.category_id,
                 category_name: row.category_name,
                 age_range: row.age_range,
