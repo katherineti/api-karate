@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { eventDivisionsTable, karateCategoriesTable, modalitiesTable } from '../db/schema';
+import { karateBeltsTable, eventDivisionsTable, karateCategoriesTable, modalitiesTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 @Injectable()
@@ -40,20 +40,48 @@ async setupDivision(dto: any) { // Usa tu DTO CreateEventConfigDto aquí
     }
   }
 
-  async getCategoriesByEvent(eventId: number) {
-    return this.db.select({
-      id: eventDivisionsTable.id,
-      category: karateCategoriesTable.category,
-      age_range: karateCategoriesTable.age_range,
-      modality: modalitiesTable.name,
-      max_score: eventDivisionsTable.max_evaluation_score,
-      is_active: eventDivisionsTable.is_active
-    })
-    .from(eventDivisionsTable)
-    .innerJoin(karateCategoriesTable, eq(eventDivisionsTable.category_id, karateCategoriesTable.id))
-    .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
-    .where(eq(eventDivisionsTable.event_id, eventId));
-  }
+async getCategoriesByEvent(eventId: number) {
+  // 1. Obtenemos las divisiones con sus categorías y modalidades
+  const rows = await this.db.select({
+    id: eventDivisionsTable.id,
+    category: karateCategoriesTable.category,
+    age_range: karateCategoriesTable.age_range,
+    allowed_belts_ids: karateCategoriesTable.allowed_belts, // Traemos el array de IDs [1, 2, 3]
+    modality: modalitiesTable.name,
+    max_score: eventDivisionsTable.max_evaluation_score,
+    is_active: eventDivisionsTable.is_active
+  })
+  .from(eventDivisionsTable)
+  .innerJoin(karateCategoriesTable, eq(eventDivisionsTable.category_id, karateCategoriesTable.id))
+  .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
+  .where(eq(eventDivisionsTable.event_id, eventId));
+
+  // 2. Si no hay filas, retornamos vacío
+  if (rows.length === 0) return [];
+
+  // 3. Obtenemos todos los cinturones maestros para cruzar los nombres
+  const allBelts = await this.db.select().from(karateBeltsTable);
+
+  // 4. Mapeamos los resultados para incluir el objeto completo del cinturón
+  return rows.map(row => {
+    const detailedBelts = allBelts
+      .filter(belt => row.allowed_belts_ids?.includes(belt.id))
+      .map(belt => ({
+        id: belt.id,
+        name: belt.belt // o el nombre de la columna que tengas (color, rank, etc)
+      }));
+
+    return {
+      id: row.id,
+      category: row.category,
+      age_range: row.age_range,
+      modality: row.modality,
+      max_score: row.max_score,
+      is_active: row.is_active,
+      allowed_belts: detailedBelts // Ahora es un array de objetos: [{id: 1, name: 'Blanco'}, ...]
+    };
+  });
+}
 
   // Eliminar una configuración del evento
   async removeDivision(divisionId: number) {

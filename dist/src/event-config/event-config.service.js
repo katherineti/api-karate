@@ -53,10 +53,11 @@ let EventConfigService = class EventConfigService {
         }
     }
     async getCategoriesByEvent(eventId) {
-        return this.db.select({
+        const rows = await this.db.select({
             id: schema_1.eventDivisionsTable.id,
             category: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
+            allowed_belts_ids: schema_1.karateCategoriesTable.allowed_belts,
             modality: schema_1.modalitiesTable.name,
             max_score: schema_1.eventDivisionsTable.max_evaluation_score,
             is_active: schema_1.eventDivisionsTable.is_active
@@ -65,6 +66,26 @@ let EventConfigService = class EventConfigService {
             .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
             .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId));
+        if (rows.length === 0)
+            return [];
+        const allBelts = await this.db.select().from(schema_1.karateBeltsTable);
+        return rows.map(row => {
+            const detailedBelts = allBelts
+                .filter(belt => row.allowed_belts_ids?.includes(belt.id))
+                .map(belt => ({
+                id: belt.id,
+                name: belt.belt
+            }));
+            return {
+                id: row.id,
+                category: row.category,
+                age_range: row.age_range,
+                modality: row.modality,
+                max_score: row.max_score,
+                is_active: row.is_active,
+                allowed_belts: detailedBelts
+            };
+        });
     }
     async removeDivision(divisionId) {
         return this.db.delete(schema_1.eventDivisionsTable)
