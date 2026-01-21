@@ -26,6 +26,9 @@ let EventConfigController = class EventConfigController {
     async toggleCategoryStatus(eventId, categoryId, is_active) {
         return this.eventConfigService.toggleCategoryStatusInEvent(eventId, categoryId, is_active);
     }
+    getEventSummary(id) {
+        return this.eventConfigService.getEventCategoriesSummary(id);
+    }
     getEventCategories(id) {
         return this.eventConfigService.getCategoriesByEvent(id);
     }
@@ -50,6 +53,13 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number, Boolean]),
     __metadata("design:returntype", Promise)
 ], EventConfigController.prototype, "toggleCategoryStatus", null);
+__decorate([
+    (0, common_1.Get)('event/:id/summary'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], EventConfigController.prototype, "getEventSummary", null);
 __decorate([
     (0, common_1.Get)('event/:id/categories'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),

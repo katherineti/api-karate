@@ -52,6 +52,22 @@ let EventConfigService = class EventConfigService {
             throw new common_1.BadRequestException('Error al configurar la división: ' + error.message);
         }
     }
+    async getEventCategoriesSummary(eventId) {
+        const result = await this.db.select({
+            category_id: schema_1.karateCategoriesTable.id,
+            category_name: schema_1.karateCategoriesTable.category,
+            age_range: schema_1.karateCategoriesTable.age_range,
+            kata_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'kata')`.mapWith(Number),
+            combate_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'combate')`.mapWith(Number),
+            total_modalities: (0, drizzle_orm_1.sql) `count(${schema_1.eventDivisionsTable.id})`.mapWith(Number),
+        })
+            .from(schema_1.eventDivisionsTable)
+            .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
+            .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
+            .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
+            .groupBy(schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range);
+        return result;
+    }
     async getCategoriesByEvent(eventId) {
         const rows = await this.db.select({
             id: schema_1.eventDivisionsTable.id,

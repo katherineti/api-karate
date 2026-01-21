@@ -20,6 +20,11 @@ export class EventConfigController {
     return this.eventConfigService.toggleCategoryStatusInEvent(eventId, categoryId, is_active);
   }
 
+  @Get('event/:id/summary')
+  getEventSummary(@Param('id', ParseIntPipe) id: number) {
+    return this.eventConfigService.getEventCategoriesSummary(id);
+  }
+
   @Get('event/:id/categories')
   getEventCategories(@Param('id', ParseIntPipe) id: number) {
     return this.eventConfigService.getCategoriesByEvent(id);

@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { karateBeltsTable, eventDivisionsTable, karateCategoriesTable, modalitiesTable } from '../db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { ToggleModalityDto } from './dto/toggle-modality.dto';
 
 @Injectable()
@@ -40,6 +40,30 @@ async setupDivision(dto: any) { // Usa tu DTO CreateEventConfigDto aquí
       throw new BadRequestException('Error al configurar la división: ' + error.message);
     }
   }
+
+async getEventCategoriesSummary(eventId: number) {
+  const result = await this.db.select({
+    category_id: karateCategoriesTable.id,
+    category_name: karateCategoriesTable.category,
+    age_range: karateCategoriesTable.age_range,
+    // Contador exacto por tipo 'kata'
+    kata_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'kata')`.mapWith(Number),
+    // Contador exacto por tipo 'combate'
+    combate_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'combate')`.mapWith(Number),
+    total_modalities: sql<number>`count(${eventDivisionsTable.id})`.mapWith(Number),
+  })
+  .from(eventDivisionsTable)
+  .innerJoin(karateCategoriesTable, eq(eventDivisionsTable.category_id, karateCategoriesTable.id))
+  .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
+  .where(eq(eventDivisionsTable.event_id, eventId))
+  .groupBy(
+    karateCategoriesTable.id, 
+    karateCategoriesTable.category, 
+    karateCategoriesTable.age_range
+  );
+
+  return result;
+}
 
 async getCategoriesByEvent(eventId: number) {
   // 1. Obtenemos las divisiones con sus categorías y modalidades
