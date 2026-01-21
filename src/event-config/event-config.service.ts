@@ -208,7 +208,7 @@ async toggleModalityConfig(dto: ToggleModalityDto) {
     )
   );
 } */
-async getModalitiesByEventCategory(eventId: number, categoryId: number) {
+async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muestra las modalidades
   // 1. Obtenemos las modalidades base de esta división (evento + categoría)
   const divisions = await this.db.select({
     division_id: eventDivisionsTable.id,

@@ -11,6 +11,7 @@ import { PuntuationModule } from './puntuation/puntuation.module';
 import { EventsModule } from './events/events.module';
 import { CategoriesModule } from './categories/categories.module';
 import { EventConfigModule } from './event-config/event-config.module';
+import { ModalitiesModule } from './modalities/modalities.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { EventConfigModule } from './event-config/event-config.module';
      EventsModule,
      CategoriesModule,
      EventConfigModule,
+     ModalitiesModule,
     // RolesModule,
   ],
   controllers: [AppController],
