@@ -66,7 +66,8 @@ let EventConfigService = class EventConfigService {
             .from(schema_1.eventDivisionsTable)
             .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
-            .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId));
+            .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
+            .orderBy(schema_1.eventDivisionsTable.id);
         if (rows.length === 0)
             return [];
         const allBelts = await this.db.select().from(schema_1.karateBeltsTable);

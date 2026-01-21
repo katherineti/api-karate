@@ -55,7 +55,8 @@ async getCategoriesByEvent(eventId: number) {
   .from(eventDivisionsTable)
   .innerJoin(karateCategoriesTable, eq(eventDivisionsTable.category_id, karateCategoriesTable.id))
   .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
-  .where(eq(eventDivisionsTable.event_id, eventId));
+  .where(eq(eventDivisionsTable.event_id, eventId))
+  .orderBy(eventDivisionsTable.id);
 
   // 2. Si no hay filas, retornamos vacío
   if (rows.length === 0) return [];
