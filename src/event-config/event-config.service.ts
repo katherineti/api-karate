@@ -42,13 +42,13 @@ async setupDivision(dto: any) { // Usa tu DTO CreateEventConfigDto aquí
   }
 
 async getEventCategoriesSummary(eventId: number) {
-  const result = await this.db.select({
+  // 1. Obtenemos el resumen agrupado y los IDs de los cinturones
+  const rows = await this.db.select({
     category_id: karateCategoriesTable.id,
     category_name: karateCategoriesTable.category,
     age_range: karateCategoriesTable.age_range,
-    // Contador exacto por tipo 'kata'
+    allowed_belts_ids: karateCategoriesTable.allowed_belts, // Traemos [1, 2, 3]
     kata_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'kata')`.mapWith(Number),
-    // Contador exacto por tipo 'combate'
     combate_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'combate')`.mapWith(Number),
     total_modalities: sql<number>`count(${eventDivisionsTable.id})`.mapWith(Number),
   })
@@ -59,10 +59,34 @@ async getEventCategoriesSummary(eventId: number) {
   .groupBy(
     karateCategoriesTable.id, 
     karateCategoriesTable.category, 
-    karateCategoriesTable.age_range
+    karateCategoriesTable.age_range,
+    // karateCategoriesTable.allowed_belts // Debemos agrupar también por esta columna
   );
 
-  return result;
+  if (rows.length === 0) return [];
+
+  // 2. Traemos todos los cinturones para hacer el cruce de nombres
+  const allBelts = await this.db.select().from(karateBeltsTable);
+
+  // 3. Mapeamos para transformar los IDs de cinturones en objetos {id, name}
+  return rows.map(row => {
+    const detailedBelts = allBelts
+      .filter(belt => row.allowed_belts_ids?.includes(belt.id))
+      .map(belt => ({
+        id: belt.id,
+        name: belt.belt // Cambia a 'name' si así se llama tu columna en karateBeltsTable
+      }));
+
+    return {
+      category_id: row.category_id,
+      category_name: row.category_name,
+      age_range: row.age_range,
+      kata_count: row.kata_count,
+      combate_count: row.combate_count,
+      total_modalities: row.total_modalities,
+      allowed_belts: detailedBelts // <--- Aquí están tus cinturones
+    };
+  });
 }
 
 async getCategoriesByEvent(eventId: number) {

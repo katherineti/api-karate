@@ -53,10 +53,11 @@ let EventConfigService = class EventConfigService {
         }
     }
     async getEventCategoriesSummary(eventId) {
-        const result = await this.db.select({
+        const rows = await this.db.select({
             category_id: schema_1.karateCategoriesTable.id,
             category_name: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
+            allowed_belts_ids: schema_1.karateCategoriesTable.allowed_belts,
             kata_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'kata')`.mapWith(Number),
             combate_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'combate')`.mapWith(Number),
             total_modalities: (0, drizzle_orm_1.sql) `count(${schema_1.eventDivisionsTable.id})`.mapWith(Number),
@@ -66,7 +67,26 @@ let EventConfigService = class EventConfigService {
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
             .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
             .groupBy(schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range);
-        return result;
+        if (rows.length === 0)
+            return [];
+        const allBelts = await this.db.select().from(schema_1.karateBeltsTable);
+        return rows.map(row => {
+            const detailedBelts = allBelts
+                .filter(belt => row.allowed_belts_ids?.includes(belt.id))
+                .map(belt => ({
+                id: belt.id,
+                name: belt.belt
+            }));
+            return {
+                category_id: row.category_id,
+                category_name: row.category_name,
+                age_range: row.age_range,
+                kata_count: row.kata_count,
+                combate_count: row.combate_count,
+                total_modalities: row.total_modalities,
+                allowed_belts: detailedBelts
+            };
+        });
     }
     async getCategoriesByEvent(eventId) {
         const rows = await this.db.select({
