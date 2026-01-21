@@ -3,6 +3,7 @@ import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { karateBeltsTable, eventDivisionsTable, karateCategoriesTable, modalitiesTable } from '../db/schema';
 import { and, eq } from 'drizzle-orm';
+import { ToggleModalityDto } from './dto/toggle-modality.dto';
 
 @Injectable()
 export class EventConfigService {
@@ -106,6 +107,36 @@ async toggleCategoryStatusInEvent(eventId: number, categoryId: number, active: b
   }
 
   return result; // Retorna un array con todas las modalidades actualizadas
+}
+
+async toggleModalityConfig(dto: ToggleModalityDto) {
+  try {
+    const values = {
+        event_id: dto.event_id,
+        category_id: dto.category_id,
+        modality_id: dto.modality_id,
+        is_active: dto.is_active,
+        max_evaluation_score: 0, // Valor por defecto si es nueva
+      }
+    const result = await this.db.insert(eventDivisionsTable)
+      .values(values)
+      .onConflictDoUpdate({
+        target: [
+          eventDivisionsTable.event_id,
+          eventDivisionsTable.category_id,
+          eventDivisionsTable.modality_id,
+        ],
+        set: {
+          is_active: dto.is_active,
+          updated_at: new Date(),
+        } as any,
+      })
+      .returning();
+
+    return result[0];
+  } catch (error) {
+    throw new BadRequestException('No se pudo procesar la configuración de la modalidad: ' + error.message);
+  }
 }
 
   // Eliminar una configuración del evento

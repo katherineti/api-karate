@@ -104,6 +104,35 @@ let EventConfigService = class EventConfigService {
         }
         return result;
     }
+    async toggleModalityConfig(dto) {
+        try {
+            const values = {
+                event_id: dto.event_id,
+                category_id: dto.category_id,
+                modality_id: dto.modality_id,
+                is_active: dto.is_active,
+                max_evaluation_score: 0,
+            };
+            const result = await this.db.insert(schema_1.eventDivisionsTable)
+                .values(values)
+                .onConflictDoUpdate({
+                target: [
+                    schema_1.eventDivisionsTable.event_id,
+                    schema_1.eventDivisionsTable.category_id,
+                    schema_1.eventDivisionsTable.modality_id,
+                ],
+                set: {
+                    is_active: dto.is_active,
+                    updated_at: new Date(),
+                },
+            })
+                .returning();
+            return result[0];
+        }
+        catch (error) {
+            throw new common_1.BadRequestException('No se pudo procesar la configuración de la modalidad: ' + error.message);
+        }
+    }
     async removeDivision(divisionId) {
         return this.db.delete(schema_1.eventDivisionsTable)
             .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.id, divisionId))

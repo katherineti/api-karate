@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EventConfigController = void 0;
 const common_1 = require("@nestjs/common");
 const event_config_service_1 = require("./event-config.service");
+const toggle_modality_dto_1 = require("./dto/toggle-modality.dto");
 let EventConfigController = class EventConfigController {
     constructor(eventConfigService) {
         this.eventConfigService = eventConfigService;
@@ -27,6 +28,9 @@ let EventConfigController = class EventConfigController {
     }
     getEventCategories(id) {
         return this.eventConfigService.getCategoriesByEvent(id);
+    }
+    toggleModality(dto) {
+        return this.eventConfigService.toggleModalityConfig(dto);
     }
 };
 exports.EventConfigController = EventConfigController;
@@ -53,6 +57,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], EventConfigController.prototype, "getEventCategories", null);
+__decorate([
+    (0, common_1.Patch)('toggle-modality'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [toggle_modality_dto_1.ToggleModalityDto]),
+    __metadata("design:returntype", void 0)
+], EventConfigController.prototype, "toggleModality", null);
 exports.EventConfigController = EventConfigController = __decorate([
     (0, common_1.Controller)('event-config'),
     __metadata("design:paramtypes", [event_config_service_1.EventConfigService])

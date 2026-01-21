@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Param, Patch, ParseIntPipe } from '@nestjs/common';
 import { EventConfigService } from './event-config.service';
+import { ToggleModalityDto } from './dto/toggle-modality.dto';
 
 @Controller('event-config')
 export class EventConfigController {
@@ -22,5 +23,11 @@ export class EventConfigController {
   @Get('event/:id/categories')
   getEventCategories(@Param('id', ParseIntPipe) id: number) {
     return this.eventConfigService.getCategoriesByEvent(id);
+  }
+
+  //agrega o cambia el status de la modalidad de un evento+categoria: permite enviar la combinación de evento + categoría + modalidad y que el sistema decida si debe crear la fila o simplemente cambiar el estado de is_active
+  @Patch('toggle-modality')
+  toggleModality(@Body() dto: ToggleModalityDto) {
+    return this.eventConfigService.toggleModalityConfig(dto);
   }
 }
