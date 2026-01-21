@@ -1,8 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { karateBeltsTable, eventDivisionsTable, karateCategoriesTable, modalitiesTable } from '../db/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { karateBeltsTable, eventDivisionsTable, karateCategoriesTable, modalitiesTable, divisionJudgesTable, usersTable } from '../db/schema';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { ToggleModalityDto } from './dto/toggle-modality.dto';
 
 @Injectable()
@@ -93,7 +93,7 @@ async getEventCategoriesSummary(eventId: number) {
   });
 }
 
-async getCategoriesByEvent(eventId: number) {
+async getCategoriesByEvent(eventId: number) {//sin usar
   // 1. Obtenemos las divisiones con sus categorías y modalidades
   const rows = await this.db.select({
     id: eventDivisionsTable.id,
@@ -189,6 +189,70 @@ async toggleModalityConfig(dto: ToggleModalityDto) {
   } catch (error) {
     throw new BadRequestException('No se pudo procesar la configuración de la modalidad: ' + error.message);
   }
+}
+
+/* async getModalitiesByEventCategory(eventId: number, categoryId: number) {
+  return this.db.select({
+    id: modalitiesTable.id,
+    name: modalitiesTable.name,
+    type: modalitiesTable.type, // Asegúrate de que esta columna exista en tu DB
+    is_active: eventDivisionsTable.is_active,
+    // max_score: eventDivisionsTable.max_evaluation_score
+  })
+  .from(eventDivisionsTable)
+  .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
+  .where(
+    and(
+      eq(eventDivisionsTable.event_id, eventId),
+      eq(eventDivisionsTable.category_id, categoryId)
+    )
+  );
+} */
+async getModalitiesByEventCategory(eventId: number, categoryId: number) {
+  // 1. Obtenemos las modalidades base de esta división (evento + categoría)
+  const divisions = await this.db.select({
+    division_id: eventDivisionsTable.id,
+    modality_id: modalitiesTable.id, // ID de la modalidad
+    modality_name: modalitiesTable.name,
+    modality_type: modalitiesTable.type,
+    is_active: eventDivisionsTable.is_active,
+  })
+  .from(eventDivisionsTable)
+  .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
+  .where(
+    and(
+      eq(eventDivisionsTable.event_id, eventId),
+      eq(eventDivisionsTable.category_id, categoryId)
+    )
+  );
+
+  if (divisions.length === 0) return [];
+
+  // 2. Extraemos los IDs de las divisiones para buscar sus jueces
+  const divisionIds = divisions.map(d => d.division_id);
+
+  // 3. Buscamos los jueces asignados a estas divisiones
+  const allJudges = await this.db.select({
+    division_id: divisionJudgesTable.division_id,
+    judge_id: usersTable.id,
+    judge_name: usersTable.name,
+    role: divisionJudgesTable.role_in_pool
+  })
+  .from(divisionJudgesTable)
+  .innerJoin(usersTable, eq(divisionJudgesTable.judge_id, usersTable.id))
+  .where(inArray(divisionJudgesTable.division_id, divisionIds));
+
+  // 4. Combinamos los datos: asignamos a cada modalidad su lista de jueces
+  return divisions.map(division => ({
+    ...division,
+    assigned_judges: allJudges
+      .filter(j => j.division_id === division.division_id)
+      .map(j => ({
+        id: j.judge_id,
+        name: j.judge_name,
+        role: j.role
+      }))
+  }));
 }
 
   // Eliminar una configuración del evento

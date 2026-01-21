@@ -171,6 +171,40 @@ let EventConfigService = class EventConfigService {
             throw new common_1.BadRequestException('No se pudo procesar la configuración de la modalidad: ' + error.message);
         }
     }
+    async getModalitiesByEventCategory(eventId, categoryId) {
+        const divisions = await this.db.select({
+            division_id: schema_1.eventDivisionsTable.id,
+            modality_id: schema_1.modalitiesTable.id,
+            modality_name: schema_1.modalitiesTable.name,
+            modality_type: schema_1.modalitiesTable.type,
+            is_active: schema_1.eventDivisionsTable.is_active,
+        })
+            .from(schema_1.eventDivisionsTable)
+            .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, categoryId)));
+        if (divisions.length === 0)
+            return [];
+        const divisionIds = divisions.map(d => d.division_id);
+        const allJudges = await this.db.select({
+            division_id: schema_1.divisionJudgesTable.division_id,
+            judge_id: schema_1.usersTable.id,
+            judge_name: schema_1.usersTable.name,
+            role: schema_1.divisionJudgesTable.role_in_pool
+        })
+            .from(schema_1.divisionJudgesTable)
+            .innerJoin(schema_1.usersTable, (0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.judge_id, schema_1.usersTable.id))
+            .where((0, drizzle_orm_1.inArray)(schema_1.divisionJudgesTable.division_id, divisionIds));
+        return divisions.map(division => ({
+            ...division,
+            assigned_judges: allJudges
+                .filter(j => j.division_id === division.division_id)
+                .map(j => ({
+                id: j.judge_id,
+                name: j.judge_name,
+                role: j.role
+            }))
+        }));
+    }
     async removeDivision(divisionId) {
         return this.db.delete(schema_1.eventDivisionsTable)
             .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.id, divisionId))

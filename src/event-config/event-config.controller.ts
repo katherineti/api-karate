@@ -11,7 +11,7 @@ export class EventConfigController {
     return this.eventConfigService.setupDivision(dto);
   }
 
-  @Patch('event/:eventId/category/:categoryId/change-status')
+  @Patch('event/:eventId/category/:categoryId/change-status')//guardado de los cambios de estado de una modalidad en undivision: evento+categoria
   async toggleCategoryStatus(
     @Param('eventId', ParseIntPipe) eventId: number,
     @Param('categoryId', ParseIntPipe) categoryId: number,
@@ -25,7 +25,7 @@ export class EventConfigController {
     return this.eventConfigService.getEventCategoriesSummary(id);
   }
 
-  @Get('event/:id/categories')
+  @Get('event/:id/categories')//sin usar
   getEventCategories(@Param('id', ParseIntPipe) id: number) {
     return this.eventConfigService.getCategoriesByEvent(id);
   }
@@ -34,5 +34,13 @@ export class EventConfigController {
   @Patch('toggle-modality')
   toggleModality(@Body() dto: ToggleModalityDto) {
     return this.eventConfigService.toggleModalityConfig(dto);
+  }
+
+  @Get('event/:eventId/category/:categoryId/modalities')
+  async getModalities(
+    @Param('eventId', ParseIntPipe) eventId: number,
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+  ) {
+    return this.eventConfigService.getModalitiesByEventCategory(eventId, categoryId);
   }
 }

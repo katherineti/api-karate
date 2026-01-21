@@ -35,6 +35,9 @@ let EventConfigController = class EventConfigController {
     toggleModality(dto) {
         return this.eventConfigService.toggleModalityConfig(dto);
     }
+    async getModalities(eventId, categoryId) {
+        return this.eventConfigService.getModalitiesByEventCategory(eventId, categoryId);
+    }
 };
 exports.EventConfigController = EventConfigController;
 __decorate([
@@ -74,6 +77,14 @@ __decorate([
     __metadata("design:paramtypes", [toggle_modality_dto_1.ToggleModalityDto]),
     __metadata("design:returntype", void 0)
 ], EventConfigController.prototype, "toggleModality", null);
+__decorate([
+    (0, common_1.Get)('event/:eventId/category/:categoryId/modalities'),
+    __param(0, (0, common_1.Param)('eventId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('categoryId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], EventConfigController.prototype, "getModalities", null);
 exports.EventConfigController = EventConfigController = __decorate([
     (0, common_1.Controller)('event-config'),
     __metadata("design:paramtypes", [event_config_service_1.EventConfigService])
