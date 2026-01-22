@@ -209,7 +209,8 @@ let EventConfigService = class EventConfigService {
             judge_name: schema_1.usersTable.name,
             judge_lastname: schema_1.usersTable.lastname,
             judge_email: schema_1.usersTable.email,
-            role: schema_1.divisionJudgesTable.role_in_pool
+            role: schema_1.divisionJudgesTable.role_in_pool,
+            judge_status: schema_1.divisionJudgesTable.is_active
         })
             .from(schema_1.divisionJudgesTable)
             .innerJoin(schema_1.usersTable, (0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.judge_id, schema_1.usersTable.id))
@@ -217,13 +218,15 @@ let EventConfigService = class EventConfigService {
         return divisions.map(division => ({
             ...division,
             assigned_judges: allJudges
-                .filter(j => j.division_id === division.division_id)
+                .filter(j => j.division_id === division.division_id &&
+                j.judge_status === true)
                 .map(j => ({
                 id: j.judge_id,
                 name: j.judge_name,
                 lastname: j.judge_lastname,
                 email: j.judge_email,
-                role: j.role
+                role: j.role,
+                is_active: j.judge_status
             }))
         }));
     }

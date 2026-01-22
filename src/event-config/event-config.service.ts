@@ -246,6 +246,7 @@ async toggleModalityConfig(dto: ToggleModalityDto) {
   }
 }
 
+// v1
 /* async getModalitiesByEventCategory(eventId: number, categoryId: number) {
   return this.db.select({
     id: modalitiesTable.id,
@@ -263,7 +264,9 @@ async toggleModalityConfig(dto: ToggleModalityDto) {
     )
   );
 } */
-async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muestra las modalidades de la division evento+categoria
+
+  //v2
+/*   async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muestra las modalidades de la division evento+categoria
   // 1. Obtenemos las modalidades base de esta división (evento + categoría)
   const divisions = await this.db.select({
     division_id: eventDivisionsTable.id,
@@ -310,6 +313,62 @@ async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muest
         lastname: j.judge_lastname,
         email: j.judge_email,
         role: j.role //aun no se usa
+      }))
+  }));
+} */
+
+//v3
+async getModalitiesByEventCategory(eventId: number, categoryId: number) {
+  // 1. Obtener las modalidades de la división
+  const divisions = await this.db.select({
+    division_id: eventDivisionsTable.id,
+    modality_id: modalitiesTable.id,
+    modality_name: modalitiesTable.name,
+    modality_type: modalitiesTable.type,
+    is_active: eventDivisionsTable.is_active,
+  })
+  .from(eventDivisionsTable)
+  .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
+  .where(
+    and(
+      eq(eventDivisionsTable.event_id, eventId),
+      eq(eventDivisionsTable.category_id, categoryId)
+    )
+  );
+
+  if (divisions.length === 0) return [];
+
+  const divisionIds = divisions.map(d => d.division_id);
+
+  // 2. Obtener los jueces vinculados a esas divisiones
+  const allJudges = await this.db.select({
+    division_id: divisionJudgesTable.division_id,
+    judge_id: usersTable.id,
+    judge_name: usersTable.name,
+    judge_lastname: usersTable.lastname,
+    judge_email: usersTable.email,
+    role: divisionJudgesTable.role_in_pool,
+    judge_status: divisionJudgesTable.is_active // Estado en la tabla intermedia
+  })
+  .from(divisionJudgesTable)
+  .innerJoin(usersTable, eq(divisionJudgesTable.judge_id, usersTable.id))
+  .where(inArray(divisionJudgesTable.division_id, divisionIds));
+
+  // 3. Mapear y FILTRAR solo los jueces activos
+  return divisions.map(division => ({
+    ...division,
+    assigned_judges: allJudges
+      .filter(j => 
+        j.division_id === division.division_id && 
+        j.judge_status === true // <--- Filtro de jueces activos
+      )
+      .map(j => ({
+        id: j.judge_id,
+        name: j.judge_name,
+        lastname: j.judge_lastname,
+        email: j.judge_email,
+        role: j.role,
+        is_active: j.judge_status // Mostramos su estatus (siempre será true por el filtro)
       }))
   }));
 }
