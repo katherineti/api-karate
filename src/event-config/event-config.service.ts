@@ -208,7 +208,7 @@ async toggleModalityConfig(dto: ToggleModalityDto) {
     )
   );
 } */
-async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muestra las modalidades
+async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muestra las modalidades de la division evento+categoria
   // 1. Obtenemos las modalidades base de esta división (evento + categoría)
   const divisions = await this.db.select({
     division_id: eventDivisionsTable.id,
@@ -236,6 +236,8 @@ async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muest
     division_id: divisionJudgesTable.division_id,
     judge_id: usersTable.id,
     judge_name: usersTable.name,
+    judge_lastname: usersTable.lastname,
+    judge_email: usersTable.email,
     role: divisionJudgesTable.role_in_pool
   })
   .from(divisionJudgesTable)
@@ -250,6 +252,8 @@ async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muest
       .map(j => ({
         id: j.judge_id,
         name: j.judge_name,
+        lastname: j.judge_lastname,
+        email: j.judge_email,
         role: j.role
       }))
   }));

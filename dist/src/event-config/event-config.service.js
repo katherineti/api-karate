@@ -189,6 +189,8 @@ let EventConfigService = class EventConfigService {
             division_id: schema_1.divisionJudgesTable.division_id,
             judge_id: schema_1.usersTable.id,
             judge_name: schema_1.usersTable.name,
+            judge_lastname: schema_1.usersTable.lastname,
+            judge_email: schema_1.usersTable.email,
             role: schema_1.divisionJudgesTable.role_in_pool
         })
             .from(schema_1.divisionJudgesTable)
@@ -201,6 +203,8 @@ let EventConfigService = class EventConfigService {
                 .map(j => ({
                 id: j.judge_id,
                 name: j.judge_name,
+                lastname: j.judge_lastname,
+                email: j.judge_email,
                 role: j.role
             }))
         }));
