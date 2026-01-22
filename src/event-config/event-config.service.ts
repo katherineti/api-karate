@@ -57,7 +57,8 @@ async getEventCategoriesSummary(eventId: number) {
   .from(eventDivisionsTable)
   .innerJoin(karateCategoriesTable, eq(eventDivisionsTable.category_id, karateCategoriesTable.id))
   .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
-  .where(eq(eventDivisionsTable.event_id, eventId))
+  .where(eq(eventDivisionsTable.event_id, eventId)
+)
   .groupBy(
     eventDivisionsTable.event_id,
     karateCategoriesTable.id, 
@@ -161,7 +162,8 @@ async toggleCategoryStatusInEvent(eventId: number, categoryId: number, active: b
   return result; // Retorna un array con todas las modalidades actualizadas
 }
 
-async toggleModalityConfig(dto: ToggleModalityDto) {
+//toggleModalityConfig v1: si funciona, pero no se guardan los jueces
+/* async toggleModalityConfig(dto: ToggleModalityDto) {
   try {
     const values = {
         event_id: dto.event_id,
@@ -188,6 +190,59 @@ async toggleModalityConfig(dto: ToggleModalityDto) {
     return result[0];
   } catch (error) {
     throw new BadRequestException('No se pudo procesar la configuración de la modalidad: ' + error.message);
+  }
+} */
+
+//toggleModalityConfig v2
+async toggleModalityConfig(dto: ToggleModalityDto) {
+  try {
+    return await this.db.transaction(async (tx) => {
+      // 1. Upsert de la Modalidad
+      const [division] = await tx.insert(eventDivisionsTable)
+        .values({
+          event_id: dto.event_id,
+          category_id: dto.category_id,
+          modality_id: dto.modality_id,
+          is_active: dto.is_active,
+        } as any)
+        .onConflictDoUpdate({
+          target: [
+            eventDivisionsTable.event_id,
+            eventDivisionsTable.category_id,
+            eventDivisionsTable.modality_id,
+          ],
+          set: { is_active: dto.is_active, updated_at: new Date() } as any,
+        })
+        .returning();
+
+      // 2. Upsert de los Jueces (Sincronización de estados)
+      if (dto.judges && dto.judges.length > 0) {
+        for (const judge of dto.judges) {
+          await tx.insert(divisionJudgesTable)
+            .values({
+              division_id: division.id,
+              judge_id: judge.judge_id,
+              is_active: judge.is_active,
+              role_in_pool: 'juez',
+            })
+            .onConflictDoUpdate({
+              target: [divisionJudgesTable.division_id, divisionJudgesTable.judge_id],
+              set: { 
+                is_active: judge.is_active, 
+                updated_at: new Date() 
+              } as any,
+            });
+        }
+      }
+
+      // 3. Respuesta con los datos actuales
+      return {
+        ...division,
+        judges_updated: dto.judges?.length || 0
+      };
+    });
+  } catch (error) {
+    throw new BadRequestException('Error al sincronizar modalidad y jueces: ' + error.message);
   }
 }
 
@@ -254,7 +309,7 @@ async getModalitiesByEventCategory(eventId: number, categoryId: number) {//Muest
         name: j.judge_name,
         lastname: j.judge_lastname,
         email: j.judge_email,
-        role: j.role
+        role: j.role //aun no se usa
       }))
   }));
 }

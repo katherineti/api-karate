@@ -3,7 +3,11 @@ CREATE TABLE "division_judges" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"division_id" integer,
 	"judge_id" integer,
-	"role_in_pool" varchar(50)
+	"role_in_pool" varchar(50),
+	"is_active" boolean DEFAULT true,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "unique_division_judge" UNIQUE("division_id","judge_id")
 );
 --> statement-breakpoint
 CREATE TABLE "event_divisions" (

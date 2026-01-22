@@ -9,8 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ToggleModalityDto = void 0;
+exports.ToggleModalityDto = exports.JudgeAssignmentDto = void 0;
 const class_validator_1 = require("class-validator");
+class JudgeAssignmentDto {
+}
+exports.JudgeAssignmentDto = JudgeAssignmentDto;
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], JudgeAssignmentDto.prototype, "judge_id", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], JudgeAssignmentDto.prototype, "is_active", void 0);
 class ToggleModalityDto {
 }
 exports.ToggleModalityDto = ToggleModalityDto;
@@ -30,4 +41,9 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], ToggleModalityDto.prototype, "is_active", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], ToggleModalityDto.prototype, "judges", void 0);
 //# sourceMappingURL=toggle-modality.dto.js.map

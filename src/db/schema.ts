@@ -164,6 +164,14 @@ export const divisionJudgesTable = pgTable("division_judges", {
   division_id: integer("division_id").references(() => eventDivisionsTable.id),
   judge_id: integer("judge_id").references(() => usersTable.id), 
   role_in_pool: varchar("role_in_pool", { length: 50 }), // 'principal', 'asistente'
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return [
+    // Aseguramos que no se repita el mismo juez en la misma división
+    unique("unique_division_judge").on(table.division_id, table.judge_id),
+  ];
 });
 
 

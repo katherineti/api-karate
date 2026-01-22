@@ -122,6 +122,13 @@ exports.divisionJudgesTable = (0, pg_core_1.pgTable)("division_judges", {
     division_id: (0, pg_core_1.integer)("division_id").references(() => exports.eventDivisionsTable.id),
     judge_id: (0, pg_core_1.integer)("judge_id").references(() => exports.usersTable.id),
     role_in_pool: (0, pg_core_1.varchar)("role_in_pool", { length: 50 }),
+    is_active: (0, pg_core_1.boolean)("is_active").default(true),
+    created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+}, (table) => {
+    return [
+        (0, pg_core_1.unique)("unique_division_judge").on(table.division_id, table.judge_id),
+    ];
 });
 exports.kataPerformancesTable = (0, pg_core_1.pgTable)("kata_performances", {
     id: (0, pg_core_1.serial)("id").primaryKey(),

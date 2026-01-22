@@ -144,31 +144,49 @@ let EventConfigService = class EventConfigService {
     }
     async toggleModalityConfig(dto) {
         try {
-            const values = {
-                event_id: dto.event_id,
-                category_id: dto.category_id,
-                modality_id: dto.modality_id,
-                is_active: dto.is_active,
-                max_evaluation_score: 0,
-            };
-            const result = await this.db.insert(schema_1.eventDivisionsTable)
-                .values(values)
-                .onConflictDoUpdate({
-                target: [
-                    schema_1.eventDivisionsTable.event_id,
-                    schema_1.eventDivisionsTable.category_id,
-                    schema_1.eventDivisionsTable.modality_id,
-                ],
-                set: {
+            return await this.db.transaction(async (tx) => {
+                const [division] = await tx.insert(schema_1.eventDivisionsTable)
+                    .values({
+                    event_id: dto.event_id,
+                    category_id: dto.category_id,
+                    modality_id: dto.modality_id,
                     is_active: dto.is_active,
-                    updated_at: new Date(),
-                },
-            })
-                .returning();
-            return result[0];
+                })
+                    .onConflictDoUpdate({
+                    target: [
+                        schema_1.eventDivisionsTable.event_id,
+                        schema_1.eventDivisionsTable.category_id,
+                        schema_1.eventDivisionsTable.modality_id,
+                    ],
+                    set: { is_active: dto.is_active, updated_at: new Date() },
+                })
+                    .returning();
+                if (dto.judges && dto.judges.length > 0) {
+                    for (const judge of dto.judges) {
+                        await tx.insert(schema_1.divisionJudgesTable)
+                            .values({
+                            division_id: division.id,
+                            judge_id: judge.judge_id,
+                            is_active: judge.is_active,
+                            role_in_pool: 'juez',
+                        })
+                            .onConflictDoUpdate({
+                            target: [schema_1.divisionJudgesTable.division_id, schema_1.divisionJudgesTable.judge_id],
+                            set: {
+                                is_active: judge.is_active,
+                                updated_at: new Date()
+                            },
+                        });
+                    }
+                }
+                return {
+                    ...division,
+                    judges_updated: dto.judges?.length || 0
+                };
+            });
         }
         catch (error) {
-            throw new common_1.BadRequestException('No se pudo procesar la configuración de la modalidad: ' + error.message);
+            throw new common_1.BadRequestException('Error al sincronizar modalidad y jueces: ' + error.message);
         }
     }
     async getModalitiesByEventCategory(eventId, categoryId) {
