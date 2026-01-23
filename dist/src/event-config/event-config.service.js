@@ -59,15 +59,15 @@ let EventConfigService = class EventConfigService {
             category_name: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
             allowed_belts_ids: schema_1.karateCategoriesTable.allowed_belts,
-            kata_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'kata')`.mapWith(Number),
-            combate_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'combate')`.mapWith(Number),
-            total_modalities: (0, drizzle_orm_1.sql) `count(${schema_1.eventDivisionsTable.id})`.mapWith(Number),
+            kata_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'kata' AND ${schema_1.eventDivisionsTable.is_active} = true)`.mapWith(Number),
+            combate_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'combate' AND ${schema_1.eventDivisionsTable.is_active} = true)`.mapWith(Number),
+            total_modalities: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.eventDivisionsTable.is_active} = true)`.mapWith(Number),
         })
             .from(schema_1.eventDivisionsTable)
             .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
-            .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
-            .groupBy(schema_1.eventDivisionsTable.event_id, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range);
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId)))
+            .groupBy(schema_1.eventDivisionsTable.event_id, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range, schema_1.karateCategoriesTable.allowed_belts);
         if (rows.length === 0)
             return [];
         const allBelts = await this.db.select().from(schema_1.karateBeltsTable);

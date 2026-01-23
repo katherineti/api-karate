@@ -41,7 +41,8 @@ async setupDivision(dto: any) { // Usa tu DTO CreateEventConfigDto aquí
     }
   }
 
-async getEventCategoriesSummary(eventId: number) {
+  // v1
+/* async getEventCategoriesSummary(eventId: number) {
   // 1. Obtenemos el resumen con contadores basados en la columna 'type'
   const rows = await this.db.select({
     event_id: eventDivisionsTable.event_id, 
@@ -79,6 +80,67 @@ async getEventCategoriesSummary(eventId: number) {
       .map(belt => ({
         id: belt.id,
         name: belt.belt // Asegúrate de que el nombre de la columna sea 'belt' o 'name'
+      }));
+
+    return {
+      event_id: row.event_id,
+      category_id: row.category_id,
+      category_name: row.category_name,
+      age_range: row.age_range,
+      kata_count: row.kata_count,
+      combate_count: row.combate_count,
+      total_modalities: row.total_modalities,
+      allowed_belts: detailedBelts
+    };
+  });
+} */
+
+//v2
+async getEventCategoriesSummary(eventId: number) {
+  // 1. Obtenemos el resumen con contadores filtrando por 'is_active'
+  const rows = await this.db.select({
+    event_id: eventDivisionsTable.event_id, 
+    category_id: karateCategoriesTable.id,
+    category_name: karateCategoriesTable.category,
+    age_range: karateCategoriesTable.age_range,
+    allowed_belts_ids: karateCategoriesTable.allowed_belts,
+    // Conteo de Katas: solo si el tipo es 'kata' Y está activa
+    kata_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'kata' AND ${eventDivisionsTable.is_active} = true)`.mapWith(Number),
+    // Conteo de Combates: solo si el tipo es 'combate' Y está activa
+    combate_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'combate' AND ${eventDivisionsTable.is_active} = true)`.mapWith(Number),
+    // Total de modalidades activas
+    total_modalities: sql<number>`count(*) filter (where ${eventDivisionsTable.is_active} = true)`.mapWith(Number),
+  })
+  .from(eventDivisionsTable)
+  .innerJoin(karateCategoriesTable, eq(eventDivisionsTable.category_id, karateCategoriesTable.id))
+  .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
+  .where(
+    and(
+      eq(eventDivisionsTable.event_id, eventId),
+      // Si quieres que la categoría ni siquiera aparezca si no tiene modalidades activas, 
+      // podrías filtrar aquí, pero es mejor dejar que el SQL cuente 0 para mantener la estructura.
+    )
+  )
+  .groupBy(
+    eventDivisionsTable.event_id,
+    karateCategoriesTable.id, 
+    karateCategoriesTable.category, 
+    karateCategoriesTable.age_range,
+    karateCategoriesTable.allowed_belts
+  );
+
+  if (rows.length === 0) return [];
+
+  // 2. Traemos todos los cinturones maestros
+  const allBelts = await this.db.select().from(karateBeltsTable);
+
+  // 3. Mapeamos para inyectar los objetos de cinturones
+  return rows.map(row => {
+    const detailedBelts = allBelts
+      .filter(belt => row.allowed_belts_ids?.includes(belt.id))
+      .map(belt => ({
+        id: belt.id,
+        name: belt.belt 
       }));
 
     return {
