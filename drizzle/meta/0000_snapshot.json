@@ -1,5 +1,5 @@
 {
-  "id": "7aee4a9d-445e-4aae-a66f-130ce273d4d1",
+  "id": "fd89469e-e976-40ad-8d1f-4d0d6d6d74df",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -98,8 +98,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.event_divisions": {
-      "name": "event_divisions",
+    "public.event_categories": {
+      "name": "event_categories",
       "schema": "",
       "columns": {
         "id": {
@@ -119,26 +119,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "modality_id": {
-          "name": "modality_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "max_evaluation_score": {
-          "name": "max_evaluation_score",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "category_is_active": {
-          "name": "category_is_active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": true
         },
         "is_active": {
           "name": "is_active",
@@ -164,9 +144,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "event_divisions_event_id_events_id_fk": {
-          "name": "event_divisions_event_id_events_id_fk",
-          "tableFrom": "event_divisions",
+        "event_categories_event_id_events_id_fk": {
+          "name": "event_categories_event_id_events_id_fk",
+          "tableFrom": "event_categories",
           "tableTo": "events",
           "columnsFrom": [
             "event_id"
@@ -177,12 +157,94 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "event_divisions_category_id_karate_categories_id_fk": {
-          "name": "event_divisions_category_id_karate_categories_id_fk",
-          "tableFrom": "event_divisions",
+        "event_categories_category_id_karate_categories_id_fk": {
+          "name": "event_categories_category_id_karate_categories_id_fk",
+          "tableFrom": "event_categories",
           "tableTo": "karate_categories",
           "columnsFrom": [
             "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_event_category": {
+          "name": "unique_event_category",
+          "nullsNotDistinct": false,
+          "columns": [
+            "event_id",
+            "category_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.event_divisions": {
+      "name": "event_divisions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_category_id": {
+          "name": "event_category_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "modality_id": {
+          "name": "modality_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_evaluation_score": {
+          "name": "max_evaluation_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "event_divisions_event_category_id_event_categories_id_fk": {
+          "name": "event_divisions_event_category_id_event_categories_id_fk",
+          "tableFrom": "event_divisions",
+          "tableTo": "event_categories",
+          "columnsFrom": [
+            "event_category_id"
           ],
           "columnsTo": [
             "id"
@@ -206,12 +268,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "unique_modality_per_event": {
-          "name": "unique_modality_per_event",
+        "unique_event_cat_modality": {
+          "name": "unique_event_cat_modality",
           "nullsNotDistinct": false,
           "columns": [
-            "event_id",
-            "category_id",
+            "event_category_id",
             "modality_id"
           ]
         }

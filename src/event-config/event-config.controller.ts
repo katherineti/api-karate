@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Patch, ParseIntPipe } from '@nestjs/common';
 import { EventConfigService } from './event-config.service';
 import { ToggleModalityDto } from './dto/toggle-modality.dto';
+import { ToggleEventCategoryDto } from './dto/toggle-event-category.dto';
 
 @Controller('event-config')
 export class EventConfigController {
@@ -43,4 +44,13 @@ export class EventConfigController {
   ) {
     return this.eventConfigService.getModalitiesByEventCategory(eventId, categoryId);
   }
+
+@Patch('toggle-category')
+async toggleCategoryInEvent(@Body() dto: ToggleEventCategoryDto) {
+  return this.eventConfigService.registerCategoryInEvent(
+    dto.event_id, 
+    dto.category_id, 
+    dto.is_active
+  );
+}
 }

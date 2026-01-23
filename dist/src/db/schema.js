@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tournamentRegistrationsTable = exports.kataPerformancesTable = exports.divisionJudgesTable = exports.judgeRoleEnum = exports.eventDivisionsTable = exports.modalitiesTable = exports.eventsTable = exports.subtypesEventsTable = exports.typesEventsTable = exports.usersTable = exports.karateBeltsTable = exports.karateCategoriesTable = exports.schoolTable = exports.roleTable = exports.statusTable = exports.eventStatus_scheduled = void 0;
+exports.tournamentRegistrationsTable = exports.kataPerformancesTable = exports.divisionJudgesTable = exports.judgeRoleEnum = exports.eventDivisionsTable = exports.eventCategoriesTable = exports.modalitiesTable = exports.eventsTable = exports.subtypesEventsTable = exports.typesEventsTable = exports.usersTable = exports.karateBeltsTable = exports.karateCategoriesTable = exports.schoolTable = exports.roleTable = exports.statusTable = exports.eventStatus_scheduled = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 exports.eventStatus_scheduled = 4;
 exports.statusTable = (0, pg_core_1.pgTable)("status", {
@@ -91,25 +91,33 @@ exports.modalitiesTable = (0, pg_core_1.pgTable)("modalities", {
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull().unique(),
     type: (0, pg_core_1.varchar)("type", { length: 50 }).notNull(),
 });
-exports.eventDivisionsTable = (0, pg_core_1.pgTable)("event_divisions", {
+exports.eventCategoriesTable = (0, pg_core_1.pgTable)("event_categories", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
-    event_id: (0, pg_core_1.integer)("event_id")
-        .notNull()
-        .references(() => exports.eventsTable.id),
-    category_id: (0, pg_core_1.integer)("category_id")
-        .notNull()
-        .references(() => exports.karateCategoriesTable.id),
-    modality_id: (0, pg_core_1.integer)("modality_id")
-        .notNull()
-        .references(() => exports.modalitiesTable.id),
-    max_evaluation_score: (0, pg_core_1.integer)("max_evaluation_score").notNull().default(0),
-    category_is_active: (0, pg_core_1.boolean)("category_is_active").default(true),
+    event_id: (0, pg_core_1.integer)("event_id").notNull().references(() => exports.eventsTable.id),
+    category_id: (0, pg_core_1.integer)("category_id").notNull().references(() => exports.karateCategoriesTable.id),
     is_active: (0, pg_core_1.boolean)("is_active").notNull().default(true),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 }, (table) => {
     return [
-        (0, pg_core_1.unique)("unique_modality_per_event").on(table.event_id, table.category_id, table.modality_id),
+        (0, pg_core_1.unique)("unique_event_category").on(table.event_id, table.category_id),
+    ];
+});
+exports.eventDivisionsTable = (0, pg_core_1.pgTable)("event_divisions", {
+    id: (0, pg_core_1.serial)("id").primaryKey(),
+    event_category_id: (0, pg_core_1.integer)("event_category_id")
+        .notNull()
+        .references(() => exports.eventCategoriesTable.id),
+    modality_id: (0, pg_core_1.integer)("modality_id")
+        .notNull()
+        .references(() => exports.modalitiesTable.id),
+    max_evaluation_score: (0, pg_core_1.integer)("max_evaluation_score").notNull().default(0),
+    is_active: (0, pg_core_1.boolean)("is_active").notNull().default(true),
+    created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+}, (table) => {
+    return [
+        (0, pg_core_1.unique)("unique_event_cat_modality").on(table.event_category_id, table.modality_id),
     ];
 });
 exports.judgeRoleEnum = (0, pg_core_1.pgEnum)("judge_role", [

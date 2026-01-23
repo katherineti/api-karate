@@ -24,29 +24,40 @@ let EventConfigService = class EventConfigService {
     }
     async setupDivision(dto) {
         try {
-            const values = {
+            const [eventCategory] = await this.db.insert(schema_1.eventCategoriesTable)
+                .values({
                 event_id: dto.event_id,
                 category_id: dto.category_id,
+                is_active: true,
+            })
+                .onConflictDoUpdate({
+                target: [schema_1.eventCategoriesTable.event_id, schema_1.eventCategoriesTable.category_id],
+                set: { event_id: dto.event_id }
+            })
+                .returning({ id: schema_1.eventCategoriesTable.id });
+            const result = await this.db.insert(schema_1.eventDivisionsTable)
+                .values({
+                event_category_id: eventCategory.id,
                 modality_id: dto.modality_id,
                 max_evaluation_score: dto.max_evaluation_score ?? 0,
                 is_active: dto.is_active ?? true,
-            };
-            const result = await this.db.insert(schema_1.eventDivisionsTable)
-                .values(values)
+            })
                 .onConflictDoUpdate({
                 target: [
-                    schema_1.eventDivisionsTable.event_id,
-                    schema_1.eventDivisionsTable.category_id,
+                    schema_1.eventDivisionsTable.event_category_id,
                     schema_1.eventDivisionsTable.modality_id
                 ],
                 set: {
                     max_evaluation_score: dto.max_evaluation_score ?? 0,
                     is_active: dto.is_active ?? true,
-                    updated_at: new Date()
                 },
             })
                 .returning();
-            return result[0];
+            return {
+                ...result[0],
+                event_id: dto.event_id,
+                category_id: dto.category_id
+            };
         }
         catch (error) {
             throw new common_1.BadRequestException('Error al configurar la división: ' + error.message);
@@ -54,29 +65,30 @@ let EventConfigService = class EventConfigService {
     }
     async getEventCategoriesSummary(eventId) {
         const rows = await this.db.select({
-            event_id: schema_1.eventDivisionsTable.event_id,
+            event_id: schema_1.eventCategoriesTable.event_id,
             category_id: schema_1.karateCategoriesTable.id,
             category_name: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
             allowed_belts_ids: schema_1.karateCategoriesTable.allowed_belts,
-            category_is_active: schema_1.eventDivisionsTable.category_is_active,
-            kata_count: (0, drizzle_orm_1.sql) `count(*) filter (
+            category_is_active: schema_1.eventCategoriesTable.is_active,
+            kata_count: (0, drizzle_orm_1.sql) `count(${schema_1.eventDivisionsTable.id}) filter (
       where ${schema_1.modalitiesTable.type} = 'kata' 
       AND ${schema_1.eventDivisionsTable.is_active} = true
     )`.mapWith(Number),
-            combate_count: (0, drizzle_orm_1.sql) `count(*) filter (
+            combate_count: (0, drizzle_orm_1.sql) `count(${schema_1.eventDivisionsTable.id}) filter (
       where ${schema_1.modalitiesTable.type} = 'combate' 
       AND ${schema_1.eventDivisionsTable.is_active} = true
     )`.mapWith(Number),
-            total_modalities: (0, drizzle_orm_1.sql) `count(*) filter (
-     where ${schema_1.eventDivisionsTable.is_active} = true
+            total_modalities: (0, drizzle_orm_1.sql) `count(${schema_1.eventDivisionsTable.id}) filter (
+      where ${schema_1.eventDivisionsTable.is_active} = true
     )`.mapWith(Number),
         })
-            .from(schema_1.eventDivisionsTable)
-            .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
-            .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
-            .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
-            .groupBy(schema_1.eventDivisionsTable.event_id, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range, schema_1.karateCategoriesTable.allowed_belts, schema_1.eventDivisionsTable.category_is_active);
+            .from(schema_1.eventCategoriesTable)
+            .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, schema_1.karateCategoriesTable.id))
+            .leftJoin(schema_1.eventDivisionsTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_category_id, schema_1.eventCategoriesTable.id))
+            .leftJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
+            .where((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId))
+            .groupBy(schema_1.eventCategoriesTable.id, schema_1.eventCategoriesTable.event_id, schema_1.eventCategoriesTable.is_active, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range, schema_1.karateCategoriesTable.allowed_belts);
         if (rows.length === 0)
             return [];
         const allBelts = await this.db.select().from(schema_1.karateBeltsTable);
@@ -103,7 +115,7 @@ let EventConfigService = class EventConfigService {
     async getCategoriesByEvent(eventId) {
         const rows = await this.db.select({
             id: schema_1.eventDivisionsTable.id,
-            category_id: schema_1.eventDivisionsTable.category_id,
+            category_id: schema_1.eventCategoriesTable.category_id,
             category: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
             allowed_belts_ids: schema_1.karateCategoriesTable.allowed_belts,
@@ -112,9 +124,10 @@ let EventConfigService = class EventConfigService {
             is_active: schema_1.eventDivisionsTable.is_active
         })
             .from(schema_1.eventDivisionsTable)
-            .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
+            .innerJoin(schema_1.eventCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_category_id, schema_1.eventCategoriesTable.id))
+            .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, schema_1.karateCategoriesTable.id))
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
-            .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
+            .where((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId))
             .orderBy(schema_1.eventDivisionsTable.id);
         if (rows.length === 0)
             return [];
@@ -139,36 +152,55 @@ let EventConfigService = class EventConfigService {
         });
     }
     async toggleCategoryStatusInEvent(eventId, categoryId, active) {
+        const eventCategorySubquery = this.db
+            .select({ id: schema_1.eventCategoriesTable.id })
+            .from(schema_1.eventCategoriesTable)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, categoryId)));
         const result = await this.db
             .update(schema_1.eventDivisionsTable)
             .set({
             is_active: active,
             updated_at: new Date()
         })
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, categoryId)))
+            .where((0, drizzle_orm_1.inArray)(schema_1.eventDivisionsTable.event_category_id, eventCategorySubquery))
             .returning();
         if (result.length === 0) {
-            throw new common_1.BadRequestException('No se encontraron divisiones para esa combinación de evento y categoría.');
+            throw new common_1.BadRequestException('No se encontraron modalidades configuradas para esa categoría en este evento.');
         }
+        await this.db.update(schema_1.eventCategoriesTable)
+            .set({ is_active: active })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, categoryId)));
         return result;
     }
     async toggleModalityConfig(dto) {
         try {
             return await this.db.transaction(async (tx) => {
-                const [division] = await tx.insert(schema_1.eventDivisionsTable)
+                const [eventCategory] = await tx.insert(schema_1.eventCategoriesTable)
                     .values({
                     event_id: dto.event_id,
                     category_id: dto.category_id,
+                    is_active: true,
+                })
+                    .onConflictDoUpdate({
+                    target: [schema_1.eventCategoriesTable.event_id, schema_1.eventCategoriesTable.category_id],
+                    set: { updated_at: new Date() },
+                })
+                    .returning();
+                const [division] = await tx.insert(schema_1.eventDivisionsTable)
+                    .values({
+                    event_category_id: eventCategory.id,
                     modality_id: dto.modality_id,
                     is_active: dto.is_active,
                 })
                     .onConflictDoUpdate({
                     target: [
-                        schema_1.eventDivisionsTable.event_id,
-                        schema_1.eventDivisionsTable.category_id,
+                        schema_1.eventDivisionsTable.event_category_id,
                         schema_1.eventDivisionsTable.modality_id,
                     ],
-                    set: { is_active: dto.is_active, updated_at: new Date() },
+                    set: {
+                        is_active: dto.is_active,
+                        updated_at: new Date()
+                    },
                 })
                     .returning();
                 if (dto.judges && dto.judges.length > 0) {
@@ -190,12 +222,18 @@ let EventConfigService = class EventConfigService {
                     }
                 }
                 return {
-                    ...division,
+                    id: division.id,
+                    event_id: dto.event_id,
+                    category_id: dto.category_id,
+                    event_category_id: eventCategory.id,
+                    modality_id: division.modality_id,
+                    is_active: division.is_active,
                     judges_updated: dto.judges?.length || 0
                 };
             });
         }
         catch (error) {
+            console.error('Error en toggleModalityConfig:', error);
             throw new common_1.BadRequestException('Error al sincronizar modalidad y jueces: ' + error.message);
         }
     }
@@ -208,8 +246,9 @@ let EventConfigService = class EventConfigService {
             is_active: schema_1.eventDivisionsTable.is_active,
         })
             .from(schema_1.eventDivisionsTable)
+            .innerJoin(schema_1.eventCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_category_id, schema_1.eventCategoriesTable.id))
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, categoryId)));
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, categoryId)));
         if (divisions.length === 0)
             return [];
         const divisionIds = divisions.map(d => d.division_id);
@@ -244,6 +283,28 @@ let EventConfigService = class EventConfigService {
         return this.db.delete(schema_1.eventDivisionsTable)
             .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.id, divisionId))
             .returning();
+    }
+    async registerCategoryInEvent(eventId, categoryId, isActive = true) {
+        try {
+            const [result] = await this.db.insert(schema_1.eventCategoriesTable)
+                .values({
+                event_id: eventId,
+                category_id: categoryId,
+                is_active: isActive,
+            })
+                .onConflictDoUpdate({
+                target: [schema_1.eventCategoriesTable.event_id, schema_1.eventCategoriesTable.category_id],
+                set: {
+                    is_active: isActive,
+                    updated_at: new Date()
+                },
+            })
+                .returning();
+            return result;
+        }
+        catch (error) {
+            throw new common_1.BadRequestException(`Error al registrar categoría: ${error.message}`);
+        }
     }
 };
 exports.EventConfigService = EventConfigService;

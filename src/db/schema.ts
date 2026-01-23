@@ -115,13 +115,33 @@ export const modalitiesTable = pgTable("modalities", {
   type: varchar("type", { length: 50 }).notNull(), // 'kata' o 'combate'
 });
 
+// 1. Nueva tabla para registrar categorías en un evento
+export const eventCategoriesTable = pgTable("event_categories", {
+  id: serial("id").primaryKey(),
+  event_id: integer("event_id").notNull().references(() => eventsTable.id),
+  category_id: integer("category_id").notNull().references(() => karateCategoriesTable.id),
+  is_active: boolean("is_active").notNull().default(true), // Estado global de la categoría
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return [
+    unique("unique_event_category").on(table.event_id, table.category_id),
+  ]
+}
+);
+
 // Tabla: scoring_divisions (Definición de Reglas de Puntuación)
 // Propósito: Define una división sujeta a puntuación dentro de un Evento.
 // export const eventDivisionsTable = pgTable("scoring_divisions", {
 export const eventDivisionsTable = pgTable("event_divisions", {
   id: serial("id").primaryKey(),
+
+// Ahora apuntamos a la relación anterior
+  event_category_id: integer("event_category_id")
+    .notNull()
+    .references(() => eventCategoriesTable.id),
   
-  // Conexión al EVENTO MAYOR (Ej: 'Torneo Regional')
+/*   // Conexión al EVENTO MAYOR (Ej: 'Torneo Regional')
   event_id: integer("event_id")
     .notNull()
     .references(() => eventsTable.id), 
@@ -129,7 +149,7 @@ export const eventDivisionsTable = pgTable("event_divisions", {
   // Conexión a la división de edad/peso (Ej: Junior)
   category_id: integer("category_id")
     .notNull()
-    .references(() => karateCategoriesTable.id),
+    .references(() => karateCategoriesTable.id), */
     
     // NUEVA CLAVE FORÁNEA: Conexión a la Modalidad maestra
     modality_id: integer("modality_id") 
@@ -138,8 +158,8 @@ export const eventDivisionsTable = pgTable("event_divisions", {
     
     max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
     
-  // Estado general de la categoría dentro del evento
-  category_is_active: boolean("category_is_active").default(true),
+/*   // Estado general de la categoría dentro del evento
+  category_is_active: boolean("category_is_active").default(true), */
   // phase: varchar("phase", { length: 100 }).notNull().default('Clasificación'), 
   // Estado de la división de puntuació: Estado específico de la modalidad en esta categoría
   is_active: boolean("is_active").notNull().default(true),
@@ -149,7 +169,8 @@ export const eventDivisionsTable = pgTable("event_divisions", {
 }, (table) => {
   return [
     // Restricción: No puede haber dos veces la misma modalidad para la misma categoría en el mismo evento.
-    unique("unique_modality_per_event").on(table.event_id, table.category_id, table.modality_id),
+    // unique("unique_modality_per_event").on(table.event_id, table.category_id, table.modality_id),
+    unique("unique_event_cat_modality").on(table.event_category_id, table.modality_id),
   ];
 });
 
