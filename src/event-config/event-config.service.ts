@@ -104,29 +104,42 @@ async getEventCategoriesSummary(eventId: number) {
     category_name: karateCategoriesTable.category,
     age_range: karateCategoriesTable.age_range,
     allowed_belts_ids: karateCategoriesTable.allowed_belts,
-    // Conteo de Katas: solo si el tipo es 'kata' Y está activa
-    kata_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'kata' AND ${eventDivisionsTable.is_active} = true)`.mapWith(Number),
-    // Conteo de Combates: solo si el tipo es 'combate' Y está activa
-    combate_count: sql<number>`count(*) filter (where ${modalitiesTable.type} = 'combate' AND ${eventDivisionsTable.is_active} = true)`.mapWith(Number),
-    // Total de modalidades activas
-    total_modalities: sql<number>`count(*) filter (where ${eventDivisionsTable.is_active} = true)`.mapWith(Number),
+    category_is_active: eventDivisionsTable.category_is_active,
+  
+    // Conteo de Katas: Solo filtra por el is_active de la modalidad
+    kata_count: sql<number>`count(*) filter (
+      where ${modalitiesTable.type} = 'kata' 
+      AND ${eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
+
+  /* // Conteo de Katas: solo si modalidad es 'kata' Y está activa Y la categoría está activa
+    kata_count: sql<number>`count(*) filter (
+      where ${modalitiesTable.type} = 'kata' 
+      AND ${eventDivisionsTable.is_active} = true 
+      AND ${eventDivisionsTable.category_is_active} = true
+    )`.mapWith(Number), */
+
+    // Conteo de Combates: Solo filtra por el is_active de la modalidad
+    combate_count: sql<number>`count(*) filter (
+      where ${modalitiesTable.type} = 'combate' 
+      AND ${eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
+    // Total de modalidades activas independientemente del status de la categoría
+    total_modalities: sql<number>`count(*) filter (
+     where ${eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
   })
   .from(eventDivisionsTable)
   .innerJoin(karateCategoriesTable, eq(eventDivisionsTable.category_id, karateCategoriesTable.id))
   .innerJoin(modalitiesTable, eq(eventDivisionsTable.modality_id, modalitiesTable.id))
-  .where(
-    and(
-      eq(eventDivisionsTable.event_id, eventId),
-      // Si quieres que la categoría ni siquiera aparezca si no tiene modalidades activas, 
-      // podrías filtrar aquí, pero es mejor dejar que el SQL cuente 0 para mantener la estructura.
-    )
-  )
+  .where(eq(eventDivisionsTable.event_id, eventId))
   .groupBy(
     eventDivisionsTable.event_id,
     karateCategoriesTable.id, 
     karateCategoriesTable.category, 
     karateCategoriesTable.age_range,
-    karateCategoriesTable.allowed_belts
+    karateCategoriesTable.allowed_belts,
+    eventDivisionsTable.category_is_active // Obligatorio para el GroupBy
   );
 
   if (rows.length === 0) return [];
@@ -147,6 +160,8 @@ async getEventCategoriesSummary(eventId: number) {
       event_id: row.event_id,
       category_id: row.category_id,
       category_name: row.category_name,
+      // Status global de la categoría para la UI
+      category_is_active: row.category_is_active,
       age_range: row.age_range,
       kata_count: row.kata_count,
       combate_count: row.combate_count,

@@ -16,6 +16,7 @@ CREATE TABLE "event_divisions" (
 	"category_id" integer NOT NULL,
 	"modality_id" integer NOT NULL,
 	"max_evaluation_score" integer DEFAULT 0 NOT NULL,
+	"category_is_active" boolean DEFAULT true,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),

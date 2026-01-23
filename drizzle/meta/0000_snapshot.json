@@ -1,5 +1,5 @@
 {
-  "id": "22745e36-727c-4f62-9447-9a98f2281ab5",
+  "id": "7aee4a9d-445e-4aae-a66f-130ce273d4d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -132,6 +132,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "category_is_active": {
+          "name": "category_is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
         },
         "is_active": {
           "name": "is_active",

@@ -130,16 +130,18 @@ export const eventDivisionsTable = pgTable("event_divisions", {
   category_id: integer("category_id")
     .notNull()
     .references(() => karateCategoriesTable.id),
-
-  // NUEVA CLAVE FORÁNEA: Conexión a la Modalidad maestra
-  modality_id: integer("modality_id") 
+    
+    // NUEVA CLAVE FORÁNEA: Conexión a la Modalidad maestra
+    modality_id: integer("modality_id") 
     .notNull()
     .references(() => modalitiesTable.id), 
-
-  max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
-  
-  // Estado de la división de puntuación
+    
+    max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
+    
+  // Estado general de la categoría dentro del evento
+  category_is_active: boolean("category_is_active").default(true),
   // phase: varchar("phase", { length: 100 }).notNull().default('Clasificación'), 
+  // Estado de la división de puntuació: Estado específico de la modalidad en esta categoría
   is_active: boolean("is_active").notNull().default(true),
 
   created_at: timestamp("created_at").defaultNow(),

@@ -59,15 +59,24 @@ let EventConfigService = class EventConfigService {
             category_name: schema_1.karateCategoriesTable.category,
             age_range: schema_1.karateCategoriesTable.age_range,
             allowed_belts_ids: schema_1.karateCategoriesTable.allowed_belts,
-            kata_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'kata' AND ${schema_1.eventDivisionsTable.is_active} = true)`.mapWith(Number),
-            combate_count: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.modalitiesTable.type} = 'combate' AND ${schema_1.eventDivisionsTable.is_active} = true)`.mapWith(Number),
-            total_modalities: (0, drizzle_orm_1.sql) `count(*) filter (where ${schema_1.eventDivisionsTable.is_active} = true)`.mapWith(Number),
+            category_is_active: schema_1.eventDivisionsTable.category_is_active,
+            kata_count: (0, drizzle_orm_1.sql) `count(*) filter (
+      where ${schema_1.modalitiesTable.type} = 'kata' 
+      AND ${schema_1.eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
+            combate_count: (0, drizzle_orm_1.sql) `count(*) filter (
+      where ${schema_1.modalitiesTable.type} = 'combate' 
+      AND ${schema_1.eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
+            total_modalities: (0, drizzle_orm_1.sql) `count(*) filter (
+     where ${schema_1.eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
         })
             .from(schema_1.eventDivisionsTable)
             .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.category_id, schema_1.karateCategoriesTable.id))
             .innerJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId)))
-            .groupBy(schema_1.eventDivisionsTable.event_id, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range, schema_1.karateCategoriesTable.allowed_belts);
+            .where((0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_id, eventId))
+            .groupBy(schema_1.eventDivisionsTable.event_id, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range, schema_1.karateCategoriesTable.allowed_belts, schema_1.eventDivisionsTable.category_is_active);
         if (rows.length === 0)
             return [];
         const allBelts = await this.db.select().from(schema_1.karateBeltsTable);
@@ -82,6 +91,7 @@ let EventConfigService = class EventConfigService {
                 event_id: row.event_id,
                 category_id: row.category_id,
                 category_name: row.category_name,
+                category_is_active: row.category_is_active,
                 age_range: row.age_range,
                 kata_count: row.kata_count,
                 combate_count: row.combate_count,

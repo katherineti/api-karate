@@ -103,6 +103,7 @@ exports.eventDivisionsTable = (0, pg_core_1.pgTable)("event_divisions", {
         .notNull()
         .references(() => exports.modalitiesTable.id),
     max_evaluation_score: (0, pg_core_1.integer)("max_evaluation_score").notNull().default(0),
+    category_is_active: (0, pg_core_1.boolean)("category_is_active").default(true),
     is_active: (0, pg_core_1.boolean)("is_active").notNull().default(true),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
