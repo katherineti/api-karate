@@ -152,25 +152,20 @@ let EventConfigService = class EventConfigService {
         });
     }
     async toggleCategoryStatusInEvent(eventId, categoryId, active) {
-        const eventCategorySubquery = this.db
-            .select({ id: schema_1.eventCategoriesTable.id })
-            .from(schema_1.eventCategoriesTable)
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, categoryId)));
-        const result = await this.db
-            .update(schema_1.eventDivisionsTable)
-            .set({
-            is_active: active,
-            updated_at: new Date()
-        })
-            .where((0, drizzle_orm_1.inArray)(schema_1.eventDivisionsTable.event_category_id, eventCategorySubquery))
-            .returning();
-        if (result.length === 0) {
-            throw new common_1.BadRequestException('No se encontraron modalidades configuradas para esa categoría en este evento.');
+        try {
+            await this.db.update(schema_1.eventCategoriesTable)
+                .set({ is_active: active })
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, categoryId)));
+            return {
+                event_id: eventId,
+                category_id: categoryId,
+                is_active: active,
+            };
         }
-        await this.db.update(schema_1.eventCategoriesTable)
-            .set({ is_active: active })
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId), (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, categoryId)));
-        return result;
+        catch (error) {
+            console.error('Error en toggleCategoryStatusInEvent:', error);
+            throw new common_1.BadRequestException('Error al actualizar el estado de la categoría, en el evento ' + eventId + ' para la categoría ' + categoryId + ': ' + error.message);
+        }
     }
     async toggleModalityConfig(dto) {
         try {

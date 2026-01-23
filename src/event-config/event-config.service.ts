@@ -363,8 +363,9 @@ async getCategoriesByEvent(eventId: number) { //sin usar
 }
 
 async toggleCategoryStatusInEvent(eventId: number, categoryId: number, active: boolean) {
-  // 1. Creamos una subconsulta para encontrar el ID de la relación evento-categoría
-  const eventCategorySubquery = this.db
+
+try{  // 1. Creamos una subconsulta para encontrar el ID de la relación evento-categoría
+/*   const eventCategorySubquery = this.db
     .select({ id: eventCategoriesTable.id })
     .from(eventCategoriesTable)
     .where(
@@ -387,15 +388,15 @@ async toggleCategoryStatusInEvent(eventId: number, categoryId: number, active: b
         eventCategorySubquery
       )
     )
-    .returning();
+    .returning(); */
 
-  if (result.length === 0) {
-    throw new BadRequestException('No se encontraron modalidades configuradas para esa categoría en este evento.');
-  }
+  // if (result.length === 0) {
+  //   throw new BadRequestException('No se encontraron modalidades configuradas para esa categoría en este evento.');
+  // }
 
   // 3. Opcional: También actualizamos el estado de la categoría en la tabla intermedia
   // para que haya coherencia total en el sistema
-  await this.db.update(eventCategoriesTable)
+   await this.db.update(eventCategoriesTable)
     .set({ is_active: active } as any)
     .where(
       and(
@@ -405,7 +406,16 @@ async toggleCategoryStatusInEvent(eventId: number, categoryId: number, active: b
     );
 
   // Retorna el array de modalidades (Kata, Kumite, etc.) con el nuevo estado
-  return result; 
+  // return result; 
+    return {
+      event_id: eventId,
+      category_id: categoryId,
+      is_active: active,
+    }; 
+  }catch (error) {
+    console.error('Error en toggleCategoryStatusInEvent:', error);
+    throw new BadRequestException('Error al actualizar el estado de la categoría, en el evento ' + eventId + ' para la categoría ' + categoryId + ': ' + error.message);
+  }
 }
 
 //toggleModalityConfig v1: si funciona, pero no se guardan los jueces
