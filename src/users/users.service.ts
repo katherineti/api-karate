@@ -1,10 +1,10 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable } from 'src/db/schema';
 import { and, eq, inArray, like, ne, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
-import { SignupDto } from '../auth/signup.dto';
+import { SignupDto } from '../auth/dto/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { alias } from 'drizzle-orm/pg-core';
@@ -28,6 +28,7 @@ export type User = {
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
 
  constructor(@Inject(PG_CONNECTION) private db: NeonDatabase) {}
 
@@ -416,4 +417,26 @@ export class UsersService {
         
         return result[0];
     }
+
+  async validarAdmin(email: string): Promise<any> {
+    try {
+      const userExists = await 
+      this.db.select({
+        isActivate: usersTable.status, //=1
+        })
+      .from(usersTable)
+      .where(eq(usersTable.email, email))
+      .limit(1);
+
+      if (userExists) {
+        return userExists[0]
+      } else {
+        return null
+      }
+
+    } catch (error) {
+      this.logger.error("Error al buscar el usuario: ", error);
+      throw error;
+    }
+  }
 }

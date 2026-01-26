@@ -5,11 +5,16 @@ import { UsersModule } from 'src/users/users.module';
 import { DrizzleDbConecctionModule } from 'src/db/db.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JWTSecret } from 'src/constants';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
     UsersModule,
     DrizzleDbConecctionModule,
+    PassportModule.register({
+      defaultStrategy: 'jwt',
+    }),
     JwtModule.register({
       global: true,
       secret: JWTSecret, //jwtConstants.secret,
@@ -19,7 +24,7 @@ import { JWTSecret } from 'src/constants';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports:[AuthService]
+  providers: [AuthService, JwtStrategy],
+  exports:[AuthService, JwtStrategy, PassportModule]
 })
 export class AuthModule {}

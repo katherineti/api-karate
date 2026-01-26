@@ -7,8 +7,8 @@ export class ShoolsController {
 
     constructor(private readonly shoolsService: ShoolsService) {}
     
-    @Get()
-    @UseGuards(AuthGuard)
+    @Get()//protegido
+    // @UseGuards(AuthGuard)
     async getAll() {
     return this.shoolsService.getAll();
     }

@@ -12,7 +12,8 @@ import { EventsModule } from './events/events.module';
 import { CategoriesModule } from './categories/categories.module';
 import { EventConfigModule } from './event-config/event-config.module';
 import { ModalitiesModule } from './modalities/modalities.module';
-
+import { APP_GUARD } from '@nestjs/core';
+import { AtGuard } from './guards/at.guard';
 @Module({
   imports: [
     DrizzleDbConecctionModule,
@@ -42,13 +43,24 @@ import { ModalitiesModule } from './modalities/modalities.module';
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AtGuard,
+    },/* 
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard
+    } */
+  ],
+/*   providers: [
+    AppService,
 
     // ❌ COMENTAR TEMPORALMENTE EL GUARD GLOBAL
 /*     {
       provide: APP_GUARD,
       useClass: RolesGuard,
-    }, */
+    }, * /
 
-  ],
+  ], */
 })
 export class AppModule {}

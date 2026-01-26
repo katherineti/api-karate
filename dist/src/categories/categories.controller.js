@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const categories_service_1 = require("./categories.service");
 const create_category_dto_1 = require("./dto/create-category.dto");
 const update_category_dto_1 = require("./dto/update-category.dto");
+const public_decorator_1 = require("../decorators/public.decorator");
 let CategoriesController = class CategoriesController {
     constructor(categoriesService) {
         this.categoriesService = categoriesService;
@@ -36,6 +37,7 @@ let CategoriesController = class CategoriesController {
 };
 exports.CategoriesController = CategoriesController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -43,12 +45,14 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CategoriesController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], CategoriesController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -56,6 +60,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CategoriesController.prototype, "remove", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),

@@ -16,6 +16,7 @@ exports.ModalitiesController = void 0;
 const common_1 = require("@nestjs/common");
 const modalities_service_1 = require("./modalities.service");
 const create_modality_dto_1 = require("./dto/create-modality.dto");
+const public_decorator_1 = require("../decorators/public.decorator");
 let ModalitiesController = class ModalitiesController {
     constructor(modalitiesService) {
         this.modalitiesService = modalitiesService;
@@ -29,6 +30,7 @@ let ModalitiesController = class ModalitiesController {
 };
 exports.ModalitiesController = ModalitiesController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -36,6 +38,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ModalitiesController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

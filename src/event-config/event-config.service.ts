@@ -302,7 +302,7 @@ async setupDivision(dto: any) {
 } */
 
   //getEventCategoriesSummary v4 modificada por eventCategoriesTable y para mostrar las categorias asignadas a un juez en un evento (por usuario en sesion)
-async getEventCategoriesSummary(eventId: number, userId: number, userRole: string) {
+async getEventCategoriesSummary(eventId: number, userId: number, userRole: any[]) {
   // 1. Definimos la base de la consulta
   let query = this.db.select({
     event_id: eventCategoriesTable.event_id,
@@ -343,7 +343,9 @@ async getEventCategoriesSummary(eventId: number, userId: number, userRole: strin
   // 2. Lógica de filtrado por Rol
   const conditions = [eq(eventCategoriesTable.event_id, eventId)];
 
-  if (userRole === 'juez') {
+
+
+  if (userRole.includes('juez')) {
     // Si es juez, forzamos un join con la tabla de jueces de división
     // Usamos innerJoin en lugar de leftJoin para que solo traiga categorías donde aparezca el juez
     query.innerJoin(

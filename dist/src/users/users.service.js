@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var UsersService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
@@ -20,9 +21,10 @@ const schema_1 = require("../db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
 const argon2 = require("argon2");
 const pg_core_1 = require("drizzle-orm/pg-core");
-let UsersService = class UsersService {
+let UsersService = UsersService_1 = class UsersService {
     constructor(db) {
         this.db = db;
+        this.logger = new common_1.Logger(UsersService_1.name);
     }
     async findOnByEmail(email, isSignUp = false) {
         const result = await this.db.select({
@@ -310,9 +312,29 @@ let UsersService = class UsersService {
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.email, email), (0, drizzle_orm_1.ne)(schema_1.usersTable.id, excludeId)));
         return result[0];
     }
+    async validarAdmin(email) {
+        try {
+            const userExists = await this.db.select({
+                isActivate: schema_1.usersTable.status,
+            })
+                .from(schema_1.usersTable)
+                .where((0, drizzle_orm_1.eq)(schema_1.usersTable.email, email))
+                .limit(1);
+            if (userExists) {
+                return userExists[0];
+            }
+            else {
+                return null;
+            }
+        }
+        catch (error) {
+            this.logger.error("Error al buscar el usuario: ", error);
+            throw error;
+        }
+    }
 };
 exports.UsersService = UsersService;
-exports.UsersService = UsersService = __decorate([
+exports.UsersService = UsersService = UsersService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(constants_1.PG_CONNECTION)),
     __metadata("design:paramtypes", [neon_serverless_1.NeonDatabase])

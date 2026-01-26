@@ -4,7 +4,7 @@ import { JWTSecret, PG_CONNECTION } from 'src/constants';
 import { UsersService } from 'src/users/users.service';
 import * as argon2 from "argon2";
 import { JwtService } from '@nestjs/jwt';
-import { SignupDto } from './signup.dto';
+import { SignupDto } from './dto/signup.dto';
 
 @Injectable()
 export class AuthService {

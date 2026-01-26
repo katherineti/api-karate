@@ -21,6 +21,8 @@ const events_module_1 = require("./events/events.module");
 const categories_module_1 = require("./categories/categories.module");
 const event_config_module_1 = require("./event-config/event-config.module");
 const modalities_module_1 = require("./modalities/modalities.module");
+const core_1 = require("@nestjs/core");
+const at_guard_1 = require("./guards/at.guard");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -49,6 +51,10 @@ exports.AppModule = AppModule = __decorate([
         controllers: [app_controller_1.AppController],
         providers: [
             app_service_1.AppService,
+            {
+                provide: core_1.APP_GUARD,
+                useClass: at_guard_1.AtGuard,
+            },
         ],
     })
 ], AppModule);

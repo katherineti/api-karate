@@ -2,28 +2,33 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from 
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Public } from '../decorators/public.decorator';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @Public()
   @Post()
   // @Roles(RoleType.Admin) // Solo el Admin debería expandir el catálogo global
   async create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
-
+  
+  @Public()
   @Get() //reservado para mostrar todas las categorias en el dashboard
   async findAll() {
     return this.categoriesService.findAll();
   }
 
+  @Public()
   @Delete(':id')//sin usar
   // @Roles(RoleType.Admin)
   async remove(@Param('id', ParseIntPipe) id: number) {
     return this.categoriesService.remove(id);
   }
 
+  @Public()
   @Patch(':id')//se usara para la actualizacion de categorias, dentro del modulo eventos
   // @Roles(RoleType.Admin)
   async update(

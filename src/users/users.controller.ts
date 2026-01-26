@@ -6,6 +6,7 @@ import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from 'src/decorators/role.decorators'; 
 import { RoleType } from 'types'; 
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Public } from '../decorators/public.decorator';
 
 @Controller('users')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -16,6 +17,7 @@ export class UsersController {
   // B. Usar RolesGuard: Verifica que el rol en el token esté permitido.
 
   // 1. Endpoint de LISTA PAGINADA PROTEGIDA (GET /users?page=1&limit=5)
+  @Public()
   @Get()
   @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard, RolesGuard) 
@@ -30,8 +32,8 @@ export class UsersController {
   }
 
 // 2. Endpoint del modal DETALLE DE USUARIO (GET /users/:id) y para cargar el usuario seleccionado en el modal de EDITAR USUARIO 
-  @Get(':id')
-  @UseGuards(AuthGuard)
+  @Get(':id') //protegido
+  // @UseGuards(AuthGuard)
   // @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez) 
   async getUserDetail(@Param('id') id: string) {
     const userId = parseInt(id, 10);
@@ -39,6 +41,7 @@ export class UsersController {
     return this.usersService.findUserDetailById(userId);
   }
 
+  @Public()
   @Get('by-role/:roleId')//lista representantes en el form de editar usuario
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez, RoleType.Alumno) 
@@ -47,14 +50,15 @@ export class UsersController {
   }
 
   //el juez no edita ni elimina
-  @Post('update')
+  @Post('update') //protegido
   @UsePipes(ValidationPipe)
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   // @Roles(RoleType.Admin, RoleType.Master)
   update( @Body() user: UpdateUserDto) {console.log("user",user)
       return this.usersService.updateUser(user);
   }
 
+  @Public()
   @Post('change-status')
   @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard, RolesGuard)

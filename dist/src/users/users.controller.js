@@ -21,6 +21,7 @@ const roles_guard_1 = require("../guards/roles.guard");
 const role_decorators_1 = require("../decorators/role.decorators");
 const types_1 = require("../../types");
 const update_user_dto_1 = require("./dto/update-user.dto");
+const public_decorator_1 = require("../decorators/public.decorator");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
@@ -45,6 +46,7 @@ let UsersController = class UsersController {
 };
 exports.UsersController = UsersController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     (0, common_1.UsePipes)(common_1.ValidationPipe),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
@@ -56,13 +58,13 @@ __decorate([
 ], UsersController.prototype, "getPaginatedList", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getUserDetail", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('by-role/:roleId'),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
     (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Master, types_1.RoleType.Juez, types_1.RoleType.Alumno),
@@ -74,13 +76,13 @@ __decorate([
 __decorate([
     (0, common_1.Post)('update'),
     (0, common_1.UsePipes)(common_1.ValidationPipe),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "update", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('change-status'),
     (0, common_1.UsePipes)(common_1.ValidationPipe),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),

@@ -88,7 +88,7 @@ let EventConfigService = class EventConfigService {
             .leftJoin(schema_1.eventDivisionsTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_category_id, schema_1.eventCategoriesTable.id))
             .leftJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id));
         const conditions = [(0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId)];
-        if (userRole === 'juez') {
+        if (userRole.includes('juez')) {
             query.innerJoin(schema_1.divisionJudgesTable, (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.division_id, schema_1.eventDivisionsTable.id), (0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.judge_id, userId), (0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.is_active, true)));
         }
         const rows = await query

@@ -4,27 +4,32 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PaginationEventsDto } from './dto/pagination-events.dto';
 import { ChangeStatusEventDto } from './dto/change-status-event.dto';
+import { Public } from '../decorators/public.decorator';
 
 @Controller('events')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
+  @Public()
   @Post()
   async create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
   }
 
+  @Public()
   @Get()
   async findAll(@Query() query: PaginationEventsDto) {
     return this.eventsService.findAll(query);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) { // NestJS valida y transforma aquí
     return this.eventsService.findOne(id);
   }
 
+  @Public()
   @Patch(':id')
   async update(
     @Param('id') id: string, 
@@ -34,6 +39,7 @@ export class EventsController {
     return this.eventsService.update(+id, updateEventDto);
   }
 
+  @Public()
   @Patch(':id/status')
   async changeStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -42,6 +48,7 @@ export class EventsController {
     return this.eventsService.changeStatus(id, changeStatusDto.status_id);
   }
 
+  @Public()
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.eventsService.disable(+id);

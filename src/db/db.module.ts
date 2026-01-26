@@ -1,7 +1,8 @@
-/* import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PG_CONNECTION } from './constants';
+// import { PG_CONNECTION } from './constants';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { PG_CONNECTION } from '../constants';
 
 @Module({
     providers:[
@@ -17,7 +18,12 @@ import { drizzle } from 'drizzle-orm/neon-http';
     ],
     exports: [PG_CONNECTION],
 })
-export class DrizzleDbConecctionModule{} */
+export class DrizzleDbConecctionModule{}
+
+
+
+
+/*
 // src/db/db.module.ts (SOLUCIÓN ROBUSTA CON PG Y SSL)
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -57,4 +63,4 @@ import { drizzle } from 'drizzle-orm/node-postgres';
     ],
     exports: [PG_CONNECTION],
 })
-export class DrizzleDbConecctionModule{}
+export class DrizzleDbConecctionModule{} */

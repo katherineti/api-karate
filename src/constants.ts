@@ -7,3 +7,7 @@ export const STATUS_INACTIVO = 2;
 export const STATUS_UPDATED = 3;
 
 export const ROL_ALUMNO = 5;
+
+export const jwtConstants = {
+    secret: process.env.JWT_SECRET
+};

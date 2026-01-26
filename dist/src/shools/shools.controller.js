@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ShoolsController = void 0;
 const common_1 = require("@nestjs/common");
 const shools_service_1 = require("./shools.service");
-const auth_guard_1 = require("../guards/auth.guard");
 let ShoolsController = class ShoolsController {
     constructor(shoolsService) {
         this.shoolsService = shoolsService;
@@ -24,7 +23,6 @@ let ShoolsController = class ShoolsController {
 exports.ShoolsController = ShoolsController;
 __decorate([
     (0, common_1.Get)(),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

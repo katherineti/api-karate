@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PuntuationController = void 0;
 const common_1 = require("@nestjs/common");
 const puntuation_service_1 = require("./puntuation.service");
-const auth_guard_1 = require("../guards/auth.guard");
 let PuntuationController = class PuntuationController {
     constructor(puntuationService) {
         this.puntuationService = puntuationService;
@@ -27,7 +26,6 @@ let PuntuationController = class PuntuationController {
 exports.PuntuationController = PuntuationController;
 __decorate([
     (0, common_1.Get)('athletes-by-school/:school_id'),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     __param(0, (0, common_1.Param)('school_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),

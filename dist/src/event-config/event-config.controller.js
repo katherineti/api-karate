@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const event_config_service_1 = require("./event-config.service");
 const toggle_modality_dto_1 = require("./dto/toggle-modality.dto");
 const toggle_event_category_dto_1 = require("./dto/toggle-event-category.dto");
+const usersesion_decorator_1 = require("../auth/strategies/usersesion.decorator");
+const public_decorator_1 = require("../decorators/public.decorator");
 let EventConfigController = class EventConfigController {
     constructor(eventConfigService) {
         this.eventConfigService = eventConfigService;
@@ -27,8 +29,9 @@ let EventConfigController = class EventConfigController {
     async toggleCategoryStatus(eventId, categoryId, is_active) {
         return this.eventConfigService.toggleCategoryStatusInEvent(eventId, categoryId, is_active);
     }
-    getEventSummary(id, userId, userRole) {
-        return this.eventConfigService.getEventCategoriesSummary(id, +userId, userRole);
+    getEventSummary(id, user) {
+        console.log("user", user);
+        return this.eventConfigService.getEventCategoriesSummary(id, +user.sub, user.roles);
     }
     getEventCategories(id) {
         return this.eventConfigService.getCategoriesByEvent(id);
@@ -45,6 +48,7 @@ let EventConfigController = class EventConfigController {
 };
 exports.EventConfigController = EventConfigController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)('setup'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -52,6 +56,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], EventConfigController.prototype, "setup", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Patch)('event/:eventId/category/:categoryId/change-status'),
     __param(0, (0, common_1.Param)('eventId', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Param)('categoryId', common_1.ParseIntPipe)),
@@ -62,14 +67,15 @@ __decorate([
 ], EventConfigController.prototype, "toggleCategoryStatus", null);
 __decorate([
     (0, common_1.Get)('event/:id/summary'),
+    (0, common_1.UsePipes)(common_1.ValidationPipe),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Headers)('user-id')),
-    __param(2, (0, common_1.Headers)('user-role')),
+    __param(1, (0, usersesion_decorator_1.Usersesion)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, String]),
+    __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", void 0)
 ], EventConfigController.prototype, "getEventSummary", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('event/:id/categories'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -77,6 +83,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], EventConfigController.prototype, "getEventCategories", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Patch)('toggle-modality'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -84,6 +91,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], EventConfigController.prototype, "toggleModality", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('event/:eventId/category/:categoryId/modalities'),
     __param(0, (0, common_1.Param)('eventId', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Param)('categoryId', common_1.ParseIntPipe)),
@@ -92,6 +100,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], EventConfigController.prototype, "getModalities", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Patch)('toggle-category'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),

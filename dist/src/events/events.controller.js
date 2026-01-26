@@ -19,6 +19,7 @@ const create_event_dto_1 = require("./dto/create-event.dto");
 const update_event_dto_1 = require("./dto/update-event.dto");
 const pagination_events_dto_1 = require("./dto/pagination-events.dto");
 const change_status_event_dto_1 = require("./dto/change-status-event.dto");
+const public_decorator_1 = require("../decorators/public.decorator");
 let EventsController = class EventsController {
     constructor(eventsService) {
         this.eventsService = eventsService;
@@ -45,6 +46,7 @@ let EventsController = class EventsController {
 };
 exports.EventsController = EventsController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -52,6 +54,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
@@ -59,6 +62,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -66,6 +70,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], EventsController.prototype, "findOne", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -74,6 +79,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "update", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Patch)(':id/status'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
@@ -82,6 +88,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "changeStatus", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),

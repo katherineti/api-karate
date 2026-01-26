@@ -14,6 +14,8 @@ const users_module_1 = require("../users/users.module");
 const db_module_1 = require("../db/db.module");
 const jwt_1 = require("@nestjs/jwt");
 const constants_1 = require("../constants");
+const passport_1 = require("@nestjs/passport");
+const jwt_strategy_1 = require("./strategies/jwt.strategy");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -22,6 +24,9 @@ exports.AuthModule = AuthModule = __decorate([
         imports: [
             users_module_1.UsersModule,
             db_module_1.DrizzleDbConecctionModule,
+            passport_1.PassportModule.register({
+                defaultStrategy: 'jwt',
+            }),
             jwt_1.JwtModule.register({
                 global: true,
                 secret: constants_1.JWTSecret,
@@ -29,8 +34,8 @@ exports.AuthModule = AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService],
-        exports: [auth_service_1.AuthService]
+        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy],
+        exports: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, passport_1.PassportModule]
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map
