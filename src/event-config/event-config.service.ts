@@ -219,8 +219,8 @@ async setupDivision(dto: any) {
   });
 } */
 
-  //v3 modificada por eventCategoriesTable
-async getEventCategoriesSummary(eventId: number) {
+  //getEventCategoriesSummary v3 modificada por eventCategoriesTable (Buena)
+/* async getEventCategoriesSummary(eventId: number) {
   // 1. Consultamos partiendo de eventCategoriesTable (La nueva tabla relacional)
   const rows = await this.db.select({
     event_id: eventCategoriesTable.event_id,
@@ -279,6 +279,101 @@ async getEventCategoriesSummary(eventId: number) {
   const allBelts = await this.db.select().from(karateBeltsTable);
 
   // 3. Mapeamos para inyectar los objetos de cinturones (Mantiene la estructura original)
+  return rows.map(row => {
+    const detailedBelts = allBelts
+      .filter(belt => row.allowed_belts_ids?.includes(belt.id))
+      .map(belt => ({
+        id: belt.id,
+        name: belt.belt 
+      }));
+
+    return {
+      event_id: row.event_id,
+      category_id: row.category_id,
+      category_name: row.category_name,
+      category_is_active: row.category_is_active,
+      age_range: row.age_range,
+      kata_count: row.kata_count,
+      combate_count: row.combate_count,
+      total_modalities: row.total_modalities,
+      allowed_belts: detailedBelts
+    };
+  });
+} */
+
+  //getEventCategoriesSummary v4 modificada por eventCategoriesTable y para mostrar las categorias asignadas a un juez en un evento (por usuario en sesion)
+async getEventCategoriesSummary(eventId: number, userId: number, userRole: string) {
+  // 1. Definimos la base de la consulta
+  let query = this.db.select({
+    event_id: eventCategoriesTable.event_id,
+    category_id: karateCategoriesTable.id,
+    category_name: karateCategoriesTable.category,
+    age_range: karateCategoriesTable.age_range,
+    allowed_belts_ids: karateCategoriesTable.allowed_belts,
+    category_is_active: eventCategoriesTable.is_active,
+
+    kata_count: sql<number>`count(${eventDivisionsTable.id}) filter (
+      where ${modalitiesTable.type} = 'kata' 
+      AND ${eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
+
+    combate_count: sql<number>`count(${eventDivisionsTable.id}) filter (
+      where ${modalitiesTable.type} = 'combate' 
+      AND ${eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
+
+    total_modalities: sql<number>`count(${eventDivisionsTable.id}) filter (
+      where ${eventDivisionsTable.is_active} = true
+    )`.mapWith(Number),
+  })
+  .from(eventCategoriesTable)
+  .innerJoin(
+    karateCategoriesTable, 
+    eq(eventCategoriesTable.category_id, karateCategoriesTable.id)
+  )
+  .leftJoin(
+    eventDivisionsTable, 
+    eq(eventDivisionsTable.event_category_id, eventCategoriesTable.id)
+  )
+  .leftJoin(
+    modalitiesTable, 
+    eq(eventDivisionsTable.modality_id, modalitiesTable.id)
+  );
+
+  // 2. Lógica de filtrado por Rol
+  const conditions = [eq(eventCategoriesTable.event_id, eventId)];
+
+  if (userRole === 'juez') {
+    // Si es juez, forzamos un join con la tabla de jueces de división
+    // Usamos innerJoin en lugar de leftJoin para que solo traiga categorías donde aparezca el juez
+    query.innerJoin(
+      divisionJudgesTable,
+      and(
+        eq(divisionJudgesTable.division_id, eventDivisionsTable.id),
+        eq(divisionJudgesTable.judge_id, userId),
+        eq(divisionJudgesTable.is_active, true)
+      )
+    );
+  }
+
+  // Ejecutamos la consulta con las condiciones
+  const rows = await query
+    .where(and(...conditions))
+    .groupBy(
+      eventCategoriesTable.id,
+      eventCategoriesTable.event_id,
+      eventCategoriesTable.is_active,
+      karateCategoriesTable.id, 
+      karateCategoriesTable.category, 
+      karateCategoriesTable.age_range,
+      karateCategoriesTable.allowed_belts
+    );
+
+  if (rows.length === 0) return [];
+
+  // 3. Obtención de cinturones (Igual que antes)
+  const allBelts = await this.db.select().from(karateBeltsTable);
+
   return rows.map(row => {
     const detailedBelts = allBelts
       .filter(belt => row.allowed_belts_ids?.includes(belt.id))

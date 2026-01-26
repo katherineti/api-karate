@@ -63,8 +63,8 @@ let EventConfigService = class EventConfigService {
             throw new common_1.BadRequestException('Error al configurar la división: ' + error.message);
         }
     }
-    async getEventCategoriesSummary(eventId) {
-        const rows = await this.db.select({
+    async getEventCategoriesSummary(eventId, userId, userRole) {
+        let query = this.db.select({
             event_id: schema_1.eventCategoriesTable.event_id,
             category_id: schema_1.karateCategoriesTable.id,
             category_name: schema_1.karateCategoriesTable.category,
@@ -86,8 +86,13 @@ let EventConfigService = class EventConfigService {
             .from(schema_1.eventCategoriesTable)
             .innerJoin(schema_1.karateCategoriesTable, (0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.category_id, schema_1.karateCategoriesTable.id))
             .leftJoin(schema_1.eventDivisionsTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.event_category_id, schema_1.eventCategoriesTable.id))
-            .leftJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id))
-            .where((0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId))
+            .leftJoin(schema_1.modalitiesTable, (0, drizzle_orm_1.eq)(schema_1.eventDivisionsTable.modality_id, schema_1.modalitiesTable.id));
+        const conditions = [(0, drizzle_orm_1.eq)(schema_1.eventCategoriesTable.event_id, eventId)];
+        if (userRole === 'juez') {
+            query.innerJoin(schema_1.divisionJudgesTable, (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.division_id, schema_1.eventDivisionsTable.id), (0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.judge_id, userId), (0, drizzle_orm_1.eq)(schema_1.divisionJudgesTable.is_active, true)));
+        }
+        const rows = await query
+            .where((0, drizzle_orm_1.and)(...conditions))
             .groupBy(schema_1.eventCategoriesTable.id, schema_1.eventCategoriesTable.event_id, schema_1.eventCategoriesTable.is_active, schema_1.karateCategoriesTable.id, schema_1.karateCategoriesTable.category, schema_1.karateCategoriesTable.age_range, schema_1.karateCategoriesTable.allowed_belts);
         if (rows.length === 0)
             return [];

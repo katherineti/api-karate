@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, ParseIntPipe, Req, Headers } from '@nestjs/common';
 import { EventConfigService } from './event-config.service';
 import { ToggleModalityDto } from './dto/toggle-modality.dto';
 import { ToggleEventCategoryDto } from './dto/toggle-event-category.dto';
@@ -21,10 +21,31 @@ export class EventConfigController {
     return this.eventConfigService.toggleCategoryStatusInEvent(eventId, categoryId, is_active);
   }
 
-  @Get('event/:id/summary')
+  //getEventCategoriesSummary v3 modificada por eventCategoriesTable (Buena)
+/*   @Get('event/:id/summary')
   getEventSummary(@Param('id', ParseIntPipe) id: number) {
     return this.eventConfigService.getEventCategoriesSummary(id);
-  }
+  } */
+
+  //getEventCategoriesSummary v4 modificada por eventCategoriesTable y para mostrar las categorias asignadas a un juez en un evento (por usuario en sesion)
+/*   @Get('event/:id/summary')
+  getEventSummary(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any // Suponiendo que tienes un Guard que inyecta el usuario
+  ) { console.log("# req.user es: ", req.user)
+    const userId = req.user.id;
+    const userRole = req.user.role; // 'admin' o 'juez'
+    return this.eventConfigService.getEventCategoriesSummary(id, userId, userRole);
+  } */
+
+@Get('event/:id/summary')
+getEventSummary(
+  @Param('id', ParseIntPipe) id: number,
+  @Headers('user-id') userId: string, // Recibimos ID por cabecera
+  @Headers('user-role') userRole: string, // Recibimos Rol por cabecera
+) {
+  return this.eventConfigService.getEventCategoriesSummary(id, +userId, userRole);
+}
 
   @Get('event/:id/categories')//sin usar
   getEventCategories(@Param('id', ParseIntPipe) id: number) {
