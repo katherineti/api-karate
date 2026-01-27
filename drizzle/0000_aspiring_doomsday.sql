@@ -77,6 +77,16 @@ CREATE TABLE "modalities" (
 	CONSTRAINT "modalities_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
+CREATE TABLE "notifications" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"recipient_id" integer,
+	"event_id" integer,
+	"title" varchar(255) NOT NULL,
+	"message" varchar(1000),
+	"is_read" boolean DEFAULT false,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "roles" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -151,6 +161,8 @@ ALTER TABLE "events" ADD CONSTRAINT "events_subtype_id_subtypes_events_id_fk" FO
 ALTER TABLE "events" ADD CONSTRAINT "events_status_id_status_id_fk" FOREIGN KEY ("status_id") REFERENCES "public"."status"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_scoring_division_id_event_divisions_id_fk" FOREIGN KEY ("scoring_division_id") REFERENCES "public"."event_divisions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_athlete_id_users_id_fk" FOREIGN KEY ("athlete_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_recipient_id_users_id_fk" FOREIGN KEY ("recipient_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "subtypes_events" ADD CONSTRAINT "subtypes_events_type_id_types_events_id_fk" FOREIGN KEY ("type_id") REFERENCES "public"."types_events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tournament_registrations" ADD CONSTRAINT "tournament_registrations_athlete_id_users_id_fk" FOREIGN KEY ("athlete_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tournament_registrations" ADD CONSTRAINT "tournament_registrations_division_id_event_divisions_id_fk" FOREIGN KEY ("division_id") REFERENCES "public"."event_divisions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

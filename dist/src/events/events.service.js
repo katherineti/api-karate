@@ -101,36 +101,61 @@ let EventsService = class EventsService {
         }
     }
     async create(createEventDto) {
-        try {
-            const subtypeExists = await this.db
-                .select()
-                .from(schema_1.subtypesEventsTable)
-                .where((0, drizzle_orm_1.eq)(schema_1.subtypesEventsTable.id, createEventDto.subtype_id))
-                .limit(1);
-            if (subtypeExists.length === 0) {
-                throw new common_1.BadRequestException(`El subtipo de evento (${createEventDto.subtype_id}) no es válido.`);
+        return await this.db.transaction(async (tx) => {
+            try {
+                const subtypeExists = await tx
+                    .select()
+                    .from(schema_1.subtypesEventsTable)
+                    .where((0, drizzle_orm_1.eq)(schema_1.subtypesEventsTable.id, createEventDto.subtype_id))
+                    .limit(1);
+                if (subtypeExists.length === 0) {
+                    throw new common_1.BadRequestException(`El subtipo de evento no es válido.`);
+                }
+                const params = {
+                    ...createEventDto,
+                    status_id: schema_1.eventStatus_scheduled,
+                    max_participants: createEventDto.max_participants ?? 0,
+                    max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
+                };
+                delete params.send_to_all_masters;
+                delete params.selected_master_ids;
+                const [newEvent] = await tx
+                    .insert(schema_1.eventsTable)
+                    .values(params)
+                    .returning();
+                let mastersToNotify = [];
+                if (createEventDto.send_to_all_masters) {
+                    const masters = await tx
+                        .select({ id: schema_1.usersTable.id })
+                        .from(schema_1.usersTable)
+                        .where((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([3])}::jsonb`);
+                    mastersToNotify = masters.map((m) => m.id);
+                }
+                else if (createEventDto.selected_master_ids) {
+                    mastersToNotify = createEventDto.selected_master_ids;
+                }
+                if (mastersToNotify.length > 0) {
+                    const notifications = mastersToNotify.map((masterId) => ({
+                        recipient_id: masterId,
+                        event_id: newEvent.id,
+                        title: `Nueva Convocatoria: ${newEvent.name}`,
+                        message: `Se ha creado un nuevo evento de tipo ${subtypeExists[0].subtype}.`,
+                        is_read: false,
+                    }));
+                    await tx.insert(schema_1.notificationsTable).values(notifications);
+                }
+                return {
+                    message: 'Evento creado y notificaciones enviadas',
+                    data: newEvent,
+                };
             }
-            const params = {
-                ...createEventDto,
-                status_id: schema_1.eventStatus_scheduled,
-                max_participants: createEventDto.max_participants ?? 0,
-                max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
-            };
-            const [newEvent] = await this.db
-                .insert(schema_1.eventsTable)
-                .values(params)
-                .returning();
-            return {
-                message: 'Evento creado exitosamente',
-                data: newEvent,
-            };
-        }
-        catch (error) {
-            if (error instanceof common_1.BadRequestException)
-                throw error;
-            console.error('ERROR_CREATING_EVENT:', error);
-            throw new common_1.InternalServerErrorException('Error al crear el evento.');
-        }
+            catch (error) {
+                if (error instanceof common_1.BadRequestException)
+                    throw error;
+                console.error('ERROR_CREATING_EVENT:', error);
+                throw new common_1.InternalServerErrorException('Error al crear el evento y notificar.');
+            }
+        });
     }
     async findOne(id) {
         try {

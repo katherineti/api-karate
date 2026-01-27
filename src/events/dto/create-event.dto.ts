@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString, IsNumber, Min, MaxLength, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsDateString, IsNumber, Min, MaxLength, Max, IsBoolean, IsArray } from 'class-validator';
 
 export class CreateEventDto {
   @IsString()
@@ -34,4 +34,13 @@ export class CreateEventDto {
   @IsOptional()
   @Min(0)
   max_participants?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  send_to_all_masters?: boolean;
+
+  @IsArray()
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  selected_master_ids?: number[];
 }

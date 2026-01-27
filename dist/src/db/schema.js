@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tournamentRegistrationsTable = exports.kataPerformancesTable = exports.divisionJudgesTable = exports.judgeRoleEnum = exports.eventDivisionsTable = exports.eventCategoriesTable = exports.modalitiesTable = exports.eventsTable = exports.subtypesEventsTable = exports.typesEventsTable = exports.usersTable = exports.karateBeltsTable = exports.karateCategoriesTable = exports.schoolTable = exports.roleTable = exports.statusTable = exports.eventStatus_scheduled = void 0;
+exports.notificationsTable = exports.tournamentRegistrationsTable = exports.kataPerformancesTable = exports.divisionJudgesTable = exports.judgeRoleEnum = exports.eventDivisionsTable = exports.eventCategoriesTable = exports.modalitiesTable = exports.eventsTable = exports.subtypesEventsTable = exports.typesEventsTable = exports.usersTable = exports.karateBeltsTable = exports.karateCategoriesTable = exports.schoolTable = exports.roleTable = exports.statusTable = exports.eventStatus_scheduled = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 exports.eventStatus_scheduled = 4;
 exports.statusTable = (0, pg_core_1.pgTable)("status", {
@@ -163,5 +163,14 @@ exports.tournamentRegistrationsTable = (0, pg_core_1.pgTable)("tournament_regist
     return [
         (0, pg_core_1.unique)("unique_registration").on(table.athlete_id, table.division_id),
     ];
+});
+exports.notificationsTable = (0, pg_core_1.pgTable)("notifications", {
+    id: (0, pg_core_1.serial)("id").primaryKey(),
+    recipient_id: (0, pg_core_1.integer)("recipient_id").references(() => exports.usersTable.id),
+    event_id: (0, pg_core_1.integer)("event_id").references(() => exports.eventsTable.id),
+    title: (0, pg_core_1.varchar)("title", { length: 255 }).notNull(),
+    message: (0, pg_core_1.varchar)("message", { length: 1000 }),
+    is_read: (0, pg_core_1.boolean)("is_read").default(false),
+    created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
 });
 //# sourceMappingURL=schema.js.map

@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { eventsTable, eventStatus_scheduled, statusTable, subtypesEventsTable, typesEventsTable } from '../db/schema';
+import { eventsTable, eventStatus_scheduled, notificationsTable, statusTable, subtypesEventsTable, typesEventsTable, usersTable } from '../db/schema';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { and, eq, gte, ilike, lte, or, sql, SQL } from 'drizzle-orm';
@@ -111,7 +111,80 @@ export class EventsService {
     }
   }
 
-  async create(createEventDto: CreateEventDto) {
+// events.service.ts
+async create(createEventDto: CreateEventDto) {
+  // 1. Iniciar transacción
+  return await this.db.transaction(async (tx) => {
+    try {
+      // VALIDACIÓN DE SUBTIPO (Igual que antes pero usando 'tx')
+      const subtypeExists = await tx
+        .select()
+        .from(subtypesEventsTable)
+        .where(eq(subtypesEventsTable.id, createEventDto.subtype_id))
+        .limit(1);
+
+      if (subtypeExists.length === 0) {
+        throw new BadRequestException(`El subtipo de evento no es válido.`);
+      }
+
+      // 2. INSERCIÓN DEL EVENTO
+      const params = {
+        ...createEventDto,
+        status_id: eventStatus_scheduled,
+        max_participants: createEventDto.max_participants ?? 0,
+        max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
+      };
+      
+      // Eliminamos campos que no van a la tabla de eventos si es necesario
+      delete (params as any).send_to_all_masters;
+      delete (params as any).selected_master_ids;
+
+      const [newEvent] = await tx
+        .insert(eventsTable)
+        .values(params as any)
+        .returning();
+
+      // 3. IDENTIFICAR DESTINATARIOS
+      let mastersToNotify: number[] = [];
+
+      if (createEventDto.send_to_all_masters) {
+        // Buscamos usuarios que tengan el rol Master (asumiendo ID 3 por ejemplo)
+        const masters = await tx
+          .select({ id: usersTable.id })
+          .from(usersTable)
+          .where(sql`${usersTable.roles_ids} @> ${JSON.stringify([3])}::jsonb`); // Operador "contiene" de Postgres
+        mastersToNotify = masters.map((m) => m.id);
+      } else if (createEventDto.selected_master_ids) {
+        mastersToNotify = createEventDto.selected_master_ids;
+      }
+
+      // 4. INSERCIÓN MASIVA DE NOTIFICACIONES
+      if (mastersToNotify.length > 0) {
+        const notifications = mastersToNotify.map((masterId) => ({
+          recipient_id: masterId, // Asegúrate que este nombre coincida con tu schema.ts
+          event_id: newEvent.id,
+          title: `Nueva Convocatoria: ${newEvent.name}`,
+          message: `Se ha creado un nuevo evento de tipo ${subtypeExists[0].subtype}.`,
+          is_read: false,
+        }));
+
+        await tx.insert(notificationsTable).values(notifications);
+      }
+
+      return {
+        message: 'Evento creado y notificaciones enviadas',
+        data: newEvent,
+      };
+
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      console.error('ERROR_CREATING_EVENT:', error);
+      throw new InternalServerErrorException('Error al crear el evento y notificar.');
+    }
+  });
+}
+  //creacion del evnto - funcional(sin notificaciones)
+/*   async create(createEventDto: CreateEventDto) {
     try {
     // 1. Validación de existencia del subtipo
     const subtypeExists = await this.db
@@ -149,7 +222,7 @@ export class EventsService {
     console.error('ERROR_CREATING_EVENT:', error);
     throw new InternalServerErrorException('Error al crear el evento.');
     }
-  }
+  } */
 
   async findOne(id: number) {   
     try {

@@ -234,3 +234,14 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
     unique("unique_registration").on(table.athlete_id, table.division_id),
   ];
 });
+
+//notificaciones a los masters
+export const notificationsTable = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  recipient_id: integer("recipient_id").references(() => usersTable.id), // El Master
+  event_id: integer("event_id").references(() => eventsTable.id),       // El Evento
+  title: varchar("title", { length: 255 }).notNull(),
+  message: varchar("message", { length: 1000 }),
+  is_read: boolean("is_read").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+});
