@@ -11,14 +11,16 @@ const common_1 = require("@nestjs/common");
 const events_service_1 = require("./events.service");
 const events_controller_1 = require("./events.controller");
 const db_module_1 = require("../db/db.module");
+const participantRequests_service_1 = require("./participantRequests/participantRequests.service");
+const participantRequests_controller_1 = require("./participantRequests/participantRequests.controller");
 let EventsModule = class EventsModule {
 };
 exports.EventsModule = EventsModule;
 exports.EventsModule = EventsModule = __decorate([
     (0, common_1.Module)({
         imports: [db_module_1.DrizzleDbConecctionModule],
-        controllers: [events_controller_1.EventsController],
-        providers: [events_service_1.EventsService],
+        controllers: [events_controller_1.EventsController, participantRequests_controller_1.ParticipantRequestsController],
+        providers: [events_service_1.EventsService, participantRequests_service_1.ParticipantRequestsService],
     })
 ], EventsModule);
 //# sourceMappingURL=events.module.js.map

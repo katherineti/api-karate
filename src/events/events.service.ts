@@ -450,4 +450,5 @@ async create(createEventDto: CreateEventDto, creatorId: number) {
         throw new InternalServerErrorException('Error al intentar inhabilitar el evento.');
     }
   }
+  
 }
