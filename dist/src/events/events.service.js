@@ -128,7 +128,7 @@ let EventsService = class EventsService {
                     const masters = await tx
                         .select({ id: schema_1.usersTable.id })
                         .from(schema_1.usersTable)
-                        .where((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([3])}::jsonb`);
+                        .where((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_MASTER])}::jsonb`);
                     mastersToNotify = masters.map((m) => m.id);
                 }
                 else if (createEventDto.selected_master_ids) {

@@ -14,6 +14,7 @@ import { EventConfigModule } from './event-config/event-config.module';
 import { ModalitiesModule } from './modalities/modalities.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './guards/at.guard';
+import { NotificationsModule } from './notifications/notifications.module';
 @Module({
   imports: [
     DrizzleDbConecctionModule,
@@ -38,6 +39,7 @@ import { AtGuard } from './guards/at.guard';
      CategoriesModule,
      EventConfigModule,
      ModalitiesModule,
+     NotificationsModule,
     // RolesModule,
   ],
   controllers: [AppController],

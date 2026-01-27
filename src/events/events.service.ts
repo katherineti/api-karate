@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable, InternalServerErrorException }
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { eventsTable, eventStatus_scheduled, notificationsTable, statusTable, subtypesEventsTable, typesEventsTable, usersTable } from '../db/schema';
-import { PG_CONNECTION } from '../constants';
+import { PG_CONNECTION, ROL_MASTER } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { and, eq, gte, ilike, lte, or, sql, SQL } from 'drizzle-orm';
 import { PaginationEventsDto } from './dto/pagination-events.dto';
@@ -152,7 +152,7 @@ async create(createEventDto: CreateEventDto) {
         const masters = await tx
           .select({ id: usersTable.id })
           .from(usersTable)
-          .where(sql`${usersTable.roles_ids} @> ${JSON.stringify([3])}::jsonb`); // Operador "contiene" de Postgres
+          .where(sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_MASTER])}::jsonb`); // Operador "contiene" de Postgres
         mastersToNotify = masters.map((m) => m.id);
       } else if (createEventDto.selected_master_ids) {
         mastersToNotify = createEventDto.selected_master_ids;

@@ -23,6 +23,7 @@ const event_config_module_1 = require("./event-config/event-config.module");
 const modalities_module_1 = require("./modalities/modalities.module");
 const core_1 = require("@nestjs/core");
 const at_guard_1 = require("./guards/at.guard");
+const notifications_module_1 = require("./notifications/notifications.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -47,6 +48,7 @@ exports.AppModule = AppModule = __decorate([
             categories_module_1.CategoriesModule,
             event_config_module_1.EventConfigModule,
             modalities_module_1.ModalitiesModule,
+            notifications_module_1.NotificationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
