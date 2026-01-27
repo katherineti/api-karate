@@ -100,7 +100,7 @@ let EventsService = class EventsService {
             throw new common_1.InternalServerErrorException('Error al procesar la lista de eventos. Por favor, contacte al administrador.');
         }
     }
-    async create(createEventDto) {
+    async create(createEventDto, creatorId) {
         return await this.db.transaction(async (tx) => {
             try {
                 const subtypeExists = await tx
@@ -113,6 +113,7 @@ let EventsService = class EventsService {
                 }
                 const params = {
                     ...createEventDto,
+                    created_by: creatorId,
                     status_id: schema_1.eventStatus_scheduled,
                     max_participants: createEventDto.max_participants ?? 0,
                     max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
@@ -136,6 +137,7 @@ let EventsService = class EventsService {
                 }
                 if (mastersToNotify.length > 0) {
                     const notifications = mastersToNotify.map((masterId) => ({
+                        sender_id: creatorId,
                         recipient_id: masterId,
                         event_id: newEvent.id,
                         title: `Nueva Convocatoria: ${newEvent.name}`,

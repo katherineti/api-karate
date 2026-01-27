@@ -41,6 +41,7 @@ CREATE TABLE "events" (
 	"status_id" integer DEFAULT 4 NOT NULL,
 	"max_evaluation_score" integer DEFAULT 0 NOT NULL,
 	"max_participants" integer DEFAULT 0 NOT NULL,
+	"created_by" integer,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
@@ -79,6 +80,7 @@ CREATE TABLE "modalities" (
 --> statement-breakpoint
 CREATE TABLE "notifications" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"sender_id" integer,
 	"recipient_id" integer,
 	"event_id" integer,
 	"title" varchar(255) NOT NULL,
@@ -159,8 +161,10 @@ ALTER TABLE "event_divisions" ADD CONSTRAINT "event_divisions_event_category_id_
 ALTER TABLE "event_divisions" ADD CONSTRAINT "event_divisions_modality_id_modalities_id_fk" FOREIGN KEY ("modality_id") REFERENCES "public"."modalities"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "events" ADD CONSTRAINT "events_subtype_id_subtypes_events_id_fk" FOREIGN KEY ("subtype_id") REFERENCES "public"."subtypes_events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "events" ADD CONSTRAINT "events_status_id_status_id_fk" FOREIGN KEY ("status_id") REFERENCES "public"."status"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_scoring_division_id_event_divisions_id_fk" FOREIGN KEY ("scoring_division_id") REFERENCES "public"."event_divisions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_athlete_id_users_id_fk" FOREIGN KEY ("athlete_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_sender_id_users_id_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_recipient_id_users_id_fk" FOREIGN KEY ("recipient_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "subtypes_events" ADD CONSTRAINT "subtypes_events_type_id_types_events_id_fk" FOREIGN KEY ("type_id") REFERENCES "public"."types_events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

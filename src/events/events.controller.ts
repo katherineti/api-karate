@@ -5,16 +5,21 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { PaginationEventsDto } from './dto/pagination-events.dto';
 import { ChangeStatusEventDto } from './dto/change-status-event.dto';
 import { Public } from '../decorators/public.decorator';
+import { Usersesion } from '../auth/strategies/usersesion.decorator';
+import { IJwtPayload } from '../auth/dto/jwt-payload.interface';
 
 @Controller('events')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  @Public()
+  // @Public()
   @Post()
-  async create(@Body() createEventDto: CreateEventDto) {
-    return this.eventsService.create(createEventDto);
+  async create(
+    @Body() createEventDto: CreateEventDto,
+    @Usersesion() user: IJwtPayload // <-- Capturamos al usuario en sesión
+  ) {
+    return this.eventsService.create(createEventDto, user.sub);
   }
 
   @Public()

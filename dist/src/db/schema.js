@@ -83,6 +83,7 @@ exports.eventsTable = (0, pg_core_1.pgTable)("events", {
         .references(() => exports.statusTable.id),
     max_evaluation_score: (0, pg_core_1.integer)("max_evaluation_score").notNull().default(0),
     max_participants: (0, pg_core_1.integer)("max_participants").notNull().default(0),
+    created_by: (0, pg_core_1.integer)("created_by").references(() => exports.usersTable.id),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
@@ -166,6 +167,7 @@ exports.tournamentRegistrationsTable = (0, pg_core_1.pgTable)("tournament_regist
 });
 exports.notificationsTable = (0, pg_core_1.pgTable)("notifications", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
+    sender_id: (0, pg_core_1.integer)("sender_id").references(() => exports.usersTable.id),
     recipient_id: (0, pg_core_1.integer)("recipient_id").references(() => exports.usersTable.id),
     event_id: (0, pg_core_1.integer)("event_id").references(() => exports.eventsTable.id),
     title: (0, pg_core_1.varchar)("title", { length: 255 }).notNull(),

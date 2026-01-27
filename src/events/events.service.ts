@@ -112,7 +112,7 @@ export class EventsService {
   }
 
 // events.service.ts
-async create(createEventDto: CreateEventDto) {
+async create(createEventDto: CreateEventDto, creatorId: number) {
   // 1. Iniciar transacción
   return await this.db.transaction(async (tx) => {
     try {
@@ -130,6 +130,7 @@ async create(createEventDto: CreateEventDto) {
       // 2. INSERCIÓN DEL EVENTO
       const params = {
         ...createEventDto,
+        created_by: creatorId, // <-- Guardamos quién lo creó
         status_id: eventStatus_scheduled,
         max_participants: createEventDto.max_participants ?? 0,
         max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
@@ -148,7 +149,7 @@ async create(createEventDto: CreateEventDto) {
       let mastersToNotify: number[] = [];
 
       if (createEventDto.send_to_all_masters) {
-        // Buscamos usuarios que tengan el rol Master (asumiendo ID 3 por ejemplo)
+        // Buscamos usuarios que tengan el rol Master:2 
         const masters = await tx
           .select({ id: usersTable.id })
           .from(usersTable)
@@ -161,7 +162,8 @@ async create(createEventDto: CreateEventDto) {
       // 4. INSERCIÓN MASIVA DE NOTIFICACIONES
       if (mastersToNotify.length > 0) {
         const notifications = mastersToNotify.map((masterId) => ({
-          recipient_id: masterId, // Asegúrate que este nombre coincida con tu schema.ts
+          sender_id: creatorId,    // <-- Quién envía
+          recipient_id: masterId,  // <-- Quién recibe
           event_id: newEvent.id,
           title: `Nueva Convocatoria: ${newEvent.name}`,
           message: `Se ha creado un nuevo evento de tipo ${subtypeExists[0].subtype}.`,

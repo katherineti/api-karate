@@ -101,6 +101,7 @@ export const eventsTable = pgTable("events", {
     .references(() => statusTable.id),
   max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
   max_participants: integer("max_participants").notNull().default(0),
+  created_by: integer("created_by").references(() => usersTable.id),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -238,7 +239,8 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
 //notificaciones a los masters
 export const notificationsTable = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  recipient_id: integer("recipient_id").references(() => usersTable.id), // El Master
+  sender_id: integer("sender_id").references(() => usersTable.id), //responsable de la notificación
+  recipient_id: integer("recipient_id").references(() => usersTable.id), // El Master receptor de la notificacion
   event_id: integer("event_id").references(() => eventsTable.id),       // El Evento
   title: varchar("title", { length: 255 }).notNull(),
   message: varchar("message", { length: 1000 }),

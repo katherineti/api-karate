@@ -20,12 +20,13 @@ const update_event_dto_1 = require("./dto/update-event.dto");
 const pagination_events_dto_1 = require("./dto/pagination-events.dto");
 const change_status_event_dto_1 = require("./dto/change-status-event.dto");
 const public_decorator_1 = require("../decorators/public.decorator");
+const usersesion_decorator_1 = require("../auth/strategies/usersesion.decorator");
 let EventsController = class EventsController {
     constructor(eventsService) {
         this.eventsService = eventsService;
     }
-    async create(createEventDto) {
-        return this.eventsService.create(createEventDto);
+    async create(createEventDto, user) {
+        return this.eventsService.create(createEventDto, user.sub);
     }
     async findAll(query) {
         return this.eventsService.findAll(query);
@@ -46,11 +47,11 @@ let EventsController = class EventsController {
 };
 exports.EventsController = EventsController;
 __decorate([
-    (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, usersesion_decorator_1.Usersesion)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_event_dto_1.CreateEventDto]),
+    __metadata("design:paramtypes", [create_event_dto_1.CreateEventDto, Object]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "create", null);
 __decorate([
