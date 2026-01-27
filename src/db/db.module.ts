@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+/*import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 // import { PG_CONNECTION } from './constants';
 import { drizzle } from 'drizzle-orm/neon-http';
@@ -18,12 +18,9 @@ import { PG_CONNECTION } from '../constants';
     ],
     exports: [PG_CONNECTION],
 })
-export class DrizzleDbConecctionModule{}
+export class DrizzleDbConecctionModule{}*/
 
 
-
-
-/*
 // src/db/db.module.ts (SOLUCIÓN ROBUSTA CON PG Y SSL)
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -63,4 +60,31 @@ import { drizzle } from 'drizzle-orm/node-postgres';
     ],
     exports: [PG_CONNECTION],
 })
-export class DrizzleDbConecctionModule{} */
+export class DrizzleDbConecctionModule{} 
+/*
+import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PG_CONNECTION } from '../constants';
+import { Pool } from '@neondatabase/serverless'; // 👈 Nuevo import
+import { drizzle } from 'drizzle-orm/neon-serverless'; // 👈 Cambiado de neon-http
+import * as schema from './schema'; // Asegura la ruta a tu archivo schema.ts
+
+@Module({
+    providers: [
+        {
+            provide: PG_CONNECTION,
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => {
+                const connectionString = configService.get<string>('DATABASE_URL')!;
+                
+                // El Pool permite manejar conexiones persistentes y transacciones
+                const pool = new Pool({ connectionString });
+                
+                // Pasamos el schema para tener autocompletado global
+                return drizzle(pool, { schema });
+            },
+        },
+    ],
+    exports: [PG_CONNECTION],
+})
+export class DrizzleDbConecctionModule {}*/

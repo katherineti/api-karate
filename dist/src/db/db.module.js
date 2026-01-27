@@ -9,8 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DrizzleDbConecctionModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const neon_http_1 = require("drizzle-orm/neon-http");
 const constants_1 = require("../constants");
+const pg_1 = require("pg");
+const node_postgres_1 = require("drizzle-orm/node-postgres");
 let DrizzleDbConecctionModule = class DrizzleDbConecctionModule {
 };
 exports.DrizzleDbConecctionModule = DrizzleDbConecctionModule;
@@ -22,8 +23,17 @@ exports.DrizzleDbConecctionModule = DrizzleDbConecctionModule = __decorate([
                 inject: [config_1.ConfigService],
                 useFactory: async (configService) => {
                     const connectionString = configService.get('DATABASE_URL');
-                    const db = (0, neon_http_1.drizzle)(connectionString);
-                    return db;
+                    if (!connectionString) {
+                        throw new Error('DATABASE_URL no está definida.');
+                    }
+                    const client = new pg_1.Client({
+                        connectionString: connectionString,
+                        ssl: {
+                            rejectUnauthorized: false,
+                        },
+                    });
+                    await client.connect();
+                    return (0, node_postgres_1.drizzle)(client);
                 },
             },
         ],
