@@ -24,6 +24,7 @@ const modalities_module_1 = require("./modalities/modalities.module");
 const core_1 = require("@nestjs/core");
 const at_guard_1 = require("./guards/at.guard");
 const notifications_module_1 = require("./notifications/notifications.module");
+const tournament_registrations_module_1 = require("./tournament-registrations/tournament-registrations.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -49,6 +50,7 @@ exports.AppModule = AppModule = __decorate([
             event_config_module_1.EventConfigModule,
             modalities_module_1.ModalitiesModule,
             notifications_module_1.NotificationsModule,
+            tournament_registrations_module_1.TournamentRegistrationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
