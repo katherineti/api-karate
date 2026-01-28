@@ -249,15 +249,22 @@ export const notificationsTable = pgTable("notifications", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-// schema.ts
+//solicitud de participantes-estados
+export const requestStatusEnum = pgEnum("participant_requests_status", [
+  "pending", 
+  "approved", 
+  "rejected", 
+  "cancelled"
+]);
+//solicitud de participantes
 export const participantRequestsTable = pgTable("participant_requests", {
   id: serial("id").primaryKey(),
   event_id: integer("event_id").notNull().references(() => eventsTable.id),
   master_id: integer("master_id").notNull().references(() => usersTable.id),
   school_id: integer("school_id").notNull().references(() => schoolTable.id),
-  // Nuevo nombre de columna 👇
   num_participants_requested: integer("num_participants_requested").notNull(), 
-  status: varchar("status", { length: 20 }).default('pending'), 
+  // status: varchar("status", { length: 20 }).default('pending'), 
+  status: requestStatusEnum("status").default("pending").notNull(),
   message: varchar("message", { length: 500 }),
   created_at: timestamp("created_at").defaultNow(),
 });

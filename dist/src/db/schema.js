@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.participantRequestsTable = exports.notificationsTable = exports.tournamentRegistrationsTable = exports.kataPerformancesTable = exports.divisionJudgesTable = exports.judgeRoleEnum = exports.eventDivisionsTable = exports.eventCategoriesTable = exports.modalitiesTable = exports.eventsTable = exports.subtypesEventsTable = exports.typesEventsTable = exports.usersTable = exports.karateBeltsTable = exports.karateCategoriesTable = exports.schoolTable = exports.roleTable = exports.statusTable = exports.eventStatus_scheduled = void 0;
+exports.participantRequestsTable = exports.requestStatusEnum = exports.notificationsTable = exports.tournamentRegistrationsTable = exports.kataPerformancesTable = exports.divisionJudgesTable = exports.judgeRoleEnum = exports.eventDivisionsTable = exports.eventCategoriesTable = exports.modalitiesTable = exports.eventsTable = exports.subtypesEventsTable = exports.typesEventsTable = exports.usersTable = exports.karateBeltsTable = exports.karateCategoriesTable = exports.schoolTable = exports.roleTable = exports.statusTable = exports.eventStatus_scheduled = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 exports.eventStatus_scheduled = 4;
 exports.statusTable = (0, pg_core_1.pgTable)("status", {
@@ -176,13 +176,19 @@ exports.notificationsTable = (0, pg_core_1.pgTable)("notifications", {
     is_read: (0, pg_core_1.boolean)("is_read").default(false),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
 });
+exports.requestStatusEnum = (0, pg_core_1.pgEnum)("participant_requests_status", [
+    "pending",
+    "approved",
+    "rejected",
+    "cancelled"
+]);
 exports.participantRequestsTable = (0, pg_core_1.pgTable)("participant_requests", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
     event_id: (0, pg_core_1.integer)("event_id").notNull().references(() => exports.eventsTable.id),
     master_id: (0, pg_core_1.integer)("master_id").notNull().references(() => exports.usersTable.id),
     school_id: (0, pg_core_1.integer)("school_id").notNull().references(() => exports.schoolTable.id),
     num_participants_requested: (0, pg_core_1.integer)("num_participants_requested").notNull(),
-    status: (0, pg_core_1.varchar)("status", { length: 20 }).default('pending'),
+    status: (0, exports.requestStatusEnum)("status").default("pending").notNull(),
     message: (0, pg_core_1.varchar)("message", { length: 500 }),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
 });

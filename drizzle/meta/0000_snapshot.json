@@ -1,5 +1,5 @@
 {
-  "id": "48617706-6136-45db-9fea-2cb44470f66d",
+  "id": "7a33809c-06b8-4366-979f-5ef8347a0ece",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -779,9 +779,10 @@
         },
         "status": {
           "name": "status",
-          "type": "varchar(20)",
+          "type": "participant_requests_status",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "'pending'"
         },
         "message": {
@@ -1345,6 +1346,16 @@
         "juez_linea / juez_esquina",
         "anotador",
         "juez_suplente"
+      ]
+    },
+    "public.participant_requests_status": {
+      "name": "participant_requests_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled"
       ]
     }
   },

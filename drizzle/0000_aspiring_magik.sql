@@ -1,4 +1,5 @@
 CREATE TYPE "public"."judge_role" AS ENUM('juez_central / arbitro', 'juez_linea / juez_esquina', 'anotador', 'juez_suplente');--> statement-breakpoint
+CREATE TYPE "public"."participant_requests_status" AS ENUM('pending', 'approved', 'rejected', 'cancelled');--> statement-breakpoint
 CREATE TABLE "division_judges" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"division_id" integer,
@@ -96,7 +97,7 @@ CREATE TABLE "participant_requests" (
 	"master_id" integer NOT NULL,
 	"school_id" integer NOT NULL,
 	"num_participants_requested" integer NOT NULL,
-	"status" varchar(20) DEFAULT 'pending',
+	"status" "participant_requests_status" DEFAULT 'pending' NOT NULL,
 	"message" varchar(500),
 	"created_at" timestamp DEFAULT now()
 );
