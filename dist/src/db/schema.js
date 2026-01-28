@@ -170,6 +170,7 @@ exports.notificationsTable = (0, pg_core_1.pgTable)("notifications", {
     sender_id: (0, pg_core_1.integer)("sender_id").references(() => exports.usersTable.id),
     recipient_id: (0, pg_core_1.integer)("recipient_id").references(() => exports.usersTable.id),
     event_id: (0, pg_core_1.integer)("event_id").references(() => exports.eventsTable.id),
+    participant_requests_id: (0, pg_core_1.integer)("participant_requests_id").references(() => exports.participantRequestsTable.id),
     title: (0, pg_core_1.varchar)("title", { length: 255 }).notNull(),
     message: (0, pg_core_1.varchar)("message", { length: 1000 }),
     is_read: (0, pg_core_1.boolean)("is_read").default(false),

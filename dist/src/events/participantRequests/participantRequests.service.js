@@ -58,6 +58,7 @@ let ParticipantRequestsService = class ParticipantRequestsService {
                 sender_id: master_sender.sub,
                 recipient_id: event.creatorId,
                 event_id: dto.event_id,
+                participant_requests_id: request.id,
                 title: 'Nueva solicitud de cupos',
                 message: `El Master ${name_master_send} solicita ${dto.num_participants_requested} cupos para el evento ${event.name}`,
             });

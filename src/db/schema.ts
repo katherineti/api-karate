@@ -242,6 +242,7 @@ export const notificationsTable = pgTable("notifications", {
   sender_id: integer("sender_id").references(() => usersTable.id), //responsable de la notificación
   recipient_id: integer("recipient_id").references(() => usersTable.id), // El Master receptor de la notificacion
   event_id: integer("event_id").references(() => eventsTable.id),       // El Evento
+  participant_requests_id: integer("participant_requests_id").references(() => participantRequestsTable.id), // Guardaremos el ID de la solicitud de participantes aquí
   title: varchar("title", { length: 255 }).notNull(),
   message: varchar("message", { length: 1000 }),
   is_read: boolean("is_read").default(false),

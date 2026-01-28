@@ -11,7 +11,6 @@ export class ParticipantRequestsService {
 
   constructor(@Inject(PG_CONNECTION) private readonly db: NeonDatabase) {}
   
-  // participant-requests.service.ts
   async createParticipantRequest(dto: CreateParticipantRequestDto, master_sender: IJwtPayload) {
     return await this.db.transaction(async (tx) => {
       // 1. Obtener quién es el responsable del evento
@@ -53,8 +52,9 @@ console.log("master que envia la solicitud", data_master_sender);
 
       await tx.insert(notificationsTable).values({
         sender_id: master_sender.sub,        // El Master que pide
-        recipient_id: event.creatorId, // El creador del evento (ID 1 en tu ejemplo)
+        recipient_id: event.creatorId, // El creador del evento 
         event_id: dto.event_id,
+        participant_requests_id: request.id,
         title: 'Nueva solicitud de cupos',
         message: `El Master ${name_master_send} solicita ${dto.num_participants_requested} cupos para el evento ${event.name}`,
       } as any);

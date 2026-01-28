@@ -83,6 +83,7 @@ CREATE TABLE "notifications" (
 	"sender_id" integer,
 	"recipient_id" integer,
 	"event_id" integer,
+	"participant_requests_id" integer,
 	"title" varchar(255) NOT NULL,
 	"message" varchar(1000),
 	"is_read" boolean DEFAULT false,
@@ -178,6 +179,7 @@ ALTER TABLE "kata_performances" ADD CONSTRAINT "kata_performances_athlete_id_use
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_sender_id_users_id_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_recipient_id_users_id_fk" FOREIGN KEY ("recipient_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_participant_requests_id_participant_requests_id_fk" FOREIGN KEY ("participant_requests_id") REFERENCES "public"."participant_requests"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "participant_requests" ADD CONSTRAINT "participant_requests_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "participant_requests" ADD CONSTRAINT "participant_requests_master_id_users_id_fk" FOREIGN KEY ("master_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "participant_requests" ADD CONSTRAINT "participant_requests_school_id_schools_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."schools"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

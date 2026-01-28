@@ -1,5 +1,5 @@
 {
-  "id": "bed65709-3465-4d09-90a9-610a5754adc0",
+  "id": "48617706-6136-45db-9fea-2cb44470f66d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -649,6 +649,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "participant_requests_id": {
+          "name": "participant_requests_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "title": {
           "name": "title",
           "type": "varchar(255)",
@@ -710,6 +716,19 @@
           "tableTo": "events",
           "columnsFrom": [
             "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "notifications_participant_requests_id_participant_requests_id_fk": {
+          "name": "notifications_participant_requests_id_participant_requests_id_fk",
+          "tableFrom": "notifications",
+          "tableTo": "participant_requests",
+          "columnsFrom": [
+            "participant_requests_id"
           ],
           "columnsTo": [
             "id"
