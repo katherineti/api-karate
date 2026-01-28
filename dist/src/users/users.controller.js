@@ -43,6 +43,9 @@ let UsersController = class UsersController {
     changeStatus(user) {
         return this.usersService.changeStatus(user);
     }
+    async getAlumnosByEscuela(schoolId) {
+        return this.usersService.getAlumnosByEscuela(schoolId);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -92,6 +95,14 @@ __decorate([
     __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "changeStatus", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)('alumnos/escuela/:schoolId'),
+    __param(0, (0, common_1.Param)('schoolId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getAlumnosByEscuela", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),

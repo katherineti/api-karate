@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UsePipes, ValidationPipe, UseGuards, Param, Body, Post } from '@nestjs/common';
+import { Controller, Get, Query, UsePipes, ValidationPipe, UseGuards, Param, Body, Post, ParseIntPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { AuthGuard } from '../guards/auth.guard';
@@ -65,6 +65,14 @@ export class UsersController {
   @Roles(RoleType.Admin, RoleType.Master)
   changeStatus( @Body() user: UpdateUserDto) {
       return this.usersService.changeStatus(user);
+  }
+
+  @Public()
+  @Get('alumnos/escuela/:schoolId')
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(RoleType.Admin, RoleType.Master) // Solo Admin o Master pueden ver esta lista
+  async getAlumnosByEscuela(@Param('schoolId', ParseIntPipe) schoolId: number) {
+    return this.usersService.getAlumnosByEscuela(schoolId);
   }
 
 }

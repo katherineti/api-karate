@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { PG_CONNECTION, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
+import { PG_CONNECTION, ROL_ALUMNO, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable } from 'src/db/schema';
 import { and, eq, inArray, like, ne, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
@@ -439,4 +439,36 @@ export class UsersService {
       throw error;
     }
   }
+
+async getAlumnosByEscuela(schoolId: number) {
+  try {
+    
+    const alumnos = await this.db
+      .select({
+        id: usersTable.id,
+        name: usersTable.name,
+        lastname: usersTable.lastname,
+        email: usersTable.email,
+        // category_id: usersTable.category_id,
+        // belt_id: usersTable.belt_id,
+        school_id: usersTable.school_id,
+      })
+      .from(usersTable)
+      .where(
+        and(
+          eq(usersTable.school_id, schoolId),
+          eq(usersTable.status, STATUS_ACTIVO),
+          // sql`${usersTable.roles_ids} ?? ${ROL_ALUMNO}` 
+          sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`
+        )
+      );
+
+    return alumnos;
+  } catch (error) {
+    this.logger.error(`Error al obtener alumnos de la escuela ${schoolId}:`, error);
+    // Imprimimos el error original para debuggear mejor
+    console.error(error); 
+    throw new Error('Error al obtener la lista de alumnos.');
+  }
+}
 }

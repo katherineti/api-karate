@@ -332,6 +332,26 @@ let UsersService = UsersService_1 = class UsersService {
             throw error;
         }
     }
+    async getAlumnosByEscuela(schoolId) {
+        try {
+            const alumnos = await this.db
+                .select({
+                id: schema_1.usersTable.id,
+                name: schema_1.usersTable.name,
+                lastname: schema_1.usersTable.lastname,
+                email: schema_1.usersTable.email,
+                school_id: schema_1.usersTable.school_id,
+            })
+                .from(schema_1.usersTable)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.eq)(schema_1.usersTable.status, constants_1.STATUS_ACTIVO), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`));
+            return alumnos;
+        }
+        catch (error) {
+            this.logger.error(`Error al obtener alumnos de la escuela ${schoolId}:`, error);
+            console.error(error);
+            throw new Error('Error al obtener la lista de alumnos.');
+        }
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = UsersService_1 = __decorate([
