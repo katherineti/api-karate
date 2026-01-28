@@ -95,6 +95,38 @@ let ParticipantRequestsService = class ParticipantRequestsService {
             return { message: 'Solicitud aprobada y Master notificado' };
         });
     }
+    async rejectRequest(requestId, adminId, reason) {
+        return await this.db.transaction(async (tx) => {
+            const [requestData] = await tx
+                .select({
+                id: schema_1.participantRequestsTable.id,
+                masterId: schema_1.participantRequestsTable.master_id,
+                eventId: schema_1.participantRequestsTable.event_id,
+                eventName: schema_1.eventsTable.name
+            })
+                .from(schema_1.participantRequestsTable)
+                .innerJoin(schema_1.eventsTable, (0, drizzle_orm_1.eq)(schema_1.participantRequestsTable.event_id, schema_1.eventsTable.id))
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.participantRequestsTable.id, requestId), (0, drizzle_orm_1.eq)(schema_1.eventsTable.created_by, adminId)))
+                .limit(1);
+            console.log("requestId", requestId, " , adminId ", adminId, " , reason ", reason);
+            console.log("requestData", requestData);
+            if (!requestData) {
+                throw new common_1.ForbiddenException('No tienes permiso para gestionar esta solicitud porque no eres el creador de este evento.');
+            }
+            await tx.update(schema_1.participantRequestsTable)
+                .set({ status: 'rejected' })
+                .where((0, drizzle_orm_1.eq)(schema_1.participantRequestsTable.id, requestId));
+            await tx.insert(schema_1.notificationsTable).values({
+                sender_id: adminId,
+                recipient_id: requestData.masterId,
+                event_id: requestData.eventId,
+                reference_id: requestData.id,
+                title: '❌ Solicitud de participantes rechazada',
+                message: `Tu solicitud para el evento "${requestData.eventName}" no fue aprobada. Motivo: ${reason}`,
+            });
+            return { message: 'Solicitud rechazada y Master notificado' };
+        });
+    }
 };
 exports.ParticipantRequestsService = ParticipantRequestsService;
 exports.ParticipantRequestsService = ParticipantRequestsService = __decorate([

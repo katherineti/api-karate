@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PG_CONNECTION } from '../../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { eq, and } from 'drizzle-orm';
@@ -103,6 +103,55 @@ async approveRequest(requestId: number, adminId: number) {
     } as any);
 
     return { message: 'Solicitud aprobada y Master notificado' };
+  });
+}
+
+
+// participantRequests.service.ts
+
+async rejectRequest(requestId: number, adminId: number, reason: string) {
+  return await this.db.transaction(async (tx) => {
+    // 1. Validar que la solicitud existe y que tú eres el creador del evento
+    const [requestData] = await tx
+      .select({
+        id: participantRequestsTable.id,
+        masterId: participantRequestsTable.master_id,
+        eventId: participantRequestsTable.event_id,
+        eventName: eventsTable.name
+      })
+      .from(participantRequestsTable)
+      .innerJoin(eventsTable, eq(participantRequestsTable.event_id, eventsTable.id))
+      .where(and(
+        eq(participantRequestsTable.id, requestId),
+        eq(eventsTable.created_by, adminId)
+      ))
+      .limit(1);
+console.log("requestId", requestId, " , adminId ",adminId, " , reason ", reason);
+console.log("requestData", requestData);
+    // if (!requestData) throw new NotFoundException('No se encontró la solicitud.');
+    // Si no encuentra nada, significa que:
+    // 1. La solicitud no existe.
+    // 2. O la solicitud existe pero el evento NO fue creado por el adminId actual.
+    if (!requestData) {
+      throw new ForbiddenException('No tienes permiso para gestionar esta solicitud porque no eres el creador de este evento.');
+    }
+
+    // 2. Cambiar estado a 'rejected'
+    await tx.update(participantRequestsTable)
+      .set({ status: 'rejected' } as any)
+      .where(eq(participantRequestsTable.id, requestId));
+
+    // 3. Notificar al Master con el motivo
+    await tx.insert(notificationsTable).values({
+      sender_id: adminId,
+      recipient_id: requestData.masterId,
+      event_id: requestData.eventId,
+      reference_id: requestData.id,
+      title: '❌ Solicitud de participantes rechazada',
+      message: `Tu solicitud para el evento "${requestData.eventName}" no fue aprobada. Motivo: ${reason}`,
+    } as any);
+
+    return { message: 'Solicitud rechazada y Master notificado' };
   });
 }
 }

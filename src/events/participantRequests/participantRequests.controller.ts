@@ -25,4 +25,15 @@ export class ParticipantRequestsController {
     // user.sub es el ID del usuario en sesión (el creador del evento)
     return this.participantRequestsService.approveRequest(id, user.sub);
   }
+
+// participantRequests.controller.ts
+
+@Patch(':id/reject')
+async reject(
+  @Param('id', ParseIntPipe) id: number,
+  @Body('reason') reason: string, // El admin explica por qué rechaza
+  @Usersesion() user: IJwtPayload
+) {
+  return this.participantRequestsService.rejectRequest(id, user.sub, reason || 'No especificado');
+}
 }

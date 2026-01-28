@@ -27,6 +27,9 @@ let ParticipantRequestsController = class ParticipantRequestsController {
     async approve(id, user) {
         return this.participantRequestsService.approveRequest(id, user.sub);
     }
+    async reject(id, reason, user) {
+        return this.participantRequestsService.rejectRequest(id, user.sub, reason || 'No especificado');
+    }
 };
 exports.ParticipantRequestsController = ParticipantRequestsController;
 __decorate([
@@ -45,6 +48,15 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], ParticipantRequestsController.prototype, "approve", null);
+__decorate([
+    (0, common_1.Patch)(':id/reject'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('reason')),
+    __param(2, (0, usersesion_decorator_1.Usersesion)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String, Object]),
+    __metadata("design:returntype", Promise)
+], ParticipantRequestsController.prototype, "reject", null);
 exports.ParticipantRequestsController = ParticipantRequestsController = __decorate([
     (0, common_1.Controller)('participantRequests'),
     __metadata("design:paramtypes", [participantRequests_service_1.ParticipantRequestsService])
