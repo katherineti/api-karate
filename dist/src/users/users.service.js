@@ -332,25 +332,31 @@ let UsersService = UsersService_1 = class UsersService {
             throw error;
         }
     }
-    async getAlumnosByEscuela(schoolId) {
+    async getAlumnosByEscuela(schoolId, divisionId) {
         try {
             const estadosPermitidos = [constants_1.STATUS_ACTIVO, constants_1.STATUS_UPDATED];
-            const alumnos = await this.db
+            let query = this.db
                 .select({
                 id: schema_1.usersTable.id,
                 name: schema_1.usersTable.name,
                 lastname: schema_1.usersTable.lastname,
                 email: schema_1.usersTable.email,
                 school_id: schema_1.usersTable.school_id,
+                status: schema_1.usersTable.status,
             })
                 .from(schema_1.usersTable)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.inArray)(schema_1.usersTable.status, estadosPermitidos), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`));
-            return alumnos;
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.inArray)(schema_1.usersTable.status, estadosPermitidos), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`, divisionId
+                ? (0, drizzle_orm_1.notExists)(this.db
+                    .select()
+                    .from(schema_1.tournamentRegistrationsTable)
+                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, schema_1.usersTable.id), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.division_id, divisionId))))
+                : undefined));
+            return await query;
         }
         catch (error) {
             this.logger.error(`Error al obtener alumnos de la escuela ${schoolId}:`, error);
             console.error(error);
-            throw new Error('Error al obtener la lista de alumnos.');
+            throw new Error('Error al obtener la lista de alumnos disponibles.');
         }
     }
 };

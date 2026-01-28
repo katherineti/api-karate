@@ -1,8 +1,8 @@
 import { ConflictException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, ROL_ALUMNO, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
-import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable } from 'src/db/schema';
-import { and, eq, inArray, like, ne, or, SQL, sql } from 'drizzle-orm'
+import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable, tournamentRegistrationsTable } from 'src/db/schema';
+import { and, eq, inArray, like, ne, notExists, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { SignupDto } from '../auth/dto/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
@@ -440,37 +440,51 @@ export class UsersService {
     }
   }
 
-async getAlumnosByEscuela(schoolId: number) {
+async getAlumnosByEscuela(schoolId: number, divisionId?: number) {
   try {
     const estadosPermitidos = [STATUS_ACTIVO, STATUS_UPDATED];
-    
-    const alumnos = await this.db
+
+// Iniciamos la consulta base
+    let query = this.db
       .select({
         id: usersTable.id,
         name: usersTable.name,
         lastname: usersTable.lastname,
         email: usersTable.email,
-        // category_id: usersTable.category_id,
-        // belt_id: usersTable.belt_id,
         school_id: usersTable.school_id,
+        status: usersTable.status,
       })
       .from(usersTable)
       .where(
         and(
           eq(usersTable.school_id, schoolId),
-          // inArray para aceptar múltiples estados (1 y 3)
           inArray(usersTable.status, estadosPermitidos),
-          // sql`${usersTable.roles_ids} ?? ${ROL_ALUMNO}` 
-          sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`
+          sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`,
+          
+          // LÓGICA DE FILTRADO:
+          // Si mandan divisionId, excluimos a los que ya están en tournament_registrations
+          divisionId 
+            ? notExists(
+                this.db
+                  .select()
+                  .from(tournamentRegistrationsTable)
+                  .where(
+                    and(
+                      eq(tournamentRegistrationsTable.athlete_id, usersTable.id),
+                      eq(tournamentRegistrationsTable.division_id, divisionId)
+                    )
+                  )
+              )
+            : undefined
         )
       );
 
-    return alumnos;
+    return await query;
   } catch (error) {
     this.logger.error(`Error al obtener alumnos de la escuela ${schoolId}:`, error);
     // Imprimimos el error original para debuggear mejor
     console.error(error); 
-    throw new Error('Error al obtener la lista de alumnos.');
+    throw new Error('Error al obtener la lista de alumnos disponibles.');
   }
 }
 }

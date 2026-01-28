@@ -43,8 +43,9 @@ let UsersController = class UsersController {
     changeStatus(user) {
         return this.usersService.changeStatus(user);
     }
-    async getAlumnosByEscuela(schoolId) {
-        return this.usersService.getAlumnosByEscuela(schoolId);
+    async getAlumnosByEscuela(schoolId, divisionId) {
+        const parsedDivisionId = divisionId ? Number.parseInt(divisionId, 10) : undefined;
+        return this.usersService.getAlumnosByEscuela(schoolId, parsedDivisionId);
     }
 };
 exports.UsersController = UsersController;
@@ -99,8 +100,9 @@ __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)('alumnos/escuela/:schoolId'),
     __param(0, (0, common_1.Param)('schoolId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('divisionId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getAlumnosByEscuela", null);
 exports.UsersController = UsersController = __decorate([

@@ -71,8 +71,12 @@ export class UsersController {
   @Get('alumnos/escuela/:schoolId')
   // @UseGuards(AuthGuard, RolesGuard)
   // @Roles(RoleType.Admin, RoleType.Master) // Solo Admin o Master pueden ver esta lista
-  async getAlumnosByEscuela(@Param('schoolId', ParseIntPipe) schoolId: number) {
-    return this.usersService.getAlumnosByEscuela(schoolId);
+  async getAlumnosByEscuela(
+    @Param('schoolId', ParseIntPipe) schoolId: number,
+    @Query('divisionId') divisionId?: string // Lo recibimos como string opcional de la URL
+) {
+    const parsedDivisionId = divisionId ? Number.parseInt(divisionId, 10) : undefined;
+    return this.usersService.getAlumnosByEscuela(schoolId, parsedDivisionId);
   }
 
 }
