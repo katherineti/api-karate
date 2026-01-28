@@ -442,6 +442,7 @@ export class UsersService {
 
 async getAlumnosByEscuela(schoolId: number) {
   try {
+    const estadosPermitidos = [STATUS_ACTIVO, STATUS_UPDATED];
     
     const alumnos = await this.db
       .select({
@@ -457,7 +458,8 @@ async getAlumnosByEscuela(schoolId: number) {
       .where(
         and(
           eq(usersTable.school_id, schoolId),
-          eq(usersTable.status, STATUS_ACTIVO),
+          // inArray para aceptar múltiples estados (1 y 3)
+          inArray(usersTable.status, estadosPermitidos),
           // sql`${usersTable.roles_ids} ?? ${ROL_ALUMNO}` 
           sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`
         )

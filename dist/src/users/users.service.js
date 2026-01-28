@@ -334,6 +334,7 @@ let UsersService = UsersService_1 = class UsersService {
     }
     async getAlumnosByEscuela(schoolId) {
         try {
+            const estadosPermitidos = [constants_1.STATUS_ACTIVO, constants_1.STATUS_UPDATED];
             const alumnos = await this.db
                 .select({
                 id: schema_1.usersTable.id,
@@ -343,7 +344,7 @@ let UsersService = UsersService_1 = class UsersService {
                 school_id: schema_1.usersTable.school_id,
             })
                 .from(schema_1.usersTable)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.eq)(schema_1.usersTable.status, constants_1.STATUS_ACTIVO), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`));
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.inArray)(schema_1.usersTable.status, estadosPermitidos), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`));
             return alumnos;
         }
         catch (error) {
