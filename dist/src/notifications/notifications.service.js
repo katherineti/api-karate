@@ -24,8 +24,21 @@ let NotificationsService = class NotificationsService {
     }
     async findByUser(userId) {
         return await this.db
-            .select()
+            .select({
+            id: schema_1.notificationsTable.id,
+            sender_id: schema_1.notificationsTable.sender_id,
+            recipient_id: schema_1.notificationsTable.recipient_id,
+            event_id: schema_1.notificationsTable.event_id,
+            title: schema_1.notificationsTable.title,
+            message: schema_1.notificationsTable.message,
+            is_read: schema_1.notificationsTable.is_read,
+            created_at: schema_1.notificationsTable.created_at,
+            participant_request_id: schema_1.notificationsTable.participant_requests_id,
+            participant_request_status: schema_1.participantRequestsTable.status,
+            num_participants_requested: schema_1.participantRequestsTable.num_participants_requested
+        })
             .from(schema_1.notificationsTable)
+            .leftJoin(schema_1.participantRequestsTable, (0, drizzle_orm_1.eq)(schema_1.notificationsTable.participant_requests_id, schema_1.participantRequestsTable.id))
             .where((0, drizzle_orm_1.eq)(schema_1.notificationsTable.recipient_id, userId))
             .orderBy((0, drizzle_orm_1.desc)(schema_1.notificationsTable.created_at));
     }
