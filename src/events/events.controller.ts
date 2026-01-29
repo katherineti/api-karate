@@ -58,4 +58,14 @@ export class EventsController {
   remove(@Param('id') id: string) {
     return this.eventsService.disable(+id);
   }
+
+  // CALENDARIO:
+  @Public() // Cambiar a @UseGuards si prefieres que sea privado
+  @Get('calendar/view')
+  async getCalendar(
+    @Query('month', ParseIntPipe) month: number,
+    @Query('year', ParseIntPipe) year: number,
+  ) {
+    return this.eventsService.getEventsForCalendar(month, year);
+  }
 }

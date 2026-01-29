@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { eventsTable, eventStatus_scheduled, notificationsTable, statusTable, subtypesEventsTable, typesEventsTable, usersTable } from '../db/schema';
@@ -9,6 +9,7 @@ import { PaginationEventsDto } from './dto/pagination-events.dto';
 
 @Injectable()
 export class EventsService {
+  private readonly logger = new Logger(EventsService.name);
 
   constructor(@Inject(PG_CONNECTION) private readonly db: NeonDatabase) {}
 
@@ -451,4 +452,53 @@ async create(createEventDto: CreateEventDto, creatorId: number) {
     }
   }
   
+  //calendario eventos
+// events.service.ts
+
+async getEventsForCalendar(month: number, year: number) {
+  try {
+    const events = await this.db
+      .select({
+        id: eventsTable.id,
+        name: eventsTable.name,
+        description: eventsTable.description,
+        date: eventsTable.date, // Usamos la fecha del torneo
+        location: eventsTable.location,
+        status_id: eventsTable.status_id,
+        status_name: statusTable.status,
+      })
+      .from(eventsTable)
+      .innerJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
+      .where(
+        and(
+          // Filtramos por el mes y año en que ocurre el evento
+          sql`EXTRACT(MONTH FROM ${eventsTable.date}) = ${month}`,
+          sql`EXTRACT(YEAR FROM ${eventsTable.date}) = ${year}`
+        )
+      )
+      .orderBy(eventsTable.date);
+
+    // Agrupamos los eventos por el día exacto (YYYY-MM-DD)
+    const calendarMap = events.reduce((acc, event) => {
+      // Al ser tipo 'date' en Postgres, llega como string o Date dependiendo del driver
+      // Aseguramos el formato YYYY-MM-DD
+      const dateKey = typeof event.date === 'string' 
+        ? event.date 
+        : (event.date as Date).toISOString().split('T')[0];
+      
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      
+      acc[dateKey].push(event);
+      return acc;
+    }, {} as Record<string, typeof events>);
+
+    return calendarMap;
+  } catch (error) {
+    this.logger.error('Error al obtener calendario de eventos:', error);
+    throw new InternalServerErrorException('No se pudo cargar el calendario.');
+  }
+}
+
 }

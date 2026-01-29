@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var EventsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EventsService = void 0;
 const common_1 = require("@nestjs/common");
@@ -18,9 +19,10 @@ const schema_1 = require("../db/schema");
 const constants_1 = require("../constants");
 const neon_serverless_1 = require("drizzle-orm/neon-serverless");
 const drizzle_orm_1 = require("drizzle-orm");
-let EventsService = class EventsService {
+let EventsService = EventsService_1 = class EventsService {
     constructor(db) {
         this.db = db;
+        this.logger = new common_1.Logger(EventsService_1.name);
     }
     async findAll(query) {
         console.log("parametros recibidos", query);
@@ -337,9 +339,42 @@ let EventsService = class EventsService {
             throw new common_1.InternalServerErrorException('Error al intentar inhabilitar el evento.');
         }
     }
+    async getEventsForCalendar(month, year) {
+        try {
+            const events = await this.db
+                .select({
+                id: schema_1.eventsTable.id,
+                name: schema_1.eventsTable.name,
+                description: schema_1.eventsTable.description,
+                date: schema_1.eventsTable.date,
+                location: schema_1.eventsTable.location,
+                status_id: schema_1.eventsTable.status_id,
+                status_name: schema_1.statusTable.status,
+            })
+                .from(schema_1.eventsTable)
+                .innerJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.status_id, schema_1.statusTable.id))
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.sql) `EXTRACT(MONTH FROM ${schema_1.eventsTable.date}) = ${month}`, (0, drizzle_orm_1.sql) `EXTRACT(YEAR FROM ${schema_1.eventsTable.date}) = ${year}`))
+                .orderBy(schema_1.eventsTable.date);
+            const calendarMap = events.reduce((acc, event) => {
+                const dateKey = typeof event.date === 'string'
+                    ? event.date
+                    : event.date.toISOString().split('T')[0];
+                if (!acc[dateKey]) {
+                    acc[dateKey] = [];
+                }
+                acc[dateKey].push(event);
+                return acc;
+            }, {});
+            return calendarMap;
+        }
+        catch (error) {
+            this.logger.error('Error al obtener calendario de eventos:', error);
+            throw new common_1.InternalServerErrorException('No se pudo cargar el calendario.');
+        }
+    }
 };
 exports.EventsService = EventsService;
-exports.EventsService = EventsService = __decorate([
+exports.EventsService = EventsService = EventsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(constants_1.PG_CONNECTION)),
     __metadata("design:paramtypes", [neon_serverless_1.NeonDatabase])
