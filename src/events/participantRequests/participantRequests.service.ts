@@ -63,8 +63,6 @@ console.log("master que envia la solicitud", data_master_sender);
     });
   }
 
-// participantRequests.service.ts
-
 async approveRequest(requestId: number, adminId: number) {
   return await this.db.transaction(async (tx) => {
     // 1. Validar existencia y que el que aprueba sea el creador del evento
@@ -74,7 +72,8 @@ async approveRequest(requestId: number, adminId: number) {
         masterId: participantRequestsTable.master_id,
         eventId: participantRequestsTable.event_id,
         num: participantRequestsTable.num_participants_requested,
-        eventName: eventsTable.name
+        eventName: eventsTable.name,
+        currentMax: eventsTable.max_participants // Obtenemos el cupo actual
       })
       .from(participantRequestsTable)
       .innerJoin(eventsTable, eq(participantRequestsTable.event_id, eventsTable.id))
@@ -93,21 +92,31 @@ async approveRequest(requestId: number, adminId: number) {
       .set({ status: 'approved' } as any)
       .where(eq(participantRequestsTable.id, requestId));
 
-    // 3. Notificar al Master que su solicitud fue exitosa
+    // 3. NUEVA LÓGICA: Actualizar el máximo de participantes en la tabla events
+    // Opción A: Sumar los solicitados al total actual
+    const newTotal = requestData.currentMax + requestData.num;
+    await tx.update(eventsTable)
+      .set({ 
+        max_participants: newTotal,
+        updated_at: new Date() 
+      } as any)
+      .where(eq(eventsTable.id, requestData.eventId));
+
+    // 4. Notificar al Master que su solicitud fue exitosa
     await tx.insert(notificationsTable).values({
       sender_id: adminId,
       recipient_id: requestData.masterId,
       event_id: requestData.eventId,
       title: '✅ Solicitud de participantes aprobada',
-      message: `Tu solicitud para llevar ${requestData.num} participantes al evento "${requestData.eventName}" ha sido APROBADA.`,
+      message: `Tu solicitud para llevar ${requestData.num} participantes al evento "${requestData.eventName}" ha sido APROBADA. El nuevo cupo total es de ${newTotal}.`,
     } as any);
 
-    return { message: 'Solicitud aprobada y Master notificado' };
+    return { 
+      message: 'Solicitud aprobada, cupo del evento actualizado y Master notificado',
+      newMaxParticipants: newTotal 
+    };
   });
 }
-
-
-// participantRequests.service.ts
 
 async rejectRequest(requestId: number, adminId: number, reason: string) {
   return await this.db.transaction(async (tx) => {

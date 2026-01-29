@@ -100,7 +100,7 @@ export const eventsTable = pgTable("events", {
     .default(eventStatus_scheduled)
     .references(() => statusTable.id),
   max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
-  max_participants: integer("max_participants").notNull().default(0),
+  max_participants: integer("max_participants").default(null),// Máximo de participantes permitidos (null= 0 = ilimitado)
   created_by: integer("created_by").references(() => usersTable.id),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),

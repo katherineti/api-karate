@@ -41,7 +41,7 @@ CREATE TABLE "events" (
 	"subtype_id" integer NOT NULL,
 	"status_id" integer DEFAULT 4 NOT NULL,
 	"max_evaluation_score" integer DEFAULT 0 NOT NULL,
-	"max_participants" integer DEFAULT 0 NOT NULL,
+	"max_participants" integer DEFAULT null,
 	"created_by" integer,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()

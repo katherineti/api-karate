@@ -1,5 +1,5 @@
 {
-  "id": "7a33809c-06b8-4366-979f-5ef8347a0ece",
+  "id": "2476ad21-3360-4e3b-83ca-19a56c3950f8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -339,8 +339,8 @@
           "name": "max_participants",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "default": 0
+          "notNull": false,
+          "default": null
         },
         "created_by": {
           "name": "created_by",
