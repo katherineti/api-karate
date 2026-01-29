@@ -44,8 +44,9 @@ let EventsController = class EventsController {
     remove(id) {
         return this.eventsService.disable(+id);
     }
-    async getCalendar(month, year) {
-        return this.eventsService.getEventsForCalendar(month, year);
+    async getCalendar(year, month) {
+        const parsedMonth = month ? Number.parseInt(month, 10) : undefined;
+        return this.eventsService.getEventsForCalendar(year, parsedMonth);
     }
 };
 exports.EventsController = EventsController;
@@ -102,10 +103,10 @@ __decorate([
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)('calendar/view'),
-    __param(0, (0, common_1.Query)('month', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Query)('year', common_1.ParseIntPipe)),
+    __param(0, (0, common_1.Query)('year', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('month')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "getCalendar", null);
 exports.EventsController = EventsController = __decorate([

@@ -339,8 +339,14 @@ let EventsService = EventsService_1 = class EventsService {
             throw new common_1.InternalServerErrorException('Error al intentar inhabilitar el evento.');
         }
     }
-    async getEventsForCalendar(month, year) {
+    async getEventsForCalendar(year, month) {
         try {
+            const whereConditions = [
+                (0, drizzle_orm_1.sql) `EXTRACT(YEAR FROM ${schema_1.eventsTable.date}) = ${year}`
+            ];
+            if (month) {
+                whereConditions.push((0, drizzle_orm_1.sql) `EXTRACT(MONTH FROM ${schema_1.eventsTable.date}) = ${month}`);
+            }
             const events = await this.db
                 .select({
                 id: schema_1.eventsTable.id,
@@ -353,23 +359,21 @@ let EventsService = EventsService_1 = class EventsService {
             })
                 .from(schema_1.eventsTable)
                 .innerJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.status_id, schema_1.statusTable.id))
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.sql) `EXTRACT(MONTH FROM ${schema_1.eventsTable.date}) = ${month}`, (0, drizzle_orm_1.sql) `EXTRACT(YEAR FROM ${schema_1.eventsTable.date}) = ${year}`))
+                .where((0, drizzle_orm_1.and)(...whereConditions))
                 .orderBy(schema_1.eventsTable.date);
-            const calendarMap = events.reduce((acc, event) => {
+            return events.reduce((acc, event) => {
                 const dateKey = typeof event.date === 'string'
                     ? event.date
                     : event.date.toISOString().split('T')[0];
-                if (!acc[dateKey]) {
+                if (!acc[dateKey])
                     acc[dateKey] = [];
-                }
                 acc[dateKey].push(event);
                 return acc;
             }, {});
-            return calendarMap;
         }
         catch (error) {
-            this.logger.error('Error al obtener calendario de eventos:', error);
-            throw new common_1.InternalServerErrorException('No se pudo cargar el calendario.');
+            this.logger.error('Error al obtener eventos:', error);
+            throw new common_1.InternalServerErrorException('Error al cargar la vista cronológica.');
         }
     }
 };

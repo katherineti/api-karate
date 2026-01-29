@@ -60,12 +60,15 @@ export class EventsController {
   }
 
   // CALENDARIO:
-  @Public() // Cambiar a @UseGuards si prefieres que sea privado
+  @Public()
   @Get('calendar/view')
   async getCalendar(
-    @Query('month', ParseIntPipe) month: number,
     @Query('year', ParseIntPipe) year: number,
+    @Query('month') month?: string, // Lo recibimos opcional
   ) {
-    return this.eventsService.getEventsForCalendar(month, year);
+    // Solo parseamos el mes si viene en la URL
+    const parsedMonth = month ?  Number.parseInt(month, 10) : undefined;
+    
+    return this.eventsService.getEventsForCalendar(year, parsedMonth);
   }
 }

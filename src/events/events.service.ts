@@ -453,51 +453,47 @@ async create(createEventDto: CreateEventDto, creatorId: number) {
   }
   
   //calendario eventos
-// events.service.ts
-
-async getEventsForCalendar(month: number, year: number) {
+async getEventsForCalendar(year: number, month?: number) {
   try {
+    const whereConditions = [
+      // El año siempre es obligatorio en esta lógica
+      sql`EXTRACT(YEAR FROM ${eventsTable.date}) = ${year}`
+    ];
+
+    // Si recibimos el mes, lo agregamos a los filtros
+    if (month) {
+      whereConditions.push(sql`EXTRACT(MONTH FROM ${eventsTable.date}) = ${month}`);
+    }
+
     const events = await this.db
       .select({
         id: eventsTable.id,
         name: eventsTable.name,
         description: eventsTable.description,
-        date: eventsTable.date, // Usamos la fecha del torneo
+        date: eventsTable.date,
         location: eventsTable.location,
         status_id: eventsTable.status_id,
-        status_name: statusTable.status,
+        status_name: statusTable.status, 
       })
       .from(eventsTable)
       .innerJoin(statusTable, eq(eventsTable.status_id, statusTable.id))
-      .where(
-        and(
-          // Filtramos por el mes y año en que ocurre el evento
-          sql`EXTRACT(MONTH FROM ${eventsTable.date}) = ${month}`,
-          sql`EXTRACT(YEAR FROM ${eventsTable.date}) = ${year}`
-        )
-      )
+      .where(and(...whereConditions)) // Descomponemos el arreglo de condiciones
       .orderBy(eventsTable.date);
 
-    // Agrupamos los eventos por el día exacto (YYYY-MM-DD)
-    const calendarMap = events.reduce((acc, event) => {
-      // Al ser tipo 'date' en Postgres, llega como string o Date dependiendo del driver
-      // Aseguramos el formato YYYY-MM-DD
+    // Agrupamos los eventos por fecha (YYYY-MM-DD)
+    return events.reduce((acc, event) => {
       const dateKey = typeof event.date === 'string' 
         ? event.date 
         : (event.date as Date).toISOString().split('T')[0];
       
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      
+      if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(event);
       return acc;
     }, {} as Record<string, typeof events>);
 
-    return calendarMap;
   } catch (error) {
-    this.logger.error('Error al obtener calendario de eventos:', error);
-    throw new InternalServerErrorException('No se pudo cargar el calendario.');
+    this.logger.error('Error al obtener eventos:', error);
+    throw new InternalServerErrorException('Error al cargar la vista cronológica.');
   }
 }
 
