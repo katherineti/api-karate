@@ -73,7 +73,8 @@ let ParticipantRequestsService = class ParticipantRequestsService {
                 masterId: schema_1.participantRequestsTable.master_id,
                 eventId: schema_1.participantRequestsTable.event_id,
                 num: schema_1.participantRequestsTable.num_participants_requested,
-                eventName: schema_1.eventsTable.name
+                eventName: schema_1.eventsTable.name,
+                currentMax: schema_1.eventsTable.max_participants
             })
                 .from(schema_1.participantRequestsTable)
                 .innerJoin(schema_1.eventsTable, (0, drizzle_orm_1.eq)(schema_1.participantRequestsTable.event_id, schema_1.eventsTable.id))
@@ -85,14 +86,24 @@ let ParticipantRequestsService = class ParticipantRequestsService {
             await tx.update(schema_1.participantRequestsTable)
                 .set({ status: 'approved' })
                 .where((0, drizzle_orm_1.eq)(schema_1.participantRequestsTable.id, requestId));
+            const newTotal = requestData.currentMax + requestData.num;
+            await tx.update(schema_1.eventsTable)
+                .set({
+                max_participants: newTotal,
+                updated_at: new Date()
+            })
+                .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, requestData.eventId));
             await tx.insert(schema_1.notificationsTable).values({
                 sender_id: adminId,
                 recipient_id: requestData.masterId,
                 event_id: requestData.eventId,
                 title: '✅ Solicitud de participantes aprobada',
-                message: `Tu solicitud para llevar ${requestData.num} participantes al evento "${requestData.eventName}" ha sido APROBADA.`,
+                message: `Tu solicitud para llevar ${requestData.num} participantes al evento "${requestData.eventName}" ha sido APROBADA. El nuevo cupo total es de ${newTotal}.`,
             });
-            return { message: 'Solicitud aprobada y Master notificado' };
+            return {
+                message: 'Solicitud aprobada, cupo del evento actualizado y Master notificado',
+                newMaxParticipants: newTotal
+            };
         });
     }
     async rejectRequest(requestId, adminId, reason) {

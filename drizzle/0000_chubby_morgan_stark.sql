@@ -112,6 +112,11 @@ CREATE TABLE "schools" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"slug" varchar(255) NOT NULL,
+	"address" varchar(500),
+	"base_score" integer DEFAULT 0 NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "schools_name_unique" UNIQUE("name"),
 	CONSTRAINT "schools_slug_unique" UNIQUE("slug")
 );

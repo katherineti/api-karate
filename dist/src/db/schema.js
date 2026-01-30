@@ -15,6 +15,11 @@ exports.schoolTable = (0, pg_core_1.pgTable)("schools", {
     id: (0, pg_core_1.serial)().primaryKey(),
     name: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
     slug: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
+    address: (0, pg_core_1.varchar)({ length: 500 }),
+    base_score: (0, pg_core_1.integer)("base_score").default(0).notNull(),
+    is_active: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
+    created_at: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 });
 exports.karateCategoriesTable = (0, pg_core_1.pgTable)("karate_categories", {
     id: (0, pg_core_1.serial)().primaryKey(),
@@ -82,7 +87,7 @@ exports.eventsTable = (0, pg_core_1.pgTable)("events", {
         .default(exports.eventStatus_scheduled)
         .references(() => exports.statusTable.id),
     max_evaluation_score: (0, pg_core_1.integer)("max_evaluation_score").notNull().default(0),
-    max_participants: (0, pg_core_1.integer)("max_participants").notNull().default(0),
+    max_participants: (0, pg_core_1.integer)("max_participants").default(null),
     created_by: (0, pg_core_1.integer)("created_by").references(() => exports.usersTable.id),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
