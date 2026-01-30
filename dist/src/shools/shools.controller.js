@@ -27,6 +27,9 @@ let ShoolsController = class ShoolsController {
     async getAll() {
         return this.shoolsService.getAll();
     }
+    async getById(id) {
+        return await this.shoolsService.getById(id);
+    }
     async create(createSchoolDto) {
         return this.shoolsService.create(createSchoolDto);
     }
@@ -50,6 +53,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ShoolsController.prototype, "getAll", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ShoolsController.prototype, "getById", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),

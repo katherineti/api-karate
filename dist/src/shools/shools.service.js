@@ -38,14 +38,26 @@ let ShoolsService = class ShoolsService {
     }
     async getById(id) {
         try {
-            const result = await this.db.select({ id: schema_1.schoolTable.id })
+            const result = await this.db
+                .select({
+                id: schema_1.schoolTable.id,
+                name: schema_1.schoolTable.name,
+                address: schema_1.schoolTable.address,
+                base_score: schema_1.schoolTable.base_score,
+                is_active: schema_1.schoolTable.is_active,
+            })
                 .from(schema_1.schoolTable)
                 .where((0, drizzle_orm_1.eq)(schema_1.schoolTable.id, id));
-            return result[0] || null;
+            if (!result[0]) {
+                throw new common_1.NotFoundException(`La escuela con ID ${id} no fue encontrada`);
+            }
+            return result[0];
         }
         catch (err) {
-            console.error("Error en la base de datos al buscar el usuario " + id + ": ", err);
-            throw new Error("Error al obtener el usuario " + id + " " + err);
+            if (err instanceof common_1.NotFoundException)
+                throw err;
+            console.error(`Error en la base de datos al buscar la escuela ${id}: `, err);
+            throw new common_1.InternalServerErrorException(`Error al obtener la escuela ${id}: ${err.message}`);
         }
     }
     generateSlug(name) {

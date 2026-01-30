@@ -11,11 +11,18 @@ export class ShoolsController {
 
     constructor(private readonly shoolsService: ShoolsService) {}
     
-    @Get()//protegido
-    // @UseGuards(AuthGuard)
-    async getAll() {
-    return this.shoolsService.getAll();
-    }
+  @Get()//protegido
+  // @UseGuards(AuthGuard)
+  async getAll() {
+  return this.shoolsService.getAll();
+  }
+
+  @Public()
+  @Get(':id')
+  async getById(@Param('id', ParseIntPipe) id: number) {
+    // La validación ocurre dentro del servicio
+    return await this.shoolsService.getById(id);
+  }
 
   @Public()
   @Post()

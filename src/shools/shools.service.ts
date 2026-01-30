@@ -28,19 +28,35 @@ export class ShoolsService {
       }
     }
     
-    async getById(id:number) {
-      try{
-        const result = await this.db.select({id:schoolTable.id})
-          .from(schoolTable)
-          .where(eq( schoolTable.id, id ));
-    
-        return result[0] || null;
-        
-      }catch(err){
-        console.error("Error en la base de datos al buscar el usuario " + id + ": ", err);
-        throw new Error("Error al obtener el usuario " + id + " " + err);
+async getById(id: number) {
+    try {
+      const result = await this.db
+        .select({
+          id: schoolTable.id,
+          name: schoolTable.name,
+          address: schoolTable.address,
+          base_score: schoolTable.base_score,
+          is_active: schoolTable.is_active,
+        })
+        .from(schoolTable)
+        .where(eq(schoolTable.id, id));
+
+      // Validación dentro del servicio
+      if (!result[0]) {
+        throw new NotFoundException(`La escuela con ID ${id} no fue encontrada`);
       }
+
+      return result[0];
+
+    } catch (err) {
+      // Si ya es un error de Nest (como el NotFound), lo relanzamos
+      if (err instanceof NotFoundException) throw err;
+
+      // Error genérico de base de datos
+      console.error(`Error en la base de datos al buscar la escuela ${id}: `, err);
+      throw new InternalServerErrorException(`Error al obtener la escuela ${id}: ${err.message}`);
     }
+  }
 
 /**
    * Genera un slug amigable para URLs
