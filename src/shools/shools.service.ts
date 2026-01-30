@@ -120,6 +120,7 @@ async getById(id: number) {
           slug: schoolTable.slug,
           address: schoolTable.address,
           base_score: schoolTable.base_score,
+          logo_url: schoolTable.logo_url,
           is_active: schoolTable.is_active,
           // Agrupamos los usuarios que son masters en un array de objetos
           masters: sql`json_agg(

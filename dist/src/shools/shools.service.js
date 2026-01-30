@@ -108,6 +108,7 @@ let ShoolsService = class ShoolsService {
                 slug: schema_1.schoolTable.slug,
                 address: schema_1.schoolTable.address,
                 base_score: schema_1.schoolTable.base_score,
+                logo_url: schema_1.schoolTable.logo_url,
                 is_active: schema_1.schoolTable.is_active,
                 masters: (0, drizzle_orm_1.sql) `json_agg(
             json_build_object(
