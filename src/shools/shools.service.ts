@@ -72,24 +72,35 @@ async getById(id: number) {
       .replaceAll(/-+/g, '-');            // Evita guiones múltiples seguidos
   }
 
-  async create(dto: CreateSchoolDto) {
+  async create(dto: CreateSchoolDto & { logo_url?: string }) {
     try {
-      const slug = this.generateSlug(dto.name); // Tu lógica de slug
+      // 1. Generamos el slug usando la lógica de replaceAll (SonarQube)
+      const slug = this.generateSlug(dto.name);
 
+      // 2. Insertamos en la base de datos
       const [newSchool] = await this.db
         .insert(schoolTable)
         .values({
           name: dto.name,
           slug: slug,
           address: dto.address,
-          base_score: dto.base_score ?? 0, // Asignamos el valor o el default
+          base_score: dto.base_score ?? 0,
+          logo_url: dto.logo_url ?? null, // Nueva columna opcional
+          is_active: true,                // Por defecto habilitada
+          created_at: new Date(),         // Fecha de creación
+          updated_at: new Date(),         // Fecha de actualización
         } as any)
         .returning();
 
       return newSchool;
     } catch (error) {
-      if (error.code === '23505') throw new ConflictException('Nombre duplicado');
-      throw new InternalServerErrorException('Error al crear escuela');
+      // Error de llave duplicada en Postgres (nombre o slug)
+      if (error.code === '23505') {
+        throw new ConflictException('Ya existe una escuela con ese nombre.');
+      }
+      
+      console.error("Error al crear escuela:", error);
+      throw new InternalServerErrorException('No se pudo crear la escuela en la base de datos.');
     }
   }
 

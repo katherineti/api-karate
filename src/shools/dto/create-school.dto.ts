@@ -1,6 +1,11 @@
+import { Type } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString, MaxLength, IsInt, Min } from 'class-validator';
 
 export class CreateSchoolDto {
+  @IsString()
+  @IsOptional()
+  logo_url?: string;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
@@ -12,7 +17,8 @@ export class CreateSchoolDto {
   address?: string;
 
   @IsInt()
-  @IsOptional() // Opcional en el body, usará el default de la DB si no se envía
+  @IsOptional()
   @Min(0)
-  base_score?: number; // El puntaje base de evaluación
+  @Type(() => Number) // <--- Fuerza la conversión de String a Number
+  base_score?: number;
 }

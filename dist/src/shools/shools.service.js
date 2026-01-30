@@ -80,14 +80,20 @@ let ShoolsService = class ShoolsService {
                 slug: slug,
                 address: dto.address,
                 base_score: dto.base_score ?? 0,
+                logo_url: dto.logo_url ?? null,
+                is_active: true,
+                created_at: new Date(),
+                updated_at: new Date(),
             })
                 .returning();
             return newSchool;
         }
         catch (error) {
-            if (error.code === '23505')
-                throw new common_1.ConflictException('Nombre duplicado');
-            throw new common_1.InternalServerErrorException('Error al crear escuela');
+            if (error.code === '23505') {
+                throw new common_1.ConflictException('Ya existe una escuela con ese nombre.');
+            }
+            console.error("Error al crear escuela:", error);
+            throw new common_1.InternalServerErrorException('No se pudo crear la escuela en la base de datos.');
         }
     }
     async findAllPaginated(payload) {

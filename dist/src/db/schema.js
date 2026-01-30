@@ -17,6 +17,7 @@ exports.schoolTable = (0, pg_core_1.pgTable)("schools", {
     slug: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
     address: (0, pg_core_1.varchar)({ length: 500 }),
     base_score: (0, pg_core_1.integer)("base_score").default(0).notNull(),
+    logo_url: (0, pg_core_1.varchar)({ length: 500 }).default(null),
     is_active: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),

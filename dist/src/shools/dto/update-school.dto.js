@@ -17,6 +17,11 @@ exports.UpdateSchoolDto = UpdateSchoolDto;
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateSchoolDto.prototype, "logo_url", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.MaxLength)(255),
     __metadata("design:type", String)
 ], UpdateSchoolDto.prototype, "name", void 0);

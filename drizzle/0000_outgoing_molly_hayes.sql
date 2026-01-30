@@ -114,6 +114,7 @@ CREATE TABLE "schools" (
 	"slug" varchar(255) NOT NULL,
 	"address" varchar(500),
 	"base_score" integer DEFAULT 0 NOT NULL,
+	"logo_url" varchar(500) DEFAULT null,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,

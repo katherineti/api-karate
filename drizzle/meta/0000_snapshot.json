@@ -1,5 +1,5 @@
 {
-  "id": "2d49cdfe-924f-4bd2-81ec-e4fa117dadc0",
+  "id": "a17abfd2-eb67-47ed-a006-f36780f64b8a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -914,6 +914,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "logo_url": {
+          "name": "logo_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
         },
         "is_active": {
           "name": "is_active",

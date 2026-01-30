@@ -20,6 +20,10 @@ const public_decorator_1 = require("../decorators/public.decorator");
 const update_school_dto_1 = require("./dto/update-school.dto");
 const create_school_dto_1 = require("./dto/create-school.dto");
 const change_status_school_dto_1 = require("./dto/change-status-school.dto");
+const platform_express_1 = require("@nestjs/platform-express");
+const common_2 = require("@nestjs/common");
+const multer_1 = require("multer");
+const path_1 = require("path");
 let ShoolsController = class ShoolsController {
     constructor(shoolsService) {
         this.shoolsService = shoolsService;
@@ -30,8 +34,12 @@ let ShoolsController = class ShoolsController {
     async getById(id) {
         return await this.shoolsService.getById(id);
     }
-    async create(createSchoolDto) {
-        return this.shoolsService.create(createSchoolDto);
+    async create(createSchoolDto, file) {
+        const logoUrl = file ? file.path.replaceAll('\\', '/') : null;
+        return this.shoolsService.create({
+            ...createSchoolDto,
+            logo_url: logoUrl
+        });
     }
     async getSchools(paginationDto) {
         return this.shoolsService.findAllPaginated(paginationDto);
@@ -64,10 +72,25 @@ __decorate([
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
-    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
+    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('image', {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads',
+            filename: (req, file, callback) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const ext = (0, path_1.extname)(file.originalname);
+                callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+            },
+        }),
+    })),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({
+        transform: true,
+        whitelist: true,
+        transformOptions: { enableImplicitConversion: true }
+    })),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_2.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_school_dto_1.CreateSchoolDto]),
+    __metadata("design:paramtypes", [create_school_dto_1.CreateSchoolDto, Object]),
     __metadata("design:returntype", Promise)
 ], ShoolsController.prototype, "create", null);
 __decorate([

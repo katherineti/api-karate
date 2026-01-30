@@ -3,6 +3,10 @@ import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-va
 export class UpdateSchoolDto {
   @IsString()
   @IsOptional()
+  logo_url?: string;
+
+  @IsString()
+  @IsOptional()
   @MaxLength(255)
   name?: string;
 

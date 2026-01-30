@@ -18,6 +18,7 @@ export const schoolTable = pgTable("schools",{
   slug: varchar({ length: 255 }).notNull().unique(), // Identificador limpio (sin acentos/espacios)
   address: varchar({ length: 500 }),
   base_score: integer("base_score").default(0).notNull(), // Puntaje base
+  logo_url: varchar({ length: 500 }).default(null),
   is_active: boolean("is_active").default(true).notNull(), // Nueva columna para habilitar/inhabilitar
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
