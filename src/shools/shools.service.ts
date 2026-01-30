@@ -82,8 +82,8 @@ export class ShoolsService {
     const offset = (page - 1) * limit;
 
     try {
-      // 1. Condición de búsqueda
-      const whereCondition = search ? ilike(schoolTable.name, `%${search}%`) : undefined;
+      // 1. Condición de búsqueda por el slug
+      const whereCondition = search ? ilike(schoolTable.slug, `%${search}%`) : undefined;
 
       // 2. Consulta principal con agregación de Masters
       const schools = await this.db

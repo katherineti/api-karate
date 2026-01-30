@@ -82,7 +82,7 @@ let ShoolsService = class ShoolsService {
         const { page, limit, search } = payload;
         const offset = (page - 1) * limit;
         try {
-            const whereCondition = search ? (0, drizzle_orm_1.ilike)(schema_1.schoolTable.name, `%${search}%`) : undefined;
+            const whereCondition = search ? (0, drizzle_orm_1.ilike)(schema_1.schoolTable.slug, `%${search}%`) : undefined;
             const schools = await this.db
                 .select({
                 id: schema_1.schoolTable.id,
