@@ -100,7 +100,7 @@ __decorate([
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)('list'),
-    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, transformOptions: { enableImplicitConversion: true } })),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [pagination_schools_dto_1.PaginationSchoolsDto]),

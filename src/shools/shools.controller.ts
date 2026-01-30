@@ -59,7 +59,7 @@ export class ShoolsController {
 
     @Public()
     @Post('list') // Cambiamos a POST para recibir el Body
-    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+    @UsePipes(new ValidationPipe({ transform: true, transformOptions: { enableImplicitConversion: true } }))
     async getSchools(@Body() paginationDto: PaginationSchoolsDto) {
         return this.shoolsService.findAllPaginated(paginationDto);
     }

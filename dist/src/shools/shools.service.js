@@ -122,6 +122,7 @@ let ShoolsService = class ShoolsService {
                 .leftJoin(schema_1.usersTable, (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.schoolTable.id, schema_1.usersTable.school_id), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_MASTER])}::jsonb`))
                 .where(whereCondition)
                 .groupBy(schema_1.schoolTable.id)
+                .orderBy((0, drizzle_orm_1.asc)(schema_1.schoolTable.id))
                 .limit(limit)
                 .offset(offset);
             const [totalCount] = await this.db
@@ -130,7 +131,10 @@ let ShoolsService = class ShoolsService {
                 .where(whereCondition);
             const total = Number(totalCount.count);
             return {
-                data: schools.map(s => ({ ...s, masters: s.masters || [] })),
+                data: schools.map(s => ({
+                    ...s,
+                    masters: s.masters || []
+                })),
                 meta: {
                     total,
                     page,

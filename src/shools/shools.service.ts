@@ -2,7 +2,7 @@ import { ConflictException, Inject, Injectable, InternalServerErrorException, No
 import { PG_CONNECTION, ROL_MASTER } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { schoolTable, usersTable } from '../db/schema';
-import { eq, ilike, sql, and } from 'drizzle-orm';
+import { eq, ilike, sql, and, asc } from 'drizzle-orm';
 import { PaginationSchoolsDto } from './dto/pagination-schools.dto';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
@@ -104,7 +104,7 @@ async getById(id: number) {
     }
   }
 
-  async findAllPaginated(payload: PaginationSchoolsDto) {
+async findAllPaginated(payload: PaginationSchoolsDto) {
     const { page, limit, search } = payload;
     const offset = (page - 1) * limit;
 
@@ -112,7 +112,7 @@ async getById(id: number) {
       // 1. Condición de búsqueda por el slug
       const whereCondition = search ? ilike(schoolTable.slug, `%${search}%`) : undefined;
 
-      // 2. Consulta principal con agregación de Masters
+      // 2. Consulta principal con agregación de Masters y Ordenamiento
       const schools = await this.db
         .select({
           id: schoolTable.id,
@@ -122,7 +122,6 @@ async getById(id: number) {
           base_score: schoolTable.base_score,
           logo_url: schoolTable.logo_url,
           is_active: schoolTable.is_active,
-          // Agrupamos los usuarios que son masters en un array de objetos
           masters: sql`json_agg(
             json_build_object(
               'id', ${usersTable.id},
@@ -134,11 +133,11 @@ async getById(id: number) {
         .from(schoolTable)
         .leftJoin(usersTable, and(
           eq(schoolTable.id, usersTable.school_id),
-          // Verificamos si el array roles_ids contiene el ID 2
           sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_MASTER])}::jsonb`
         ))
         .where(whereCondition)
         .groupBy(schoolTable.id)
+        .orderBy(asc(schoolTable.id)) // <--- SOLUCIÓN AL BUG: Orden fijo para paginación
         .limit(limit)
         .offset(offset);
 
@@ -151,7 +150,10 @@ async getById(id: number) {
       const total = Number(totalCount.count);
 
       return {
-        data: schools.map(s => ({ ...s, masters: s.masters || [] })),
+        data: schools.map(s => ({ 
+          ...s, 
+          masters: (s.masters as any) || [] 
+        })),
         meta: {
           total,
           page,
