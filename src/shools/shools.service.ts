@@ -164,43 +164,44 @@ async getById(id: number) {
     }
   }
 
-  async update(id: number, dto: UpdateSchoolDto) {
-    try {
-      // 1. Preparamos el objeto de actualización
-      const updateData: any = { 
-        ...dto, 
-        updated_at: new Date()  
-      };
+async update(id: number, dto: UpdateSchoolDto & { logo_url?: string }) {
+  try {
+    // 1. Preparamos el objeto de actualización con la fecha actual
+    const updateData: any = { 
+      ...dto, 
+      updated_at: new Date()  
+    };
 
-      // 2. Si el nombre cambió, generamos un nuevo slug
-      if (dto.name) {
-        updateData.slug = this.generateSlug(dto.name);
-      }
-
-      // 3. Ejecutamos la actualización
-      const [updatedSchool] = await this.db
-        .update(schoolTable)
-        .set(updateData)
-        .where(eq(schoolTable.id, id))
-        .returning();
-
-      if (!updatedSchool) {
-        throw new NotFoundException(`No se encontró la escuela con ID ${id}`);
-      }
-
-      return updatedSchool;
-    } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      
-      // Manejo de duplicados (por si el nuevo nombre/slug ya existe)
-      if (error.code === '23505') {
-        throw new ConflictException('El nuevo nombre de escuela ya está en uso.');
-      }
-      
-      console.error('ERROR_UPDATE_SCHOOL:', error);
-      throw new InternalServerErrorException('Error al actualizar la escuela.');
+    // 2. Si el nombre cambió, generamos un nuevo slug (cumpliendo replaceAll de SonarQube)
+    if (dto.name) {
+      updateData.slug = this.generateSlug(dto.name);
     }
+
+    // 3. Ejecutamos la actualización en la DB
+    const [updatedSchool] = await this.db
+      .update(schoolTable)
+      .set(updateData)
+      .where(eq(schoolTable.id, id))
+      .returning();
+
+    // 4. Si no devuelve nada, la escuela no existe
+    if (!updatedSchool) {
+      throw new NotFoundException(`No se encontró la escuela con ID ${id}`);
+    }
+
+    return updatedSchool;
+  } catch (error) {
+    if (error instanceof NotFoundException) throw error;
+    
+    // Error de duplicados en Postgres
+    if (error.code === '23505') {
+      throw new ConflictException('El nuevo nombre de la escuela ya está en uso.');
+    }
+    
+    console.error('ERROR_UPDATE_SCHOOL:', error);
+    throw new InternalServerErrorException('Error al actualizar la escuela.');
   }
+}
 
 // 1. ELIMINAR REGISTRO (Borrado físico)
   async remove(id: number) {

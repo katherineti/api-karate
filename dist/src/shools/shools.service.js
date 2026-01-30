@@ -166,7 +166,7 @@ let ShoolsService = class ShoolsService {
             if (error instanceof common_1.NotFoundException)
                 throw error;
             if (error.code === '23505') {
-                throw new common_1.ConflictException('El nuevo nombre de escuela ya está en uso.');
+                throw new common_1.ConflictException('El nuevo nombre de la escuela ya está en uso.');
             }
             console.error('ERROR_UPDATE_SCHOOL:', error);
             throw new common_1.InternalServerErrorException('Error al actualizar la escuela.');

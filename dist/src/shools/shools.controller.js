@@ -44,8 +44,12 @@ let ShoolsController = class ShoolsController {
     async getSchools(paginationDto) {
         return this.shoolsService.findAllPaginated(paginationDto);
     }
-    async update(id, updateSchoolDto) {
-        return this.shoolsService.update(id, updateSchoolDto);
+    async update(id, updateSchoolDto, file) {
+        const logoUrl = file ? file.path.replaceAll('\\', '/') : undefined;
+        return this.shoolsService.update(id, {
+            ...updateSchoolDto,
+            ...(logoUrl && { logo_url: logoUrl })
+        });
     }
     async changeStatus(id, changeStatusDto) {
         return this.shoolsService.changeStatus(id, changeStatusDto.isActive);
@@ -105,11 +109,26 @@ __decorate([
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Patch)(':id'),
-    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
+    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('image', {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads',
+            filename: (req, file, callback) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const ext = (0, path_1.extname)(file.originalname);
+                callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+            },
+        }),
+    })),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({
+        transform: true,
+        whitelist: true,
+        transformOptions: { enableImplicitConversion: true }
+    })),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_2.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, update_school_dto_1.UpdateSchoolDto]),
+    __metadata("design:paramtypes", [Number, update_school_dto_1.UpdateSchoolDto, Object]),
     __metadata("design:returntype", Promise)
 ], ShoolsController.prototype, "update", null);
 __decorate([

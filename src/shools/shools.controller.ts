@@ -66,12 +66,33 @@ export class ShoolsController {
 
     @Public()
     @Patch(':id')
-    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+    @UseInterceptors(FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }))
+    @UsePipes(new ValidationPipe({ 
+      transform: true, 
+      whitelist: true,
+      transformOptions: { enableImplicitConversion: true } 
+    }))
     async update(
       @Param('id', ParseIntPipe) id: number,
       @Body() updateSchoolDto: UpdateSchoolDto,
+      @UploadedFile() file?: Express.Multer.File,
     ) {
-      return this.shoolsService.update(id, updateSchoolDto);
+      const logoUrl = file ? file.path.replaceAll('\\', '/') : undefined;
+
+      // Pasamos el DTO y el logoUrl (si existe) al servicio
+      return this.shoolsService.update(id, { 
+        ...updateSchoolDto, 
+        ...(logoUrl && { logo_url: logoUrl }) 
+      });
     }
 
   // Endpoint para Habilitar/Inhabilitar (un solo controlador)
