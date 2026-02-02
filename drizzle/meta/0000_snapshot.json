@@ -1,5 +1,5 @@
 {
-  "id": "c6b6a7e4-4795-415e-a593-fbec2b3e3e50",
+  "id": "9a470ea9-64fb-4153-a9b0-cb4f79fcb2fd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -423,9 +423,15 @@
         },
         "belt": {
           "name": "belt",
-          "type": "varchar(255)",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
+        },
+        "grade": {
+          "name": "grade",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
         },
         "rank_order": {
           "name": "rank_order",

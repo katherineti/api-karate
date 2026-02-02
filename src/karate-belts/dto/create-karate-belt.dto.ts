@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsInt, Min, MaxLength, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, Min, MaxLength, Matches, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateKarateBeltDto {
@@ -6,6 +6,11 @@ export class CreateKarateBeltDto {
   @IsNotEmpty({ message: 'El nombre del cinturón es obligatorio' })
   @MaxLength(100)
   belt: string;
+
+  @IsString()
+  @IsOptional() // Puede ser opcional si algunos cinturones no tienen grado oficial
+  @MaxLength(50)
+  grade?: string;
 
 /*   @IsString()
   @IsNotEmpty()

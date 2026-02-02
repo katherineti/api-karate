@@ -49,6 +49,15 @@ async findAllPaginated(payload: PaginationKarateBeltsDto) {
     }
   }
 
+/* 
+* Creación (POST) http://localhost:3000/karate-belts
+*Body:
+{
+  "belt": "Marrón",
+  "grade": "1º Kyu",
+  "color_hex": "#8B4513",
+  "rank_order": 6
+} */
 async create(createDto: CreateKarateBeltDto) {
     try {
       const [newBelt] = await this.db
@@ -64,6 +73,11 @@ async create(createDto: CreateKarateBeltDto) {
     }
   }
 
+/* Actualización (PATCH) http://localhost:3000/karate-belts/5
+Body: {
+  "grade": "1º Kyu (Avanzado)",
+  "color_hex": "#704214"
+} */
   async update(id: number, updateDto: UpdateKarateBeltDto) {
     try {
       const [updatedBelt] = await this.db

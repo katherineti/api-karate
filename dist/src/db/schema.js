@@ -34,7 +34,8 @@ exports.karateCategoriesTable = (0, pg_core_1.pgTable)("karate_categories", {
 });
 exports.karateBeltsTable = (0, pg_core_1.pgTable)("karate_belts", {
     id: (0, pg_core_1.serial)().primaryKey(),
-    belt: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
+    belt: (0, pg_core_1.varchar)({ length: 100 }).notNull().unique(),
+    grade: (0, pg_core_1.varchar)("grade", { length: 50 }),
     rank_order: (0, pg_core_1.integer)("rank_order").notNull().unique(),
 });
 exports.usersTable = (0, pg_core_1.pgTable)("users", {
