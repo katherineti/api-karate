@@ -16,6 +16,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './guards/at.guard';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TournamentRegistrationsModule } from './tournament-registrations/tournament-registrations.module';
+import { KarateBeltsModule } from './karate-belts/karate-belts.module';
 @Module({
   imports: [
     DrizzleDbConecctionModule,
@@ -42,6 +43,7 @@ import { TournamentRegistrationsModule } from './tournament-registrations/tourna
      ModalitiesModule,
      NotificationsModule,
      TournamentRegistrationsModule,
+     KarateBeltsModule,
     // RolesModule,
   ],
   controllers: [AppController],
@@ -50,7 +52,8 @@ import { TournamentRegistrationsModule } from './tournament-registrations/tourna
     {
       provide: APP_GUARD,
       useClass: AtGuard,
-    },/* 
+    },
+/* 
     {
       provide: APP_GUARD,
       useClass: RolesGuard

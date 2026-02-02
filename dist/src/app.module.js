@@ -25,6 +25,7 @@ const core_1 = require("@nestjs/core");
 const at_guard_1 = require("./guards/at.guard");
 const notifications_module_1 = require("./notifications/notifications.module");
 const tournament_registrations_module_1 = require("./tournament-registrations/tournament-registrations.module");
+const karate_belts_module_1 = require("./karate-belts/karate-belts.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -51,6 +52,7 @@ exports.AppModule = AppModule = __decorate([
             modalities_module_1.ModalitiesModule,
             notifications_module_1.NotificationsModule,
             tournament_registrations_module_1.TournamentRegistrationsModule,
+            karate_belts_module_1.KarateBeltsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
