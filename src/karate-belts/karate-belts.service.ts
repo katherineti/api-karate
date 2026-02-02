@@ -49,6 +49,25 @@ async findAllPaginated(payload: PaginationKarateBeltsDto) {
     }
   }
 
+  
+async findAll() {
+
+    try {
+
+      // 1. Consulta de datos
+      const belts = await this.db
+        .select()
+        .from(karateBeltsTable)
+        .orderBy(asc(karateBeltsTable.id)); // Orden fijo para evitar duplicados en paginación
+
+      return {
+        data: belts
+      };
+    } catch (error) {
+      console.error("Error Karate Belts Service:", error);
+      throw new InternalServerErrorException("No se pudo obtener el listado de cinturones.");
+    }
+  }
 /* 
 * Creación (POST) http://localhost:3000/karate-belts
 *Body:

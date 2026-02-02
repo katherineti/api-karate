@@ -23,7 +23,7 @@ export class CategoriesController {
   }
 
 /*
- lista paginada. URL: POST http://localhost:3000/categories/list
+ lista paginada. URL: POST https://api-karate.onrender.com/categories/list
 {
   "page": 1,
   "limit": 5,

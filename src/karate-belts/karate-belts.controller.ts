@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe, Delete, Param, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, ValidationPipe, Delete, Param, ParseIntPipe, Patch, Get } from '@nestjs/common';
 import { KarateBeltsService } from './karate-belts.service';
 import { Public } from '../decorators/public.decorator';
 import { PaginationKarateBeltsDto } from './dto/pagination-karate-belts.dto';
@@ -20,8 +20,14 @@ Body: {
     transform: true, 
     transformOptions: { enableImplicitConversion: true } 
   }))
-  findAll(@Body() paginationDto: PaginationKarateBeltsDto) {
+  findAllPaginated(@Body() paginationDto: PaginationKarateBeltsDto) {
     return this.karateBeltsService.findAllPaginated(paginationDto);
+  }
+
+    @Public()
+    @Get()
+    findAll() {
+    return this.karateBeltsService.findAll();
   }
 
   //Para Crear:  POST http://localhost:3000/karate-belts
