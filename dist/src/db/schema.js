@@ -97,6 +97,7 @@ exports.modalitiesTable = (0, pg_core_1.pgTable)("modalities", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull().unique(),
     type: (0, pg_core_1.varchar)("type", { length: 50 }).notNull(),
+    description: (0, pg_core_1.text)("description"),
 });
 exports.eventCategoriesTable = (0, pg_core_1.pgTable)("event_categories", {
     id: (0, pg_core_1.serial)("id").primaryKey(),

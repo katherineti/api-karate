@@ -1,4 +1,4 @@
-import { boolean, date, integer, jsonb, pgEnum, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
+import { boolean, date, integer, jsonb, pgEnum, pgTable, serial, text, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 
 export const eventStatus_scheduled = 4;
 
@@ -120,6 +120,7 @@ export const modalitiesTable = pgTable("modalities", {
   // Almacena el nombre único de la modalidad (Ej: 'Forma Tradicional')
   name: varchar("name", { length: 255 }).notNull().unique(), 
   type: varchar("type", { length: 50 }).notNull(), // 'kata' o 'combate'
+  description: text("description"),
 });
 
 // 1. Nueva tabla para registrar categorías en un evento
