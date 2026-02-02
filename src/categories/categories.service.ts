@@ -138,9 +138,19 @@ async findAllPaginated(payload: PaginationCategoriesDto) {
 
   // Eliminar una categoría (solo si no está siendo usada en un evento)
   async remove(id: number) {
-    return this.db.delete(karateCategoriesTable)
-      .where(eq(karateCategoriesTable.id, id))
-      .returning();
+    const [deletedCategory] = await this.db.delete(karateCategoriesTable)
+        .where(eq(karateCategoriesTable.id, id))
+        .returning();
+
+    // Validación: Si deletedCategory es undefined, el ID no existía
+    if (!deletedCategory) {
+      throw new NotFoundException(`No se encontró la categoría con el ID ${id}`);
+    }
+
+    return {
+      message: 'Categoría eliminada exitosamente',
+      data: deletedCategory,
+    }
   }
 
 }
