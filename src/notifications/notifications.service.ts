@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { notificationsTable, participantRequestsTable } from '../db/schema';
@@ -34,7 +34,7 @@ export class NotificationsService {
       .orderBy(desc(notificationsTable.created_at)); // Las más recientes primero
   }
 
-  async markAsRead(notificationId: number, userId: number) {
+/*   async markAsRead(notificationId: number, userId: number) {
     return await this.db
       .update(notificationsTable)
       .set({ is_read: true } as any)
@@ -45,5 +45,45 @@ export class NotificationsService {
         )
       )
       .returning();
+  } */
+
+// notifications.service.ts
+
+async markAsRead(userId: number, notificationId?: number) {
+  try {
+    // 1. Construimos las condiciones base (siempre filtrar por el usuario en sesión)
+    const conditions = [eq(notificationsTable.recipient_id, userId)];
+
+    // 2. Si se provee un ID específico, lo añadimos a la condición
+    if (notificationId) {
+      conditions.push(eq(notificationsTable.id, notificationId));
+    } else {
+      // Si no hay ID, solo actualizamos las que aún están como no leídas
+      conditions.push(eq(notificationsTable.is_read, false));
+    }
+
+    // 3. Ejecutamos la actualización masiva o individual
+    const result = await this.db
+      .update(notificationsTable)
+      .set({ is_read: true } as any)
+      .where(and(...conditions))
+      .returning();
+
+    // 4. Si intentó marcar una específica y no existe, lanzamos error
+    if (notificationId && result.length === 0) {
+      throw new NotFoundException(`No se encontró la notificación con ID ${notificationId}`);
+    }
+
+    return {
+      message: notificationId 
+        ? 'Notificación marcada como leída.' 
+        : 'Todas las notificaciones han sido marcadas como leídas.',
+      updatedCount: result.length,
+    };
+  } catch (error) {
+    if (error instanceof NotFoundException) throw error;
+    console.error("Error Notifications Service:", error);
+    throw new InternalServerErrorException("Error al procesar la actualización de notificaciones.");
   }
+}
 }

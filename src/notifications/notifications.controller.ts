@@ -17,11 +17,17 @@ export class NotificationsController {
     };
   }
 
+
+ @Patch('read-all')
+  async readAll(@Usersesion() user: IJwtPayload) {
+    return this.notificationsService.markAsRead(user.sub);
+  }
+
   @Patch(':id/read')
   async read(
     @Param('id', ParseIntPipe) id: number,
     @Usersesion() user: IJwtPayload,
   ) {
-    return this.notificationsService.markAsRead(id, user.sub);
+    return this.notificationsService.markAsRead(user.sub, id);
   }
 }

@@ -42,12 +42,36 @@ let NotificationsService = class NotificationsService {
             .where((0, drizzle_orm_1.eq)(schema_1.notificationsTable.recipient_id, userId))
             .orderBy((0, drizzle_orm_1.desc)(schema_1.notificationsTable.created_at));
     }
-    async markAsRead(notificationId, userId) {
-        return await this.db
-            .update(schema_1.notificationsTable)
-            .set({ is_read: true })
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.notificationsTable.id, notificationId), (0, drizzle_orm_1.eq)(schema_1.notificationsTable.recipient_id, userId)))
-            .returning();
+    async markAsRead(userId, notificationId) {
+        try {
+            const conditions = [(0, drizzle_orm_1.eq)(schema_1.notificationsTable.recipient_id, userId)];
+            if (notificationId) {
+                conditions.push((0, drizzle_orm_1.eq)(schema_1.notificationsTable.id, notificationId));
+            }
+            else {
+                conditions.push((0, drizzle_orm_1.eq)(schema_1.notificationsTable.is_read, false));
+            }
+            const result = await this.db
+                .update(schema_1.notificationsTable)
+                .set({ is_read: true })
+                .where((0, drizzle_orm_1.and)(...conditions))
+                .returning();
+            if (notificationId && result.length === 0) {
+                throw new common_1.NotFoundException(`No se encontró la notificación con ID ${notificationId}`);
+            }
+            return {
+                message: notificationId
+                    ? 'Notificación marcada como leída.'
+                    : 'Todas las notificaciones han sido marcadas como leídas.',
+                updatedCount: result.length,
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException)
+                throw error;
+            console.error("Error Notifications Service:", error);
+            throw new common_1.InternalServerErrorException("Error al procesar la actualización de notificaciones.");
+        }
     }
 };
 exports.NotificationsService = NotificationsService;

@@ -27,8 +27,11 @@ let NotificationsController = class NotificationsController {
             data: notifications,
         };
     }
+    async readAll(user) {
+        return this.notificationsService.markAsRead(user.sub);
+    }
     async read(id, user) {
-        return this.notificationsService.markAsRead(id, user.sub);
+        return this.notificationsService.markAsRead(user.sub, id);
     }
 };
 exports.NotificationsController = NotificationsController;
@@ -39,6 +42,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "getMyNotifications", null);
+__decorate([
+    (0, common_1.Patch)('read-all'),
+    __param(0, (0, usersesion_decorator_1.Usersesion)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], NotificationsController.prototype, "readAll", null);
 __decorate([
     (0, common_1.Patch)(':id/read'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
