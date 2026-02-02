@@ -1,5 +1,5 @@
 {
-  "id": "a17abfd2-eb67-47ed-a006-f36780f64b8a",
+  "id": "c6b6a7e4-4795-415e-a593-fbec2b3e3e50",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -426,6 +426,12 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "rank_order": {
+          "name": "rank_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
@@ -437,6 +443,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "belt"
+          ]
+        },
+        "karate_belts_rank_order_unique": {
+          "name": "karate_belts_rank_order_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "rank_order"
           ]
         }
       },
@@ -603,6 +616,12 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

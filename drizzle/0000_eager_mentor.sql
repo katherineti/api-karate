@@ -50,7 +50,9 @@ CREATE TABLE "events" (
 CREATE TABLE "karate_belts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"belt" varchar(255) NOT NULL,
-	CONSTRAINT "karate_belts_belt_unique" UNIQUE("belt")
+	"rank_order" integer NOT NULL,
+	CONSTRAINT "karate_belts_belt_unique" UNIQUE("belt"),
+	CONSTRAINT "karate_belts_rank_order_unique" UNIQUE("rank_order")
 );
 --> statement-breakpoint
 CREATE TABLE "karate_categories" (
@@ -76,6 +78,7 @@ CREATE TABLE "modalities" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"type" varchar(50) NOT NULL,
+	"description" text,
 	CONSTRAINT "modalities_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint

@@ -49,6 +49,43 @@ async findAllPaginated(payload: PaginationKarateBeltsDto) {
     }
   }
 
+async create(createDto: CreateKarateBeltDto) {
+    try {
+      const [newBelt] = await this.db
+        .insert(karateBeltsTable)
+        .values(createDto)
+        .returning();
+      return { message: 'Cinturón creado correctamente', data: newBelt };
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('El nombre o el orden de rango ya existen.');
+      }
+      throw new InternalServerErrorException('Error al crear el cinturón.');
+    }
+  }
+
+  async update(id: number, updateDto: UpdateKarateBeltDto) {
+    try {
+      const [updatedBelt] = await this.db
+        .update(karateBeltsTable)
+        .set(updateDto)
+        .where(eq(karateBeltsTable.id, id))
+        .returning();
+
+      if (!updatedBelt) {
+        throw new NotFoundException(`Cinturón con ID ${id} no encontrado.`);
+      }
+
+      return { message: 'Cinturón actualizado correctamente', data: updatedBelt };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      if (error.code === '23505') {
+        throw new ConflictException('El nombre o rango ya están en uso por otro cinturón.');
+      }
+      throw new InternalServerErrorException('Error al actualizar el cinturón.');
+    }
+  }
+
 async remove(id: number) {
     try {
       // Intentamos eliminar y capturamos el registro borrado

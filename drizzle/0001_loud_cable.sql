@@ -1,1 +1,0 @@
-ALTER TABLE "modalities" ADD COLUMN "description" text;

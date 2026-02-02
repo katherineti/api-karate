@@ -53,6 +53,42 @@ let KarateBeltsService = class KarateBeltsService {
             throw new common_1.InternalServerErrorException("No se pudo obtener el listado de cinturones.");
         }
     }
+    async create(createDto) {
+        try {
+            const [newBelt] = await this.db
+                .insert(schema_1.karateBeltsTable)
+                .values(createDto)
+                .returning();
+            return { message: 'Cinturón creado correctamente', data: newBelt };
+        }
+        catch (error) {
+            if (error.code === '23505') {
+                throw new common_1.ConflictException('El nombre o el orden de rango ya existen.');
+            }
+            throw new common_1.InternalServerErrorException('Error al crear el cinturón.');
+        }
+    }
+    async update(id, updateDto) {
+        try {
+            const [updatedBelt] = await this.db
+                .update(schema_1.karateBeltsTable)
+                .set(updateDto)
+                .where((0, drizzle_orm_1.eq)(schema_1.karateBeltsTable.id, id))
+                .returning();
+            if (!updatedBelt) {
+                throw new common_1.NotFoundException(`Cinturón con ID ${id} no encontrado.`);
+            }
+            return { message: 'Cinturón actualizado correctamente', data: updatedBelt };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException)
+                throw error;
+            if (error.code === '23505') {
+                throw new common_1.ConflictException('El nombre o rango ya están en uso por otro cinturón.');
+            }
+            throw new common_1.InternalServerErrorException('Error al actualizar el cinturón.');
+        }
+    }
     async remove(id) {
         try {
             const [deletedBelt] = await this.db

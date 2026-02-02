@@ -17,12 +17,20 @@ const common_1 = require("@nestjs/common");
 const karate_belts_service_1 = require("./karate-belts.service");
 const public_decorator_1 = require("../decorators/public.decorator");
 const pagination_karate_belts_dto_1 = require("./dto/pagination-karate-belts.dto");
+const create_karate_belt_dto_1 = require("./dto/create-karate-belt.dto");
+const update_karate_belt_dto_1 = require("./dto/update-karate-belt.dto");
 let KarateBeltsController = class KarateBeltsController {
     constructor(karateBeltsService) {
         this.karateBeltsService = karateBeltsService;
     }
     findAll(paginationDto) {
         return this.karateBeltsService.findAllPaginated(paginationDto);
+    }
+    create(createKarateBeltDto) {
+        return this.karateBeltsService.create(createKarateBeltDto);
+    }
+    update(id, updateKarateBeltDto) {
+        return this.karateBeltsService.update(id, updateKarateBeltDto);
     }
     async remove(id) {
         return await this.karateBeltsService.remove(id);
@@ -41,6 +49,25 @@ __decorate([
     __metadata("design:paramtypes", [pagination_karate_belts_dto_1.PaginationKarateBeltsDto]),
     __metadata("design:returntype", void 0)
 ], KarateBeltsController.prototype, "findAll", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)(),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_karate_belt_dto_1.CreateKarateBeltDto]),
+    __metadata("design:returntype", void 0)
+], KarateBeltsController.prototype, "create", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Patch)(':id'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_karate_belt_dto_1.UpdateKarateBeltDto]),
+    __metadata("design:returntype", void 0)
+], KarateBeltsController.prototype, "update", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Delete)(':id'),

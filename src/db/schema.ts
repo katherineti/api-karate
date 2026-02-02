@@ -41,6 +41,10 @@ export const karateCategoriesTable = pgTable("karate_categories",{
 export const karateBeltsTable = pgTable("karate_belts",{
   id: serial().primaryKey(),
   belt: varchar({ length: 255 }).notNull().unique(),
+
+  // Nivel jerárquico (ej: Blanco=1, Amarillo=2...). 
+  // Es vital para ordenar las listas y validar requisitos en torneos.
+  rank_order: integer("rank_order").notNull().unique(),
 })
 
 export const usersTable = pgTable("users", {

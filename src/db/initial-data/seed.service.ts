@@ -64,14 +64,14 @@ async function seed() {
     ];
 
     const karateBeltsToInsert = [
-        { id:1, belt: 'Blanco' },
-        { id:2, belt: 'Amarillo' },
-        { id:3, belt: 'Naranja' },
-        { id:4, belt: 'Verde' },
-        { id:5, belt: 'Azul' },
-        { id:6, belt: 'Púrpura' },
-        { id:7, belt: 'Marrón' },
-        { id:8, belt: 'Negro' },
+        { id:1, belt: 'Blanco', rank_order: 1 },
+        { id:2, belt: 'Amarillo', rank_order: 2 },
+        { id:3, belt: 'Naranja', rank_order: 3 },
+        { id:4, belt: 'Verde', rank_order: 4 },
+        { id:5, belt: 'Azul', rank_order: 5 },
+        { id:6, belt: 'Púrpura', rank_order: 6 },
+        { id:7, belt: 'Marrón', rank_order: 7 },
+        { id:8, belt: 'Negro', rank_order: 8 },
     ];
 
     const typesEventsToInsert = [
