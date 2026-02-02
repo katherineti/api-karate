@@ -18,6 +18,7 @@ const categories_service_1 = require("./categories.service");
 const create_category_dto_1 = require("./dto/create-category.dto");
 const update_category_dto_1 = require("./dto/update-category.dto");
 const public_decorator_1 = require("../decorators/public.decorator");
+const pagination_categories_dto_1 = require("./dto/pagination-categories.dto");
 let CategoriesController = class CategoriesController {
     constructor(categoriesService) {
         this.categoriesService = categoriesService;
@@ -27,6 +28,9 @@ let CategoriesController = class CategoriesController {
     }
     async findAll() {
         return this.categoriesService.findAll();
+    }
+    async findAllPaginated(paginationDto) {
+        return this.categoriesService.findAllPaginated(paginationDto);
     }
     async remove(id) {
         return this.categoriesService.remove(id);
@@ -51,6 +55,18 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], CategoriesController.prototype, "findAll", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('list'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true }
+    })),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [pagination_categories_dto_1.PaginationCategoriesDto]),
+    __metadata("design:returntype", Promise)
+], CategoriesController.prototype, "findAllPaginated", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Delete)(':id'),

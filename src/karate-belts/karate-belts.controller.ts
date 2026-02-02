@@ -9,6 +9,11 @@ import { UpdateKarateBeltDto } from './dto/update-karate-belt.dto';
 export class KarateBeltsController {
   constructor(private readonly karateBeltsService: KarateBeltsService) {}
 
+/*  POST http://localhost:3000/karate-belts/list
+Body: {
+  "page": 1,
+  "limit": 10
+} */
   @Public()
   @Post('list') // Usamos POST /list para coherencia con el módulo de escuelas
   @UsePipes(new ValidationPipe({ 
@@ -20,7 +25,8 @@ export class KarateBeltsController {
   }
 
   //Para Crear:  POST http://localhost:3000/karate-belts
-  //body: { "name": "Naranja",  "color_hex": "#FFA500",  "rank_order": 3 }
+  //Para Crear:  POST https://api-karate.onrender.com/karate-belts
+  //body: { "belt": "Naranja", "grade": "1º Kyu", "rank_order": 3 }
   @Public()
   @Post()
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -29,7 +35,8 @@ export class KarateBeltsController {
   }
 
   //Para Editar:  PATCH http://localhost:3000/karate-belts/3
-  //body { "name": "Naranja Intenso",  "color_hex": "#FF8C00" }
+  //Para Editar:  PATCH https://api-karate.onrender.com/karate-belts/3
+  //body { "belt": "Naranja Intenso", "grade": "1º Kyu", "rank_order": 3 }
   @Public()
   @Patch(':id')
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))

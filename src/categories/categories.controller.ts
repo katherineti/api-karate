@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Public } from '../decorators/public.decorator';
+import { PaginationCategoriesDto } from './dto/pagination-categories.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -20,6 +21,24 @@ export class CategoriesController {
   async findAll() {
     return this.categoriesService.findAll();
   }
+
+/*
+ lista paginada. URL: POST http://localhost:3000/categories/list
+{
+  "page": 1,
+  "limit": 5,
+  "search": "infantil"
+}
+*/
+@Public()
+@Post('list')
+@UsePipes(new ValidationPipe({ 
+  transform: true, 
+  transformOptions: { enableImplicitConversion: true } 
+}))
+async findAllPaginated(@Body() paginationDto: PaginationCategoriesDto) {
+  return this.categoriesService.findAllPaginated(paginationDto);
+}
 
   @Public()
   @Delete(':id')//sin usar

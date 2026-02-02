@@ -51,6 +51,52 @@ let CategoriesService = class CategoriesService {
     async findAll() {
         return this.db.select().from(schema_1.karateCategoriesTable);
     }
+    async findAllPaginated(payload) {
+        const { page, limit, search } = payload;
+        const offset = (page - 1) * limit;
+        try {
+            const whereCondition = search
+                ? (0, drizzle_orm_1.ilike)(schema_1.karateCategoriesTable.category, `%${search}%`)
+                : undefined;
+            const categories = await this.db
+                .select()
+                .from(schema_1.karateCategoriesTable)
+                .where(whereCondition)
+                .orderBy((0, drizzle_orm_1.asc)(schema_1.karateCategoriesTable.id))
+                .limit(limit)
+                .offset(offset);
+            const allBeltIds = [...new Set(categories.flatMap(c => c.allowed_belts || []))];
+            let beltsMap = new Map();
+            if (allBeltIds.length > 0) {
+                const beltsData = await this.db
+                    .select()
+                    .from(schema_1.karateBeltsTable)
+                    .where((0, drizzle_orm_1.inArray)(schema_1.karateBeltsTable.id, allBeltIds));
+                beltsData.forEach(b => beltsMap.set(b.id, b));
+            }
+            const dataWithBelts = categories.map(cat => ({
+                ...cat,
+                allowed_belts_details: (cat.allowed_belts || []).map(id => beltsMap.get(id)).filter(Boolean)
+            }));
+            const [totalCount] = await this.db
+                .select({ count: (0, drizzle_orm_1.sql) `count(*)` })
+                .from(schema_1.karateCategoriesTable)
+                .where(whereCondition);
+            const total = Number(totalCount.count);
+            return {
+                data: dataWithBelts,
+                meta: {
+                    total,
+                    page,
+                    last_page: Math.ceil(total / limit),
+                },
+            };
+        }
+        catch (error) {
+            console.error(error);
+            throw new common_1.InternalServerErrorException('Error al obtener categorías con detalles de cinturones');
+        }
+    }
     findOne(id) {
         return `This action returns a #${id} category`;
     }

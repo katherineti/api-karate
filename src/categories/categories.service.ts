@@ -1,10 +1,11 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { karateCategoriesTable } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { karateBeltsTable, karateCategoriesTable } from '../db/schema';
+import { eq, ilike, asc, sql, inArray } from 'drizzle-orm';
+import { PaginationCategoriesDto } from './dto/pagination-categories.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -44,6 +45,66 @@ async create(dto: CreateCategoryDto) {
     return this.db.select().from(karateCategoriesTable);
   }
 
+async findAllPaginated(payload: PaginationCategoriesDto) {
+  const { page, limit, search } = payload;
+  const offset = (page - 1) * limit;
+
+  try {
+    const whereCondition = search 
+      ? ilike(karateCategoriesTable.category, `%${search}%`) 
+      : undefined;
+
+    // 1. Obtener las categorías paginadas
+    const categories = await this.db
+      .select()
+      .from(karateCategoriesTable)
+      .where(whereCondition)
+      .orderBy(asc(karateCategoriesTable.id))
+      .limit(limit)
+      .offset(offset);
+
+    // 2. Resolver los nombres de los cinturones
+    // Extraemos todos los IDs únicos de cinturones mencionados en las categorías actuales
+    const allBeltIds = [...new Set(categories.flatMap(c => c.allowed_belts || []))];
+
+    let beltsMap = new Map();
+    if (allBeltIds.length > 0) {
+      const beltsData = await this.db
+        .select()
+        .from(karateBeltsTable)
+        .where(inArray(karateBeltsTable.id, allBeltIds));
+      
+      // Creamos un mapa para búsqueda rápida [id -> {nombre, color, grado}]
+      beltsData.forEach(b => beltsMap.set(b.id, b));
+    }
+
+    // 3. Mapear los resultados para incluir el objeto completo del cinturón
+    const dataWithBelts = categories.map(cat => ({
+      ...cat,
+      allowed_belts_details: (cat.allowed_belts || []).map(id => beltsMap.get(id)).filter(Boolean)
+    }));
+
+    // 4. Conteo total
+    const [totalCount] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(karateCategoriesTable)
+      .where(whereCondition);
+
+    const total = Number(totalCount.count);
+
+    return {
+      data: dataWithBelts,
+      meta: {
+        total,
+        page,
+        last_page: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    throw new InternalServerErrorException('Error al obtener categorías con detalles de cinturones');
+  }
+}
 
   findOne(id: number) {
     return `This action returns a #${id} category`;
