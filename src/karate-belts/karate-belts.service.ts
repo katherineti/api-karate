@@ -1,8 +1,8 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateKarateBeltDto } from './dto/create-karate-belt.dto';
 import { UpdateKarateBeltDto } from './dto/update-karate-belt.dto';
 import { karateBeltsTable } from '../db/schema';
-import { asc, ilike, sql } from 'drizzle-orm';
+import { asc, eq, ilike, sql } from 'drizzle-orm';
 import { PaginationKarateBeltsDto } from './dto/pagination-karate-belts.dto';
 import { PG_CONNECTION } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
@@ -49,5 +49,35 @@ async findAllPaginated(payload: PaginationKarateBeltsDto) {
     }
   }
 
+async remove(id: number) {
+    try {
+      // Intentamos eliminar y capturamos el registro borrado
+      const [deletedBelt] = await this.db
+        .delete(karateBeltsTable)
+        .where(eq(karateBeltsTable.id, id))
+        .returning();
 
+      // Si no hay registro devuelto, es que el ID no existía
+      if (!deletedBelt) {
+        throw new NotFoundException(`No se encontró el cinturón con ID ${id} para eliminar.`);
+      }
+
+      return {
+        message: 'Cinturón eliminado exitosamente.',
+        data: deletedBelt,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      
+      // Manejo de error de clave foránea (si el cinturón ya está asignado a alumnos)
+      if (error.code === '23503') {
+        throw new ConflictException(
+          'No se puede eliminar el cinturón porque hay alumnos asociados a él.'
+        );
+      }
+
+      console.error(error);
+      throw new InternalServerErrorException('Error al eliminar el cinturón de la base de datos.');
+    }
+  }
 }

@@ -53,6 +53,30 @@ let KarateBeltsService = class KarateBeltsService {
             throw new common_1.InternalServerErrorException("No se pudo obtener el listado de cinturones.");
         }
     }
+    async remove(id) {
+        try {
+            const [deletedBelt] = await this.db
+                .delete(schema_1.karateBeltsTable)
+                .where((0, drizzle_orm_1.eq)(schema_1.karateBeltsTable.id, id))
+                .returning();
+            if (!deletedBelt) {
+                throw new common_1.NotFoundException(`No se encontró el cinturón con ID ${id} para eliminar.`);
+            }
+            return {
+                message: 'Cinturón eliminado exitosamente.',
+                data: deletedBelt,
+            };
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException)
+                throw error;
+            if (error.code === '23503') {
+                throw new common_1.ConflictException('No se puede eliminar el cinturón porque hay alumnos asociados a él.');
+            }
+            console.error(error);
+            throw new common_1.InternalServerErrorException('Error al eliminar el cinturón de la base de datos.');
+        }
+    }
 };
 exports.KarateBeltsService = KarateBeltsService;
 exports.KarateBeltsService = KarateBeltsService = __decorate([

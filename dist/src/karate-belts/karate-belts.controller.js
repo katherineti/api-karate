@@ -24,6 +24,9 @@ let KarateBeltsController = class KarateBeltsController {
     findAll(paginationDto) {
         return this.karateBeltsService.findAllPaginated(paginationDto);
     }
+    async remove(id) {
+        return await this.karateBeltsService.remove(id);
+    }
 };
 exports.KarateBeltsController = KarateBeltsController;
 __decorate([
@@ -38,6 +41,14 @@ __decorate([
     __metadata("design:paramtypes", [pagination_karate_belts_dto_1.PaginationKarateBeltsDto]),
     __metadata("design:returntype", void 0)
 ], KarateBeltsController.prototype, "findAll", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], KarateBeltsController.prototype, "remove", null);
 exports.KarateBeltsController = KarateBeltsController = __decorate([
     (0, common_1.Controller)('karate-belts'),
     __metadata("design:paramtypes", [karate_belts_service_1.KarateBeltsService])
