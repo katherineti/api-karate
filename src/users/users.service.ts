@@ -93,8 +93,12 @@ export class UsersService {
           lastname: usersTable.lastname,
           email: usersTable.email,
           roles_ids: usersTable.roles_ids,
+          // Campos de la escuela
+          school_id: schoolTable.id,
+          school_name: schoolTable.name,
         })
           .from(usersTable)
+          .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
           .where(and(roleCondition, statusCondition));
     
         return result || [];
