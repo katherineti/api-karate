@@ -25,15 +25,16 @@ async create(dto: CreateModalityDto) {
         throw new BadRequestException(`La modalidad '${dto.name}' ya existe.`);
       }
 
+      const values = {
+        name: dto.name,
+        type: dto.type,
+        style: dto.style || null,
+        description: dto.description || null,
+      }
       // Insertar usando el DTO
       const result = await this.db
         .insert(modalitiesTable)
-        .values({
-          name: dto.name,
-          type: dto.type,
-          style: dto.style,
-          description: dto.description,
-        } as any)
+        .values( values )
         .returning();
 
       return result[0];
