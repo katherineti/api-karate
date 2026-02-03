@@ -114,7 +114,8 @@ async update(id: number, dto: UpdateModalityDto) {
     };
 
     if(dto.type==='combate'){
-      delete updateData.style;
+      // delete updateData.style;
+      updateData.style = null;
     }
 
     // 2. Ejecutamos la actualización
