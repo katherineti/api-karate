@@ -124,6 +124,7 @@ export const modalitiesTable = pgTable("modalities", {
   // Almacena el nombre único de la modalidad (Ej: 'Forma Tradicional')
   name: varchar("name", { length: 255 }).notNull().unique(), 
   type: varchar("type", { length: 50 }).notNull(), // 'kata' o 'combate'
+  style: varchar('style', { length: 100 }), // Nueva columna: Opcional (Nullable)
   description: text("description"),
 });
 

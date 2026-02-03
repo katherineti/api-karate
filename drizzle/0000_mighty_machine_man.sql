@@ -79,6 +79,7 @@ CREATE TABLE "modalities" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"type" varchar(50) NOT NULL,
+	"style" varchar(100),
 	"description" text,
 	CONSTRAINT "modalities_name_unique" UNIQUE("name")
 );

@@ -99,6 +99,15 @@ async function seed() {
     ];
 
     const modalitiesToInsert = [
+        {id: 1, name: 'FORMA TRADICIONAL', type: 'kata' },
+        {id: 2, name: 'FORMA CON ARMAS', type: 'kata' }, 
+        {id: 3, name: 'FORMAS EXTREMAS', type: 'kata' }, 
+        {id: 4, name: 'FORMA MUSICAL', type: 'kata' },
+        {id: 5, name: 'COMBATE POINT FIGHTING', type: 'combate' },
+        {id: 6, name: 'KICKBOXING - LIGHT CONTACT', type: 'combate' },
+        {id: 7, name: 'KICKBOXING - FULL CONTACT', type: 'combate' },
+    ];
+/*     const modalitiesToInsert = [
         {id: 1, name: 'Forma Tradicional', type: 'kata' },
         {id: 2, name: 'Forma con Armas', type: 'kata' }, 
         {id: 3, name: 'Formas Extremas', type: 'kata' }, 
@@ -106,7 +115,7 @@ async function seed() {
         {id: 5, name: 'Combate Point Fighting', type: 'combate' },
         {id: 6, name: 'Kickboxing - Light Contact', type: 'combate' },
         {id: 7, name: 'Kickboxing - Full Contact', type: 'combate' },
-    ];
+    ]; */
     
     // 2. Crear y conectar el cliente PG (autónomo)
     const client = new Client({
@@ -148,12 +157,12 @@ async function seed() {
         console.log(`✅ Schools completado. Se insertaron ${schoolsToInsert.length} escuelas.`);
 
         // SEEDING DE CATEGORÍAS DE KARATE
-        console.log('  -> 4: Insertando categorías de karate (karateCategories)...');
+         console.log('  -> 4: Insertando categorías de karate (karateCategories)...');
         await db.insert(karateCategoriesTable)
             .values(karateCategoriesToInsert)
             .onConflictDoNothing({ target: [karateCategoriesTable.category, karateCategoriesTable.age_range] }); 
         console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
-
+ 
         // SEEDING DE NIVELES DE KARATE
         console.log('  -> 5: Insertando cinturones de karate (karateBelts)...');
         await db.insert(karateBeltsTable)
