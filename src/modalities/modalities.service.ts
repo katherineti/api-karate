@@ -113,6 +113,10 @@ async update(id: number, dto: UpdateModalityDto) {
       ...(dto.description && { description: dto.description.trim() }),
     };
 
+    if(dto.type==='combate'){
+      delete updateData.style;
+    }
+
     // 2. Ejecutamos la actualización
     const [updatedModality] = await this.db
       .update(modalitiesTable)
