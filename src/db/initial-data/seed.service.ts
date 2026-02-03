@@ -2,7 +2,8 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import 'dotenv/config';
 import * as schema from '../schema'; 
-import { roleTable, statusTable, schoolTable, karateCategoriesTable, karateBeltsTable, typesEventsTable, subtypesEventsTable, modalitiesTable } from '../schema'; 
+import { roleTable, statusTable, schoolTable, karateCategoriesTable, karateBeltsTable, typesEventsTable, subtypesEventsTable, modalitiesTable, usersTable } from '../schema'; 
+import { RoleType } from '@/types';
 async function seed() {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
@@ -116,6 +117,112 @@ async function seed() {
         {id: 6, name: 'Kickboxing - Light Contact', type: 'combate' },
         {id: 7, name: 'Kickboxing - Full Contact', type: 'combate' },
     ]; */
+
+ const usersToInsert = [
+        {
+            id: 1,
+            name: 'Sanadmin',
+            lastname: 'Castillo',
+            document_type: 'V',
+            document: '123456789',
+            birthdate: '1990-01-01',
+            email: 'admin@example.com',
+            password: '12345678',
+            // password: 'Admin123!',
+            // profile_picture: 'https://example.com/profile.jpg',
+            school_id: 1,
+            representative_id: null,
+            status_id: 1,
+            roles_ids: [RoleType.Admin],
+            category_id: null,
+            belt_id: null,
+        },
+        {
+            id: 2,
+            name: 'Juan',
+            lastname: 'Castillo',
+            document_type: 'V',
+            document: '777777777',
+            birthdate: '1995-02-03',
+            email: 'master@gmail.com',
+            // password: 'Master123!',
+            password: '12345678',
+            school_id: 1,
+            representative_id: null,
+            status_id: 1,
+            roles_ids: [RoleType.Master],
+            category_id: 7,
+            belt_id: null,
+        },
+        {
+            id: 3,
+            name: 'Juez Ricardo',
+            lastname: 'Perez Sánchez.',
+            document_type: 'E',
+            document: '2222222',
+            birthdate: '1988-08-01',
+            email: 'juez@gmail.com',
+            // password: 'Master123!',
+            password: '12345678',
+            school_id: null,
+            representative_id: null,
+            status_id: 1,
+            roles_ids: [RoleType.Juez],
+            category_id: null,
+            belt_id: null,
+        },
+        {
+            id: 4,
+            name: 'Jose',
+            lastname: 'Doe',
+            document_type: 'V',
+            document: '9999799',
+            birthdate: '1979-02-02',
+            email: 'repre.jose@gmail.com',
+            // password: 'Master123!',
+            password: '12345678',
+            school_id: null,
+            representative_id: null,
+            status_id: 1,
+            roles_ids: [RoleType.Representante],
+            category_id: null,
+            belt_id: null,
+        },
+        {
+            id: 5,
+            name: 'Maria',
+            lastname: 'Doe',
+            document_type: 'V',
+            document: '111111111',
+            birthdate: '1979-02-02',
+            email: 'repre.maria@gmail.com',
+            // password: 'Master123!',
+            password: '12345678',
+            school_id: null,
+            representative_id: null,
+            status_id: 1,
+            roles_ids: [RoleType.Representante],
+            category_id: null,
+            belt_id: null,
+        },
+        {
+            id: 6,
+            name: 'John',
+            lastname: 'Doe',
+            document_type: 'V',
+            document: '54545454',
+            birthdate: '1979-09-02',
+            email: 'alumno@gmail.com',
+            // password: 'Master123!',
+            password: '12345678',
+            school_id: 2,
+            representative_id: [4,5],
+            status_id: 1,
+            roles_ids: [RoleType.Alumno],
+            category_id: 6,
+            belt_id: 4,
+        },
+    ];
     
     // 2. Crear y conectar el cliente PG (autónomo)
     const client = new Client({
@@ -193,6 +300,14 @@ async function seed() {
                 target: modalitiesTable.name
             });
         console.log('✅ Modalities completado.');
+
+        console.log('  -> 8: Insertando usuarios (users)...');
+        await db.insert(usersTable)
+            .values(usersToInsert)
+            .onConflictDoNothing({ 
+                target: [ usersTable.email, usersTable.document_type, usersTable.document_number]
+            });
+        console.log('✅ Users completado.');
 
         console.log('Seeding de datos iniciales finalizado correctamente.');
 
