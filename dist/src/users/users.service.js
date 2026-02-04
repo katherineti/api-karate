@@ -205,12 +205,14 @@ let UsersService = UsersService_1 = class UsersService {
                 roles_ids: schema_1.usersTable.roles_ids,
                 status: schema_1.usersTable.status,
                 status_name: schema_1.statusTable.status,
+                profile_picture: schema_1.usersTable.profile_picture,
             })
                 .from(schema_1.usersTable)
                 .leftJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.status, schema_1.statusTable.id))
                 .where(finalWhereCondition)
                 .limit(limit)
                 .offset(offset);
+            const buildUrl = (path) => (path && constants_1.API_BASE_URL_PROD) ? `${constants_1.API_BASE_URL_PROD}/${path}` : path;
             const allRoles = await this.db
                 .select({ id: schema_1.roleTable.id, name: schema_1.roleTable.name })
                 .from(schema_1.roleTable);
@@ -225,6 +227,7 @@ let UsersService = UsersService_1 = class UsersService {
                 const { roles_ids, ...userData } = user;
                 return {
                     ...userData,
+                    profile_picture: buildUrl(userData.profile_picture),
                     roles: roles,
                 };
             });

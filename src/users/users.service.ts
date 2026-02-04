@@ -321,12 +321,18 @@ export class UsersService {
                     roles_ids: usersTable.roles_ids,
                     status: usersTable.status,
                     status_name: statusTable.status,
+                    profile_picture: usersTable.profile_picture,
                 })
                 .from(usersTable)
                 .leftJoin(statusTable, eq(usersTable.status, statusTable.id))
                 .where(finalWhereCondition) 
                 .limit(limit)
                 .offset(offset);
+
+                    // Función auxiliar para armar la URL
+        // Función auxiliar para armar la URL
+        const buildUrl = (path: string | null) => 
+          (path && API_BASE_URL_PROD) ? `${API_BASE_URL_PROD}/${path}` : path;
 
             // Mapear IDs de Rol a Objetos de Rol ---
             const allRoles = await this.db
@@ -348,6 +354,7 @@ export class UsersService {
                 
                 return {
                     ...userData,
+                    profile_picture: buildUrl(userData.profile_picture),
                     roles: roles,
                 } as IPaginatedUser;
             });
