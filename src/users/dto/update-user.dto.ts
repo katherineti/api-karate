@@ -77,11 +77,11 @@ import {
     IsDate, 
     MaxDate 
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateUserDto{
     
-    // ID (Obligatorio para la actualización)
+    @Type(() => Number)
     @IsNumber({}, { message: 'El ID del usuario debe ser un número válido.' })
     @IsNotEmpty({ message: 'El ID del usuario es requerido para la actualización.' })
     id: number;
@@ -124,24 +124,42 @@ export class UpdateUserDto{
     @IsOptional()
     profile_picture?: string;
 
-    // ID de Escuela
+    @Type(() => Number)
     @IsNumber({}, { message: 'El ID de la escuela debe ser un número válido.' })
     @IsOptional()
     school_id?: number;
 
     // ID de Representante
-/*     @IsNumber({}, { message: 'El ID del representante debe ser un número válido.' })
-    @IsOptional()
-    representative_id?: number; */
-    @IsArray({ message: 'Los representantes deben ser proporcionados como un arreglo (representative_id).' }) 
+/*     @IsArray({ message: 'Los representantes deben ser proporcionados como un arreglo (representative_id).' }) 
     @IsOptional()
     @IsNumber({}, { each: true, message: 'Cada elemento en representative_id debe ser un número (ID de representante).' })
+    representative_id: number[]; */
+
+
+    @Transform(({ value }) => {
+        // Si viene como string "[1,2]", lo parseamos. Si viene como string "1", lo metemos en array.
+        if (typeof value === 'string') {
+            try { return JSON.parse(value); } catch { return [Number(value)]; }
+        }
+        return value;
+    })
+    @IsArray({ message: 'Los representantes deben ser proporcionados como un arreglo (representative_id).' }) 
+    @IsOptional()
     representative_id: number[];
 
     // Roles (Arreglo de IDs)
-    @IsArray({ message: 'Los roles deben ser proporcionados como un arreglo (roles_ids).' }) 
+/*     @IsArray({ message: 'Los roles deben ser proporcionados como un arreglo (roles_ids).' }) 
     @IsNotEmpty({ message: 'Se debe asignar al menos un rol al usuario.' }) 
     @IsNumber({}, { each: true, message: 'Cada elemento en roles_ids debe ser un número (ID de rol).' })
+    roles_ids: number[]; */
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            try { return JSON.parse(value); } catch { return [Number(value)]; }
+        }
+        return value;
+    })
+    @IsArray()
+    @IsNotEmpty()
     roles_ids: number[];
 
     // ID de Categoría
@@ -158,4 +176,16 @@ export class UpdateUserDto{
     @IsNumber({}, { message: 'El estado del usuario debe ser un número válido (ej: 1 para Activo).' })
     @IsOptional()
     status?: number;
+
+    @IsString()
+    @IsOptional()
+    certificate_front_url?: string;
+
+    @IsString()
+    @IsOptional()
+    certificate_back_url?: string;
+
+    @IsString()
+    @IsOptional()
+    master_photo_url?: string;
 }

@@ -4,15 +4,21 @@ import 'dotenv/config';
 import * as schema from '../schema'; 
 import { roleTable, statusTable, schoolTable, karateCategoriesTable, karateBeltsTable, typesEventsTable, subtypesEventsTable, modalitiesTable, usersTable } from '../schema'; 
 // import { RoleType } from '@/types';
+import * as argon2 from "argon2";
+// import { STATUS_ACTIVO } from '@/src/constants';
+const STATUS_ACTIVO = 1
 
  enum RoleType {
     // User = 'user',
-     Admin = 'administrador',
-     Master = 'master',
-     Juez = 'juez',
-     Representante = 'representante',
-     Alumno = 'alumno',
+     Admin = 1,
+     Master = 2,
+     Juez = 3,
+     Representante = 4,
+     Alumno = 5,
 }
+export async function passw_hash (password: string) {
+        return await argon2.hash( password );
+    }
 
 async function seed() {
     const connectionString = process.env.DATABASE_URL;
@@ -128,6 +134,7 @@ async function seed() {
         {id: 7, name: 'Kickboxing - Full Contact', type: 'combate' },
     ]; */
 
+
  const usersToInsert = [
         {
             // id: 1,
@@ -136,16 +143,20 @@ async function seed() {
             document_type: 'V',
             document_number: '123456789',
             birthdate: '1990-01-01',
-            email: 'admin@example.com',
-            password: '12345678',
+            email: 'admin@gmail.com',
+            // password: '12345678',
+            password: await passw_hash('12345678'),
+           
             // password: 'Admin123!',
             // profile_picture: 'https://example.com/profile.jpg',
-            school_id: 1,
+            school_id: null,
+            // school_id: 1,
             representative_id: null,
             status_id: 1,
             roles_ids: [RoleType.Admin],
             category_id: null,
             belt_id: null,
+            status: STATUS_ACTIVO,
             certificate_front_url: null,
             certificate_back_url: null,
             master_photo_url: null,
@@ -159,13 +170,14 @@ async function seed() {
             birthdate: '1995-02-03',
             email: 'master@gmail.com',
             // password: 'Master123!',
-            password: '12345678',
+            password: await passw_hash('12345678'),
             school_id: 1,
             representative_id: null,
             status_id: 1,
             roles_ids: [RoleType.Master],
             category_id: 7,
             belt_id: null,
+            status: STATUS_ACTIVO,
             certificate_front_url: null,
             certificate_back_url: null,
             master_photo_url: null,
@@ -179,13 +191,14 @@ async function seed() {
             birthdate: '1988-08-01',
             email: 'juez@gmail.com',
             // password: 'Master123!',
-            password: '12345678',
+             password: await passw_hash('12345678'),
             school_id: null,
             representative_id: null,
             status_id: 1,
             roles_ids: [RoleType.Juez],
             category_id: null,
             belt_id: null,
+            status: STATUS_ACTIVO,
             certificate_front_url: null,
             certificate_back_url: null,
             master_photo_url: null,
@@ -199,13 +212,14 @@ async function seed() {
             birthdate: '1979-02-02',
             email: 'repre.jose@gmail.com',
             // password: 'Master123!',
-            password: '12345678',
+            password: await passw_hash('12345678'),
             school_id: null,
             representative_id: null,
             status_id: 1,
             roles_ids: [RoleType.Representante],
             category_id: null,
             belt_id: null,
+            status: STATUS_ACTIVO,
             certificate_front_url: null,
             certificate_back_url: null,
             master_photo_url: null,
@@ -219,13 +233,14 @@ async function seed() {
             birthdate: '1979-02-02',
             email: 'repre.maria@gmail.com',
             // password: 'Master123!',
-            password: '12345678',
+            password: await passw_hash('12345678'),
             school_id: null,
             representative_id: null,
             status_id: 1,
             roles_ids: [RoleType.Representante],
             category_id: null,
             belt_id: null,
+            status: STATUS_ACTIVO,
             certificate_front_url: null,
             certificate_back_url: null,
             master_photo_url: null,
@@ -239,13 +254,14 @@ async function seed() {
             birthdate: '1979-09-02',
             email: 'alumno@gmail.com',
             // password: 'Master123!',
-            password: '12345678',
+            password: await passw_hash('12345678'),
             school_id: 2,
             representative_id: [4,5],
             status_id: 1,
             roles_ids: [RoleType.Alumno],
             category_id: 6,
             belt_id: 4,
+            status: STATUS_ACTIVO,
             certificate_front_url: null,
             certificate_back_url: null,
             master_photo_url: null,
@@ -300,12 +316,12 @@ async function seed() {
 
 
         // SEEDING DE CATEGORÍAS DE KARATE
-/*          console.log('  -> 5: Insertando categorías de karate (karateCategories)...');
+          console.log('  -> 5: Insertando categorías de karate (karateCategories)...');
         await db.insert(karateCategoriesTable)
             .values(karateCategoriesToInsert)
             .onConflictDoNothing({ target: [karateCategoriesTable.category, karateCategoriesTable.age_range] }); 
-        console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
-  */
+        console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length}pusers categorías.`);
+  
 
         console.log('  -> 6: Insertando tipos de eventos (typesEvents)...');
         await db.insert(typesEventsTable)
