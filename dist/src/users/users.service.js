@@ -128,11 +128,11 @@ let UsersService = UsersService_1 = class UsersService {
                 roles_ids: user.roles_ids ?? [],
                 category_id: user.category_id,
                 belt_id: user.belt_id,
-                updated_at: new Date(),
                 profile_picture: filePaths?.profile_picture ?? userToUpdate.profile_picture,
                 certificate_front_url: filePaths?.certificate_front_url ?? userToUpdate.certificate_front_url,
                 certificate_back_url: filePaths?.certificate_back_url ?? userToUpdate.certificate_back_url,
                 master_photo_url: filePaths?.master_photo_url ?? userToUpdate.master_photo_url,
+                updated_at: new Date()
             };
             return await this.db.update(schema_1.usersTable)
                 .set(updated)

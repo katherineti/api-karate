@@ -200,13 +200,13 @@ export class UsersService {
         roles_ids: user.roles_ids ?? [],
         category_id: user.category_id,
         belt_id: user.belt_id,
-        updated_at: new Date(),
         // Si viene un archivo nuevo en filePaths, úsalo.
         // Si no, mantén el que ya tiene el usuario en la base de datos (userToUpdate).
         profile_picture: filePaths?.profile_picture ?? userToUpdate.profile_picture,
         certificate_front_url: filePaths?.certificate_front_url ?? userToUpdate.certificate_front_url,
         certificate_back_url: filePaths?.certificate_back_url ?? userToUpdate.certificate_back_url,
         master_photo_url: filePaths?.master_photo_url ?? userToUpdate.master_photo_url,
+        updated_at: new Date()
       };
 
       return await this.db.update(usersTable)
