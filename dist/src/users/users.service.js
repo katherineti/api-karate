@@ -204,8 +204,10 @@ let UsersService = UsersService_1 = class UsersService {
                 email: schema_1.usersTable.email,
                 roles_ids: schema_1.usersTable.roles_ids,
                 status: schema_1.usersTable.status,
+                status_name: schema_1.statusTable.status,
             })
                 .from(schema_1.usersTable)
+                .leftJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.status, schema_1.statusTable.id))
                 .where(finalWhereCondition)
                 .limit(limit)
                 .offset(offset);

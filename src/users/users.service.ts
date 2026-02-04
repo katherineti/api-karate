@@ -1,7 +1,7 @@
 import { ConflictException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { API_BASE_URL_PROD, PG_CONNECTION, ROL_ALUMNO, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
-import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable, tournamentRegistrationsTable } from 'src/db/schema';
+import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable, tournamentRegistrationsTable, statusTable } from 'src/db/schema';
 import { and, eq, inArray, like, ne, notExists, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { SignupDto } from '../auth/dto/signup.dto';
@@ -320,8 +320,10 @@ export class UsersService {
                     email: usersTable.email,
                     roles_ids: usersTable.roles_ids,
                     status: usersTable.status,
+                    status_name: statusTable.status,
                 })
                 .from(usersTable)
+                .leftJoin(statusTable, eq(usersTable.status, statusTable.id))
                 .where(finalWhereCondition) 
                 .limit(limit)
                 .offset(offset);
