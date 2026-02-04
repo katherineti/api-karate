@@ -76,8 +76,11 @@ let UsersService = UsersService_1 = class UsersService {
                 lastname: schema_1.usersTable.lastname,
                 email: schema_1.usersTable.email,
                 roles_ids: schema_1.usersTable.roles_ids,
+                school_id: schema_1.schoolTable.id,
+                school_name: schema_1.schoolTable.name,
             })
                 .from(schema_1.usersTable)
+                .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
                 .where((0, drizzle_orm_1.and)(roleCondition, statusCondition));
             return result || [];
         }
@@ -102,15 +105,14 @@ let UsersService = UsersService_1 = class UsersService {
         }
         return "Usuario registrado";
     }
-    async updateUser(user) {
-        console.log("userupdate", user);
+    async updateUser(user, filePaths) {
         const userToUpdate = await this.getUserbyId(user.id);
         if (!userToUpdate) {
-            throw new common_1.NotFoundException(`No existe el usuario con ID ${user.id} para actualizar.`);
+            throw new common_1.NotFoundException(`No existe el usuario con ID ${user.id}.`);
         }
         const existingEmailUser = await this.findOneByEmailExcludingId(user.email, user.id);
         if (existingEmailUser) {
-            throw new common_1.ConflictException(`El email ${user.email} ya está registrado por otro usuario.`);
+            throw new common_1.ConflictException(`El email ${user.email} ya está registrado.`);
         }
         try {
             const updated = {
@@ -120,7 +122,6 @@ let UsersService = UsersService_1 = class UsersService {
                 document_number: user.document_number,
                 birthdate: user.birthdate,
                 email: user.email,
-                profile_picture: user.profile_picture,
                 school_id: user.school_id,
                 representative_id: user.representative_id ?? [],
                 status: constants_1.STATUS_UPDATED,
@@ -128,15 +129,18 @@ let UsersService = UsersService_1 = class UsersService {
                 category_id: user.category_id,
                 belt_id: user.belt_id,
                 updated_at: new Date(),
+                profile_picture: filePaths?.profile_picture ?? userToUpdate.profile_picture,
+                certificate_front_url: filePaths?.certificate_front_url ?? userToUpdate.certificate_front_url,
+                certificate_back_url: filePaths?.certificate_back_url ?? userToUpdate.certificate_back_url,
+                master_photo_url: filePaths?.master_photo_url ?? userToUpdate.master_photo_url,
             };
-            console.log("update-obj que se envia a BD: ", updated);
             return await this.db.update(schema_1.usersTable)
                 .set(updated)
                 .where((0, drizzle_orm_1.eq)(schema_1.usersTable.id, user.id))
                 .returning({ updatedId: schema_1.usersTable.id });
         }
         catch (err) {
-            throw new Error("Error al actualizar un usuario " + err);
+            throw new common_1.InternalServerErrorException("Error al actualizar usuario: " + err.message);
         }
     }
     async changeStatus(user) {

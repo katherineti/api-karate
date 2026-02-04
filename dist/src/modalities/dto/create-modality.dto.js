@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateModalityDto = void 0;
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class CreateModalityDto {
 }
@@ -17,6 +18,7 @@ exports.CreateModalityDto = CreateModalityDto;
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)({ message: 'El nombre de la modalidad es obligatorio' }),
+    (0, class_transformer_1.Transform)(({ value }) => typeof value === 'string' ? value.toUpperCase().trim() : value),
     __metadata("design:type", String)
 ], CreateModalityDto.prototype, "name", void 0);
 __decorate([
@@ -24,6 +26,19 @@ __decorate([
         message: 'El tipo debe ser "kata" o "combate"',
     }),
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_transformer_1.Transform)(({ value }) => typeof value === 'string' ? value.toLowerCase().trim() : value),
     __metadata("design:type", String)
 ], CreateModalityDto.prototype, "type", void 0);
+__decorate([
+    (0, class_validator_1.ValidateIf)(o => o.type === 'kata'),
+    (0, class_validator_1.IsNotEmpty)({ message: 'El estilo es obligatorio para las modalidades de tipo Kata' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], CreateModalityDto.prototype, "style", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)({ message: 'La descripción de la modalidad es opcional' }),
+    __metadata("design:type", String)
+], CreateModalityDto.prototype, "description", void 0);
 //# sourceMappingURL=create-modality.dto.js.map

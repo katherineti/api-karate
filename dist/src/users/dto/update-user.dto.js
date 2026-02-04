@@ -16,6 +16,7 @@ class UpdateUserDto {
 }
 exports.UpdateUserDto = UpdateUserDto;
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)({}, { message: 'El ID del usuario debe ser un número válido.' }),
     (0, class_validator_1.IsNotEmpty)({ message: 'El ID del usuario es requerido para la actualización.' }),
     __metadata("design:type", Number)
@@ -59,35 +60,74 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateUserDto.prototype, "profile_picture", void 0);
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)({}, { message: 'El ID de la escuela debe ser un número válido.' }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateUserDto.prototype, "school_id", void 0);
 __decorate([
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            }
+            catch {
+                return [Number(value)];
+            }
+        }
+        return value;
+    }),
     (0, class_validator_1.IsArray)({ message: 'Los representantes deben ser proporcionados como un arreglo (representative_id).' }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)({}, { each: true, message: 'Cada elemento en representative_id debe ser un número (ID de representante).' }),
     __metadata("design:type", Array)
 ], UpdateUserDto.prototype, "representative_id", void 0);
 __decorate([
-    (0, class_validator_1.IsArray)({ message: 'Los roles deben ser proporcionados como un arreglo (roles_ids).' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Se debe asignar al menos un rol al usuario.' }),
-    (0, class_validator_1.IsNumber)({}, { each: true, message: 'Cada elemento en roles_ids debe ser un número (ID de rol).' }),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            }
+            catch {
+                return [Number(value)];
+            }
+        }
+        return value;
+    }),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Array)
 ], UpdateUserDto.prototype, "roles_ids", void 0);
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)({}, { message: 'El ID de la categoría de karate debe ser un número válido.' }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateUserDto.prototype, "category_id", void 0);
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)({}, { message: 'El ID del cinturón de karate debe ser un número válido.' }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateUserDto.prototype, "belt_id", void 0);
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)({}, { message: 'El estado del usuario debe ser un número válido (ej: 1 para Activo).' }),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateUserDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "certificate_front_url", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "certificate_back_url", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "master_photo_url", void 0);
 //# sourceMappingURL=update-user.dto.js.map

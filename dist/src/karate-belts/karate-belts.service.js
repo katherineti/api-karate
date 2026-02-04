@@ -53,6 +53,21 @@ let KarateBeltsService = class KarateBeltsService {
             throw new common_1.InternalServerErrorException("No se pudo obtener el listado de cinturones.");
         }
     }
+    async findAll() {
+        try {
+            const belts = await this.db
+                .select()
+                .from(schema_1.karateBeltsTable)
+                .orderBy((0, drizzle_orm_1.asc)(schema_1.karateBeltsTable.id));
+            return {
+                data: belts
+            };
+        }
+        catch (error) {
+            console.error("Error Karate Belts Service:", error);
+            throw new common_1.InternalServerErrorException("No se pudo obtener el listado de cinturones.");
+        }
+    }
     async create(createDto) {
         try {
             const [newBelt] = await this.db

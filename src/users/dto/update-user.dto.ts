@@ -163,16 +163,19 @@ export class UpdateUserDto{
     roles_ids: number[];
 
     // ID de Categoría
+    @Type(() => Number)
     @IsNumber({}, { message: 'El ID de la categoría de karate debe ser un número válido.' })
     @IsOptional()
     category_id?: number;
 
     // ID de Cinturón
+    @Type(() => Number)
     @IsNumber({}, { message: 'El ID del cinturón de karate debe ser un número válido.' })
     @IsOptional()
     belt_id?: number;
 
     // Estado
+    @Type(() => Number)
     @IsNumber({}, { message: 'El estado del usuario debe ser un número válido (ej: 1 para Activo).' })
     @IsOptional()
     status?: number;

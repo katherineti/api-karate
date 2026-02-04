@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const modalities_service_1 = require("./modalities.service");
 const create_modality_dto_1 = require("./dto/create-modality.dto");
 const public_decorator_1 = require("../decorators/public.decorator");
+const pagination_modalities_dto_1 = require("./dto/pagination-modalities.dto");
+const update_modality_dto_1 = require("./dto/update-modality.dto");
 let ModalitiesController = class ModalitiesController {
     constructor(modalitiesService) {
         this.modalitiesService = modalitiesService;
@@ -26,6 +28,15 @@ let ModalitiesController = class ModalitiesController {
     }
     findAll() {
         return this.modalitiesService.findAll();
+    }
+    async findAllPaginated(paginationDto) {
+        return this.modalitiesService.findAllPaginated(paginationDto);
+    }
+    async update(id, updateModalityDto) {
+        return await this.modalitiesService.update(id, updateModalityDto);
+    }
+    async remove(id) {
+        return await this.modalitiesService.remove(id);
     }
 };
 exports.ModalitiesController = ModalitiesController;
@@ -44,6 +55,36 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ModalitiesController.prototype, "findAll", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('list'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true }
+    })),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [pagination_modalities_dto_1.PaginationModalitiesDto]),
+    __metadata("design:returntype", Promise)
+], ModalitiesController.prototype, "findAllPaginated", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Patch)(':id'),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_modality_dto_1.UpdateModalityDto]),
+    __metadata("design:returntype", Promise)
+], ModalitiesController.prototype, "update", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ModalitiesController.prototype, "remove", null);
 exports.ModalitiesController = ModalitiesController = __decorate([
     (0, common_1.Controller)('modalities'),
     __metadata("design:paramtypes", [modalities_service_1.ModalitiesService])

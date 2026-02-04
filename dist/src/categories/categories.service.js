@@ -123,9 +123,16 @@ let CategoriesService = class CategoriesService {
         }
     }
     async remove(id) {
-        return this.db.delete(schema_1.karateCategoriesTable)
+        const [deletedCategory] = await this.db.delete(schema_1.karateCategoriesTable)
             .where((0, drizzle_orm_1.eq)(schema_1.karateCategoriesTable.id, id))
             .returning();
+        if (!deletedCategory) {
+            throw new common_1.NotFoundException(`No se encontró la categoría con el ID ${id}`);
+        }
+        return {
+            message: 'Categoría eliminada exitosamente',
+            data: deletedCategory,
+        };
     }
 };
 exports.CategoriesService = CategoriesService;

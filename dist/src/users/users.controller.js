@@ -22,6 +22,10 @@ const role_decorators_1 = require("../decorators/role.decorators");
 const types_1 = require("../../types");
 const update_user_dto_1 = require("./dto/update-user.dto");
 const public_decorator_1 = require("../decorators/public.decorator");
+const platform_express_1 = require("@nestjs/platform-express");
+const common_2 = require("@nestjs/common");
+const multer_1 = require("multer");
+const path_1 = require("path");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
@@ -36,9 +40,14 @@ let UsersController = class UsersController {
     async getUsersByRole(roleId) {
         return this.usersService.getByRol(roleId);
     }
-    update(user) {
-        console.log("user", user);
-        return this.usersService.updateUser(user);
+    async update(userDto, files) {
+        const filePaths = {
+            profile_picture: files.profile_picture?.[0]?.path.replaceAll('\\', '/'),
+            certificate_front_url: files.certificate_front?.[0]?.path.replaceAll('\\', '/'),
+            certificate_back_url: files.certificate_back?.[0]?.path.replaceAll('\\', '/'),
+            master_photo_url: files.master_photo?.[0]?.path.replaceAll('\\', '/'),
+        };
+        return this.usersService.updateUser(userDto, filePaths);
     }
     changeStatus(user) {
         return this.usersService.changeStatus(user);
@@ -79,11 +88,25 @@ __decorate([
 ], UsersController.prototype, "getUsersByRole", null);
 __decorate([
     (0, common_1.Post)('update'),
-    (0, common_1.UsePipes)(common_1.ValidationPipe),
+    (0, common_2.UseInterceptors)((0, platform_express_1.FileFieldsInterceptor)([
+        { name: 'profile_picture', maxCount: 1 },
+        { name: 'certificate_front', maxCount: 1 },
+        { name: 'certificate_back', maxCount: 1 },
+        { name: 'master_photo', maxCount: 1 },
+    ], {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/users',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                cb(null, `${file.fieldname}-${uniqueSuffix}${(0, path_1.extname)(file.originalname)}`);
+            },
+        }),
+    })),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_2.UploadedFiles)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [update_user_dto_1.UpdateUserDto, Object]),
+    __metadata("design:returntype", Promise)
 ], UsersController.prototype, "update", null);
 __decorate([
     (0, public_decorator_1.Public)(),

@@ -23,8 +23,11 @@ let KarateBeltsController = class KarateBeltsController {
     constructor(karateBeltsService) {
         this.karateBeltsService = karateBeltsService;
     }
-    findAll(paginationDto) {
+    findAllPaginated(paginationDto) {
         return this.karateBeltsService.findAllPaginated(paginationDto);
+    }
+    findAll() {
+        return this.karateBeltsService.findAll();
     }
     create(createKarateBeltDto) {
         return this.karateBeltsService.create(createKarateBeltDto);
@@ -47,6 +50,13 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [pagination_karate_belts_dto_1.PaginationKarateBeltsDto]),
+    __metadata("design:returntype", void 0)
+], KarateBeltsController.prototype, "findAllPaginated", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], KarateBeltsController.prototype, "findAll", null);
 __decorate([

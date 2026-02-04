@@ -54,11 +54,15 @@ exports.usersTable = (0, pg_core_1.pgTable)("users", {
     roles_ids: (0, pg_core_1.jsonb)('roles_ids').$type().notNull().default([]),
     category_id: (0, pg_core_1.integer)().default(null).references(() => exports.karateCategoriesTable.id),
     belt_id: (0, pg_core_1.integer)().default(null).references(() => exports.karateBeltsTable.id),
+    certificate_front_url: (0, pg_core_1.varchar)("certificate_front_url", { length: 500 }),
+    certificate_back_url: (0, pg_core_1.varchar)("certificate_back_url", { length: 500 }),
+    master_photo_url: (0, pg_core_1.varchar)("master_photo_url", { length: 500 }),
     created_at: (0, pg_core_1.timestamp)().defaultNow(),
     updated_at: (0, pg_core_1.timestamp)().defaultNow(),
 }, (table) => {
     return [
         (0, pg_core_1.unique)('document_unique').on(table.document_type, table.document_number),
+        (0, pg_core_1.unique)('user_identity_triad_unique').on(table.email, table.document_type, table.document_number),
     ];
 });
 exports.typesEventsTable = (0, pg_core_1.pgTable)("types_events", {
@@ -99,6 +103,7 @@ exports.modalitiesTable = (0, pg_core_1.pgTable)("modalities", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull().unique(),
     type: (0, pg_core_1.varchar)("type", { length: 50 }).notNull(),
+    style: (0, pg_core_1.varchar)('style', { length: 100 }),
     description: (0, pg_core_1.text)("description"),
 });
 exports.eventCategoriesTable = (0, pg_core_1.pgTable)("event_categories", {
