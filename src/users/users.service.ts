@@ -2,7 +2,7 @@ import { ConflictException, Inject, Injectable, InternalServerErrorException, Lo
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { API_BASE_URL_PROD, PG_CONNECTION, ROL_ALUMNO, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable, tournamentRegistrationsTable, statusTable } from 'src/db/schema';
-import { and, eq, inArray, like, ne, notExists, or, SQL, sql } from 'drizzle-orm'
+import { and, eq, ilike, inArray, like, ne, notExists, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
 import { SignupDto } from '../auth/dto/signup.dto';
 import { IPaginatedResponse, IPaginatedUser, IRole } from './interfaces/paginated-user.interface';
@@ -265,9 +265,9 @@ export class UsersService {
                 const searchPattern = `%${search.toLowerCase()}%`;
                 whereConditions.push(
                     or(
-                        like(usersTable.name, searchPattern),
-                        like(usersTable.lastname, searchPattern),
-                        like(usersTable.email, searchPattern)
+                        ilike(usersTable.name, searchPattern),
+                        ilike(usersTable.lastname, searchPattern),
+                        ilike(usersTable.email, searchPattern)
                     ) as SQL<unknown>
                 );
             }

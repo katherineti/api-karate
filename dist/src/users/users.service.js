@@ -170,7 +170,7 @@ let UsersService = UsersService_1 = class UsersService {
             const whereConditions = [];
             if (search) {
                 const searchPattern = `%${search.toLowerCase()}%`;
-                whereConditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.like)(schema_1.usersTable.name, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.lastname, searchPattern), (0, drizzle_orm_1.like)(schema_1.usersTable.email, searchPattern)));
+                whereConditions.push((0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(schema_1.usersTable.name, searchPattern), (0, drizzle_orm_1.ilike)(schema_1.usersTable.lastname, searchPattern), (0, drizzle_orm_1.ilike)(schema_1.usersTable.email, searchPattern)));
             }
             let roleIdToFilter = null;
             if (roleFilter && roleFilter.toLowerCase() !== 'all') {
