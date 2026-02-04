@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { PG_CONNECTION, ROL_ALUMNO, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable, tournamentRegistrationsTable } from 'src/db/schema';
@@ -131,7 +131,7 @@ export class UsersService {
         return "Usuario registrado";
     }
 
-   async updateUser(user:UpdateUserDto): Promise<{ updatedId: number }[]> { console.log("userupdate",user)
+/*    async updateUser(user:UpdateUserDto): Promise<{ updatedId: number }[]> { console.log("userupdate",user)
       // 1. Validar que el ID del usuario a actualizar existe
       const userToUpdate = await this.getUserbyId(user.id);
       if (!userToUpdate) {
@@ -171,7 +171,52 @@ export class UsersService {
       } catch (err) {
         throw new Error("Error al actualizar un usuario " + err);
       }
-    }
+    } */
+
+async updateUser(user: UpdateUserDto, filePaths?: any): Promise<{ updatedId: number }[]> {
+  // 1. Validar existencia
+  const userToUpdate = await this.getUserbyId(user.id);
+  if (!userToUpdate) {
+    throw new NotFoundException(`No existe el usuario con ID ${user.id}.`);
+  }
+
+  // 2. Validar email (tu lógica actual)
+  const existingEmailUser = await this.findOneByEmailExcludingId(user.email, user.id);
+  if (existingEmailUser) {
+    throw new ConflictException(`El email ${user.email} ya está registrado.`);
+  }
+
+  try {
+    const updated = {
+      name: user.name,
+      lastname: user.lastname,
+      document_type: user.document_type,
+      document_number: user.document_number,
+      birthdate: user.birthdate,
+      email: user.email,
+      school_id: user.school_id,
+      representative_id: user.representative_id ?? [],
+      status: STATUS_UPDATED,
+      roles_ids: user.roles_ids ?? [],
+      category_id: user.category_id,
+      belt_id: user.belt_id,
+      updated_at: new Date(),
+      // Agregamos las imágenes si se subieron, de lo contrario mantenemos las actuales
+      profile_picture: filePaths?.profile_picture ?? user.profile_picture,
+      certificate_front_url: filePaths?.certificate_front_url,
+      certificate_back_url: filePaths?.certificate_back_url,
+      master_photo_url: filePaths?.master_photo_url,
+    };
+
+    return await this.db.update(usersTable)
+      .set(updated)
+      .where(eq(usersTable.id, user.id))
+      .returning({ updatedId: usersTable.id });
+
+  } catch (err) {
+    throw new InternalServerErrorException("Error al actualizar usuario: " + err.message);
+  }
+}
 
     async changeStatus(user:UpdateUserDto): Promise<{ updatedId: number }[]> {
       let id= await this.getUserbyId(user.id);

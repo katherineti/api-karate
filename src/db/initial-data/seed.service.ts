@@ -3,7 +3,17 @@ import { Client } from 'pg';
 import 'dotenv/config';
 import * as schema from '../schema'; 
 import { roleTable, statusTable, schoolTable, karateCategoriesTable, karateBeltsTable, typesEventsTable, subtypesEventsTable, modalitiesTable, usersTable } from '../schema'; 
-import { RoleType } from '@/types';
+// import { RoleType } from '@/types';
+
+ enum RoleType {
+    // User = 'user',
+     Admin = 'administrador',
+     Master = 'master',
+     Juez = 'juez',
+     Representante = 'representante',
+     Alumno = 'alumno',
+}
+
 async function seed() {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
@@ -20,31 +30,31 @@ async function seed() {
     ];
 
     const statusToInsert = [
-        { status: 'activo' },
-        { status: 'inactivo' }, 
-        { status: 'actualizado' }, 
-        { status: 'Evento programado' },
-        { status: 'Evento en curso' },
-        { status: 'Evento finalizado' },
-        { status: 'Evento cancelado' },
+        {id:1, status: 'activo' },
+        {id:2, status: 'inactivo' }, 
+        {id:3, status: 'actualizado' }, 
+        {id:4, status: 'Evento programado' },
+        {id:5, status: 'Evento en curso' },
+        {id:6, status: 'Evento finalizado' },
+        {id:7, status: 'Evento cancelado' },
     ];
 
     const rawSchoolsData = [
-        { slug: 'antonio-diaz-dojo', name: 'Antonio Díaz Dojo'},
-        { slug: 'shito-ryu-karate', name: 'Shito-Ryu Karate'},
-        { slug: 'dojo-okinawa', name: 'Dojo Okinawa'},
-        { slug: 'bushido-vzla', name: 'Bushido Vzla'},
-        { slug: 'shotokan-caracas', name: 'Shotokan Caracas'},
-        { slug: 'gensei-ryu-miranda', name: 'Gensei-Ryu Miranda'},
-        { slug: 'wado-ryu-valencia', name: 'Wado-Ryu Valencia' },
-        { slug: 'kyokushin-maracay', name: 'Kyokushin Maracay'},
-        { slug: 'shorin-ryu-barquisimeto', name: 'Shorin-Ryu Barquisimeto'}, 
-        { slug: 'goju-ryu-merida', name: 'Goju-Ryu Mérida'},
-        { slug: 'isshin-ryu-san-cristobal', name: 'Isshin-Ryu San Cristóbal' },
-        { slug: 'kenpo-karate-zulia', name: 'Kenpo Karate Zulia' },
-        { slug: 'ryuei-ryu-anzoategui', name: 'Ryuei-Ryu Anzoátegui' },
-        { slug: 'shudokan-bolivar', name: 'Shudokan Bolívar' },
-        { slug: 'yoshukai-sucre', name: 'Yoshukai Sucre' },
+        {id:1, slug: 'antonio-diaz-dojo', name: 'Antonio Díaz Dojo', address: 'caracas', base_score: 10, logo_url: 'uploads/image-1770156486595-341931470.jpg', is_active:true},
+        {id:2, slug: 'shito-ryu-karate', name: 'Shito-Ryu Karate', address: 'caracas', base_score: 10, logo_url: 'uploads/image-1770156533962-952722379.jpg', is_active:true},
+        {id:3, slug: 'dojo-okinawa', name: 'Dojo Okinawa', address: 'caracas', base_score: 10, logo_url: 'uploads/image-1770156551772-674652581.jpg', is_active:true},
+        {id:4, slug: 'bushido-vzla', name: 'Bushido Vzla', address: 'caracas', base_score: 10, logo_url: 'uploads/image-1770156580851-91741715.jpg', is_active:true},
+        {id:5, slug: 'shotokan-caracas', name: 'Shotokan Caracas', address: 'caracas', base_score: 10, logo_url: '', is_active:true},
+        {id:6, slug: 'gensei-ryu-miranda', name: 'Gensei-Ryu Miranda', address: 'caracas', base_score: 10, logo_url: '', is_active:true},
+        {id:7, slug: 'wado-ryu-valencia', name: 'Wado-Ryu Valencia', address: 'caracas', base_score: 10, logo_url: '', is_active:true },
+        {id:8, slug: 'kyokushin-maracay', name: 'Kyokushin Maracay', address: 'caracas', base_score: 10, logo_url: '', is_active:true},
+        {id:9, slug: 'shorin-ryu-barquisimeto', name: 'Shorin-Ryu Barquisimeto', address: 'caracas', base_score: 10, logo_url: '', is_active:true}, 
+        {id:10, slug: 'goju-ryu-merida', name: 'Goju-Ryu Mérida', address: 'caracas', base_score: 10, logo_url: '', is_active:true},
+        {id:11, slug: 'isshin-ryu-san-cristobal', name: 'Isshin-Ryu San Cristóbal', address: 'caracas', base_score: 10, logo_url: '', is_active:true },
+        {id:12, slug: 'kenpo-karate-zulia', name: 'Kenpo Karate Zulia', address: 'caracas', base_score: 10, logo_url: '', is_active:true },
+        {id:13, slug: 'ryuei-ryu-anzoategui', name: 'Ryuei-Ryu Anzoátegui', address: 'caracas', base_score: 10, logo_url: '', is_active:true },
+        {id:14, slug: 'shudokan-bolivar', name: 'Shudokan Bolívar', address: 'caracas', base_score: 10, logo_url: '', is_active:true },
+        {id:15, slug: 'yoshukai-sucre', name: 'Yoshukai Sucre', address: 'caracas', base_score: 10, logo_url: '', is_active:true },
     ];
 
     const schoolsToInsert = rawSchoolsData
@@ -55,13 +65,13 @@ async function seed() {
         }));
 
     const karateCategoriesToInsert = [
-        {id:1, category: 'Hasta 5 años (mixto)', age_range: '0-5 años' },
-        {id:2, category: 'Infantil', age_range: '10-11 años' },
-        {id:3, category: 'Juvenil', age_range: '12-13 años' },
-        {id:4, category: 'Cadete', age_range: '14-15 años' },
-        {id:5, category: 'Junior', age_range: '16-17 años' },
-        {id:6, category: 'Sub-21', age_range: '18-20 años' },
-        {id:7, category: 'Senior', age_range: '21 años y más' },
+        {id:1, category: 'Hasta 5 años (mixto)', age_range: '0-5 años', allowed_belts: [1] },
+        {id:2, category: 'Infantil', age_range: '10-11 años', allowed_belts: [1] },
+        {id:3, category: 'Juvenil', age_range: '12-13 años', allowed_belts: [1] },
+        {id:4, category: 'Cadete', age_range: '14-15 años', allowed_belts: [1] },
+        {id:5, category: 'Junior', age_range: '16-17 años', allowed_belts: [1] },
+        {id:6, category: 'Sub-21', age_range: '18-20 años', allowed_belts: [1] },
+        {id:7, category: 'Senior', age_range: '21 años y más', allowed_belts: [1] },
     ];
 
     const karateBeltsToInsert = [
@@ -100,13 +110,13 @@ async function seed() {
     ];
 
     const modalitiesToInsert = [
-        {id: 1, name: 'FORMA TRADICIONAL', type: 'kata' },
-        {id: 2, name: 'FORMA CON ARMAS', type: 'kata' }, 
-        {id: 3, name: 'FORMAS EXTREMAS', type: 'kata' }, 
-        {id: 4, name: 'FORMA MUSICAL', type: 'kata' },
-        {id: 5, name: 'COMBATE POINT FIGHTING', type: 'combate' },
-        {id: 6, name: 'KICKBOXING - LIGHT CONTACT', type: 'combate' },
-        {id: 7, name: 'KICKBOXING - FULL CONTACT', type: 'combate' },
+        {id: 1, name: 'FORMA TRADICIONAL', type: 'kata', style:null, description:null },
+        {id: 2, name: 'FORMA CON ARMAS', type: 'kata', style:null, description:null }, 
+        {id: 3, name: 'FORMAS EXTREMAS', type: 'kata', style:null, description:null }, 
+        {id: 4, name: 'FORMA MUSICAL', type: 'kata', style:null, description:null },
+        {id: 5, name: 'COMBATE POINT FIGHTING', type: 'combate', style:null, description:null },
+        {id: 6, name: 'KICKBOXING - LIGHT CONTACT', type: 'combate', style:null, description:null },
+        {id: 7, name: 'KICKBOXING - FULL CONTACT', type: 'combate', style:null, description:null },
     ];
 /*     const modalitiesToInsert = [
         {id: 1, name: 'Forma Tradicional', type: 'kata' },
@@ -120,11 +130,11 @@ async function seed() {
 
  const usersToInsert = [
         {
-            id: 1,
+            // id: 1,
             name: 'Sanadmin',
             lastname: 'Castillo',
             document_type: 'V',
-            document: '123456789',
+            document_number: '123456789',
             birthdate: '1990-01-01',
             email: 'admin@example.com',
             password: '12345678',
@@ -136,13 +146,16 @@ async function seed() {
             roles_ids: [RoleType.Admin],
             category_id: null,
             belt_id: null,
+            certificate_front_url: null,
+            certificate_back_url: null,
+            master_photo_url: null,
         },
         {
-            id: 2,
+            // id: 2,
             name: 'Juan',
             lastname: 'Castillo',
             document_type: 'V',
-            document: '777777777',
+            document_number: '777777777',
             birthdate: '1995-02-03',
             email: 'master@gmail.com',
             // password: 'Master123!',
@@ -153,13 +166,16 @@ async function seed() {
             roles_ids: [RoleType.Master],
             category_id: 7,
             belt_id: null,
+            certificate_front_url: null,
+            certificate_back_url: null,
+            master_photo_url: null,
         },
         {
-            id: 3,
+            // id: 3,
             name: 'Juez Ricardo',
             lastname: 'Perez Sánchez.',
             document_type: 'E',
-            document: '2222222',
+            document_number: '2222222',
             birthdate: '1988-08-01',
             email: 'juez@gmail.com',
             // password: 'Master123!',
@@ -170,13 +186,16 @@ async function seed() {
             roles_ids: [RoleType.Juez],
             category_id: null,
             belt_id: null,
+            certificate_front_url: null,
+            certificate_back_url: null,
+            master_photo_url: null,
         },
         {
-            id: 4,
+            // id: 4,
             name: 'Jose',
             lastname: 'Doe',
             document_type: 'V',
-            document: '9999799',
+            document_number: '9999799',
             birthdate: '1979-02-02',
             email: 'repre.jose@gmail.com',
             // password: 'Master123!',
@@ -187,13 +206,16 @@ async function seed() {
             roles_ids: [RoleType.Representante],
             category_id: null,
             belt_id: null,
+            certificate_front_url: null,
+            certificate_back_url: null,
+            master_photo_url: null,
         },
         {
-            id: 5,
+            // id: 5,
             name: 'Maria',
             lastname: 'Doe',
             document_type: 'V',
-            document: '111111111',
+            document_number: '111111111',
             birthdate: '1979-02-02',
             email: 'repre.maria@gmail.com',
             // password: 'Master123!',
@@ -204,13 +226,16 @@ async function seed() {
             roles_ids: [RoleType.Representante],
             category_id: null,
             belt_id: null,
+            certificate_front_url: null,
+            certificate_back_url: null,
+            master_photo_url: null,
         },
         {
-            id: 6,
+            // id: 6,
             name: 'John',
             lastname: 'Doe',
             document_type: 'V',
-            document: '54545454',
+            document_number: '54545454',
             birthdate: '1979-09-02',
             email: 'alumno@gmail.com',
             // password: 'Master123!',
@@ -221,6 +246,9 @@ async function seed() {
             roles_ids: [RoleType.Alumno],
             category_id: 6,
             belt_id: 4,
+            certificate_front_url: null,
+            certificate_back_url: null,
+            master_photo_url: null,
         },
     ];
     
@@ -263,19 +291,21 @@ async function seed() {
             .onConflictDoNothing({ target: schoolTable.slug }); 
         console.log(`✅ Schools completado. Se insertaron ${schoolsToInsert.length} escuelas.`);
 
-        // SEEDING DE CATEGORÍAS DE KARATE
-         console.log('  -> 4: Insertando categorías de karate (karateCategories)...');
-        await db.insert(karateCategoriesTable)
-            .values(karateCategoriesToInsert)
-            .onConflictDoNothing({ target: [karateCategoriesTable.category, karateCategoriesTable.age_range] }); 
-        console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
- 
         // SEEDING DE NIVELES DE KARATE
-        console.log('  -> 5: Insertando cinturones de karate (karateBelts)...');
+        console.log('  -> 4: Insertando cinturones de karate (karateBelts)...');
         await db.insert(karateBeltsTable)
             .values(karateBeltsToInsert)
             .onConflictDoNothing({ target: karateBeltsTable.belt }); 
         console.log(`✅ Karate Belts completado. Se insertaron ${karateBeltsToInsert.length} cinturones.`);
+
+
+        // SEEDING DE CATEGORÍAS DE KARATE
+/*          console.log('  -> 5: Insertando categorías de karate (karateCategories)...');
+        await db.insert(karateCategoriesTable)
+            .values(karateCategoriesToInsert)
+            .onConflictDoNothing({ target: [karateCategoriesTable.category, karateCategoriesTable.age_range] }); 
+        console.log(`✅ Karate Categories completado. Se insertaron ${karateCategoriesToInsert.length} categorías.`);
+  */
 
         console.log('  -> 6: Insertando tipos de eventos (typesEvents)...');
         await db.insert(typesEventsTable)

@@ -1,5 +1,5 @@
 {
-  "id": "1babe4f7-1845-4cc9-8836-c6dfe0e88d84",
+  "id": "56ba4c78-1082-4ead-b458-24596a5faf63",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1316,6 +1316,24 @@
           "notNull": false,
           "default": null
         },
+        "certificate_front_url": {
+          "name": "certificate_front_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "certificate_back_url": {
+          "name": "certificate_back_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "master_photo_url": {
+          "name": "master_photo_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1399,6 +1417,15 @@
           "name": "document_unique",
           "nullsNotDistinct": false,
           "columns": [
+            "document_type",
+            "document_number"
+          ]
+        },
+        "user_identity_triad_unique": {
+          "name": "user_identity_triad_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email",
             "document_type",
             "document_number"
           ]

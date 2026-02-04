@@ -171,10 +171,14 @@ CREATE TABLE "users" (
 	"roles_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"category_id" integer DEFAULT null,
 	"belt_id" integer DEFAULT null,
+	"certificate_front_url" varchar(500),
+	"certificate_back_url" varchar(500),
+	"master_photo_url" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
-	CONSTRAINT "document_unique" UNIQUE("document_type","document_number")
+	CONSTRAINT "document_unique" UNIQUE("document_type","document_number"),
+	CONSTRAINT "user_identity_triad_unique" UNIQUE("email","document_type","document_number")
 );
 --> statement-breakpoint
 ALTER TABLE "division_judges" ADD CONSTRAINT "division_judges_division_id_event_divisions_id_fk" FOREIGN KEY ("division_id") REFERENCES "public"."event_divisions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

@@ -64,11 +64,18 @@ export const usersTable = pgTable("users", {
     roles_ids: jsonb('roles_ids').$type<number[]>().notNull().default([]),
     category_id: integer().default(null).references(() => karateCategoriesTable.id),
     belt_id: integer().default(null).references(() => karateBeltsTable.id),
+  // campos de los certificados del maestro:
+    certificate_front_url: varchar("certificate_front_url", { length: 500 }), // Opcional
+    certificate_back_url: varchar("certificate_back_url", { length: 500 }), // Opcional
+    master_photo_url: varchar("master_photo_url", { length: 500 }), // Opcional
     created_at: timestamp().defaultNow(),
     updated_at: timestamp().defaultNow(),
 }, (table) => {
    return [
+    // Restricción existente para documentos
     unique('document_unique').on(table.document_type, table.document_number),
+    // NUEVA RESTRICCIÓN: Combinación única de email, tipo de documento y número de documento
+    unique('user_identity_triad_unique').on(table.email, table.document_type, table.document_number),
    ];
 });
 
