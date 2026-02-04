@@ -262,6 +262,9 @@ let UsersService = UsersService_1 = class UsersService {
                 category_name: schema_1.karateCategoriesTable.category,
                 belt_id: schema_1.usersTable.belt_id,
                 belt_name: schema_1.karateBeltsTable.belt,
+                certificate_front_url: schema_1.usersTable.certificate_front_url,
+                certificate_back_url: schema_1.usersTable.certificate_back_url,
+                master_photo_url: schema_1.usersTable.master_photo_url,
             })
                 .from(schema_1.usersTable)
                 .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
@@ -279,7 +282,7 @@ let UsersService = UsersService_1 = class UsersService {
                 name: schema_1.roleTable.name
             })
                 .from(schema_1.roleTable)
-                .where((0, drizzle_orm_1.sql) `${schema_1.roleTable.id} IN (${drizzle_orm_1.sql.join(user.roles_ids.map(id => drizzle_orm_1.sql.raw(`${id}`)), (0, drizzle_orm_1.sql) `, `)})`);
+                .where((0, drizzle_orm_1.inArray)(schema_1.roleTable.id, user.roles_ids));
             let representatives = [];
             if (user.representative_id && user.representative_id.length > 0) {
                 representatives = await this.db
@@ -293,10 +296,15 @@ let UsersService = UsersService_1 = class UsersService {
                     .where((0, drizzle_orm_1.inArray)(schema_1.usersTable.id, user.representative_id));
             }
             const { roles_ids, representative_id, ...userData } = user;
+            const buildUrl = (path) => (path && constants_1.API_BASE_URL_PROD) ? `${constants_1.API_BASE_URL_PROD}/${path}` : path;
             return {
                 ...userData,
                 roles: roles,
                 representatives: representatives,
+                certificate_front_url: buildUrl(user.certificate_front_url),
+                certificate_back_url: buildUrl(user.certificate_back_url),
+                master_photo_url: buildUrl(user.master_photo_url),
+                profile_picture: buildUrl(user.profile_picture),
             };
         }
         catch (err) {

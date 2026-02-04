@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { PG_CONNECTION, ROL_ALUMNO, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
+import { API_BASE_URL_PROD, PG_CONNECTION, ROL_ALUMNO, STATUS_ACTIVO, STATUS_INACTIVO, STATUS_UPDATED } from 'src/constants';
 import { roleTable, usersTable, schoolTable, karateCategoriesTable, karateBeltsTable, tournamentRegistrationsTable } from 'src/db/schema';
 import { and, eq, inArray, like, ne, notExists, or, SQL, sql } from 'drizzle-orm'
 import * as argon2 from "argon2";
@@ -394,6 +394,9 @@ export class UsersService {
           category_name: karateCategoriesTable.category,
           belt_id: usersTable.belt_id,
           belt_name: karateBeltsTable.belt,
+          certificate_front_url: usersTable.certificate_front_url,
+          certificate_back_url: usersTable.certificate_back_url,
+          master_photo_url: usersTable.master_photo_url,
         })
         .from(usersTable)
         .leftJoin(schoolTable, eq(usersTable.school_id, schoolTable.id))
@@ -415,7 +418,8 @@ export class UsersService {
                 name: roleTable.name 
             })
             .from(roleTable)
-            .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
+            // .where(sql`${roleTable.id} IN (${sql.join(user.roles_ids.map(id => sql.raw(`${id}`)), sql`, `)})`);
+            .where(inArray(roleTable.id, user.roles_ids));
 
       let representatives = [];
         if (user.representative_id && user.representative_id.length > 0) {
@@ -433,10 +437,19 @@ export class UsersService {
         //Devolver el objeto de usuario enriquecido
         const { roles_ids, representative_id, ...userData } = user;
 
+        // Función auxiliar para armar la URL
+        const buildUrl = (path: string | null) => 
+          (path && API_BASE_URL_PROD) ? `${API_BASE_URL_PROD}/${path}` : path;
+
         return {
             ...userData,
             roles: roles, //Arreglo de objetos { id: number, name: string }
             representatives: representatives,
+            // Transformamos las rutas en URLs completas aquí
+            certificate_front_url: buildUrl(user.certificate_front_url),
+            certificate_back_url: buildUrl(user.certificate_back_url),
+            master_photo_url: buildUrl(user.master_photo_url),
+            profile_picture: buildUrl(user.profile_picture),
         };
 
     } catch (err) {
