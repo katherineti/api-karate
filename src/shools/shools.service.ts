@@ -159,9 +159,14 @@ async findAllPaginated(payload: PaginationSchoolsDto) {
 
       const total = Number(totalCount.count);
 
+    // Función auxiliar interna
+      const buildUrl = (path: string | null) => 
+        (path && API_BASE_URL_PROD) ? `${API_BASE_URL_PROD}/${path}` : path;
+
       return {
         data: schools.map(s => ({ 
           ...s, 
+          logo_url: buildUrl(s.logo_url),
           masters: (s.masters as any) || [] 
         })),
         meta: {

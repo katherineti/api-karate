@@ -136,9 +136,11 @@ let ShoolsService = class ShoolsService {
                 .from(schema_1.schoolTable)
                 .where(whereCondition);
             const total = Number(totalCount.count);
+            const buildUrl = (path) => (path && constants_1.API_BASE_URL_PROD) ? `${constants_1.API_BASE_URL_PROD}/${path}` : path;
             return {
                 data: schools.map(s => ({
                     ...s,
+                    logo_url: buildUrl(s.logo_url),
                     masters: s.masters || []
                 })),
                 meta: {
