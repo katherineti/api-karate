@@ -152,13 +152,20 @@ export class UpdateUserDto{
     @IsNotEmpty({ message: 'Se debe asignar al menos un rol al usuario.' }) 
     @IsNumber({}, { each: true, message: 'Cada elemento en roles_ids debe ser un número (ID de rol).' })
     roles_ids: number[]; */
+
     @Transform(({ value }) => {
+        // Si viene de form-data como "[1,2]" o "1", lo convertimos a array de números
         if (typeof value === 'string') {
-            try { return JSON.parse(value); } catch { return [Number(value)]; }
+            try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed.map(Number) : [Number(parsed)];
+            } catch {
+                return [Number(value)];
+            }
         }
         return value;
     })
-    @IsArray()
+    @IsArray({ message: 'roles_ids debe ser un arreglo' })
     @IsNotEmpty()
     roles_ids: number[];
 

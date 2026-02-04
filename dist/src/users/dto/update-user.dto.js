@@ -85,7 +85,8 @@ __decorate([
     (0, class_transformer_1.Transform)(({ value }) => {
         if (typeof value === 'string') {
             try {
-                return JSON.parse(value);
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed.map(Number) : [Number(parsed)];
             }
             catch {
                 return [Number(value)];
@@ -93,7 +94,7 @@ __decorate([
         }
         return value;
     }),
-    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsArray)({ message: 'roles_ids debe ser un arreglo' }),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Array)
 ], UpdateUserDto.prototype, "roles_ids", void 0);
