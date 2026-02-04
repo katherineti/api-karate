@@ -95,7 +95,7 @@ __decorate([
         { name: 'master_photo', maxCount: 1 },
     ], {
         storage: (0, multer_1.diskStorage)({
-            destination: './uploads/users',
+            destination: './uploads',
             filename: (req, file, cb) => {
                 const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 cb(null, `${file.fieldname}-${uniqueSuffix}${(0, path_1.extname)(file.originalname)}`);

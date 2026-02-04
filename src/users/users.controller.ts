@@ -68,7 +68,8 @@ export class UsersController {
   { name: 'master_photo', maxCount: 1 },
 ], {
   storage: diskStorage({
-    destination: './uploads/users',
+    // destination: './uploads/users',
+    destination: './uploads',
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
