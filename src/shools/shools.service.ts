@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PG_CONNECTION, ROL_MASTER } from '../constants';
+import { API_BASE_URL_PROD, PG_CONNECTION, ROL_MASTER } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { schoolTable, usersTable } from '../db/schema';
 import { eq, ilike, sql, and, asc } from 'drizzle-orm';
@@ -36,6 +36,7 @@ async getById(id: number) {
           name: schoolTable.name,
           address: schoolTable.address,
           base_score: schoolTable.base_score,
+          logo_url: schoolTable.logo_url,
           is_active: schoolTable.is_active,
         })
         .from(schoolTable)
@@ -46,7 +47,16 @@ async getById(id: number) {
         throw new NotFoundException(`La escuela con ID ${id} no fue encontrada`);
       }
 
-      return result[0];
+      const schoolData = result[0];
+
+      // Función auxiliar para armar la URL
+      const buildUrl = (path: string | null) => 
+        (path && API_BASE_URL_PROD) ? `${API_BASE_URL_PROD}/${path}` : path;
+      
+      return {
+          ...schoolData,
+          logo_url: buildUrl(schoolData.logo_url),
+      };
 
     } catch (err) {
       // Si ya es un error de Nest (como el NotFound), lo relanzamos

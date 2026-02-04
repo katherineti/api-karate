@@ -44,6 +44,7 @@ let ShoolsService = class ShoolsService {
                 name: schema_1.schoolTable.name,
                 address: schema_1.schoolTable.address,
                 base_score: schema_1.schoolTable.base_score,
+                logo_url: schema_1.schoolTable.logo_url,
                 is_active: schema_1.schoolTable.is_active,
             })
                 .from(schema_1.schoolTable)
@@ -51,7 +52,12 @@ let ShoolsService = class ShoolsService {
             if (!result[0]) {
                 throw new common_1.NotFoundException(`La escuela con ID ${id} no fue encontrada`);
             }
-            return result[0];
+            const schoolData = result[0];
+            const buildUrl = (path) => (path && constants_1.API_BASE_URL_PROD) ? `${constants_1.API_BASE_URL_PROD}/${path}` : path;
+            return {
+                ...schoolData,
+                logo_url: buildUrl(schoolData.logo_url),
+            };
         }
         catch (err) {
             if (err instanceof common_1.NotFoundException)
