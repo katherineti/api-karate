@@ -13,7 +13,8 @@ import { extname } from 'path';
 export class ShoolsController {
 
     constructor(private readonly shoolsService: ShoolsService) {}
-    
+
+    @Public()
     @Get()//protegido
     // @UseGuards(AuthGuard)
     async getAll() {

@@ -60,6 +60,7 @@ let ShoolsController = class ShoolsController {
 };
 exports.ShoolsController = ShoolsController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
