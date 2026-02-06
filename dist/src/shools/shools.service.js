@@ -28,7 +28,8 @@ let ShoolsService = class ShoolsService {
                 id: schema_1.schoolTable.id,
                 name: schema_1.schoolTable.name,
                 slug: schema_1.schoolTable.slug
-            }).from(schema_1.schoolTable);
+            }).from(schema_1.schoolTable)
+                .orderBy((0, drizzle_orm_1.asc)(schema_1.schoolTable.name));
             return result || null;
         }
         catch (err) {

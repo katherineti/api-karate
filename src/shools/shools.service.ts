@@ -18,7 +18,8 @@ export class ShoolsService {
             id: schoolTable.id, 
             name: schoolTable.name, 
             slug: schoolTable.slug 
-        }).from(schoolTable);
+        }).from(schoolTable)
+        .orderBy(asc(schoolTable.name));
     
         return result || null;
         

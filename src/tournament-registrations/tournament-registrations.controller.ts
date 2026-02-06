@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UsePipes, ParseIntPipe } from '@nestjs/common';
 import { TournamentRegistrationsService } from './tournament-registrations.service';
 import { CreateTournamentRegistrationDto } from './dto/create-tournament-registration.dto';
 import { UpdateTournamentRegistrationDto } from './dto/update-tournament-registration.dto';
@@ -24,5 +24,14 @@ export class TournamentRegistrationsController {
       school_id: user.school_id, 
     });
   }
+
+
+@Get('division/:divisionId/school/:schoolId')
+async getRegistered(
+  @Param('divisionId', ParseIntPipe) divisionId: number,
+  @Param('schoolId', ParseIntPipe) schoolId: number,
+) {
+  return await this.tournamentRegistrationsService.getAthletesByDivisionAndSchool(divisionId, schoolId);
+}
 
 }

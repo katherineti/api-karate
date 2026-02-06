@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var TournamentRegistrationsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TournamentRegistrationsService = void 0;
 const common_1 = require("@nestjs/common");
@@ -18,9 +19,10 @@ const constants_1 = require("../constants");
 const neon_serverless_1 = require("drizzle-orm/neon-serverless");
 const schema_1 = require("../db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-let TournamentRegistrationsService = class TournamentRegistrationsService {
+let TournamentRegistrationsService = TournamentRegistrationsService_1 = class TournamentRegistrationsService {
     constructor(db) {
         this.db = db;
+        this.logger = new common_1.Logger(TournamentRegistrationsService_1.name);
     }
     async bulkRegisterAthletes(dto) {
         return await this.db.transaction(async (tx) => {
@@ -77,9 +79,30 @@ let TournamentRegistrationsService = class TournamentRegistrationsService {
             };
         });
     }
+    async getAthletesByDivisionAndSchool(divisionId, schoolId) {
+        try {
+            const athletes = await this.db
+                .select({
+                id: schema_1.usersTable.id,
+                name: schema_1.usersTable.name,
+                lastname: schema_1.usersTable.lastname,
+                email: schema_1.usersTable.email,
+                status: schema_1.usersTable.status,
+                registrationStatus: schema_1.tournamentRegistrationsTable.status,
+            })
+                .from(schema_1.usersTable)
+                .innerJoin(schema_1.tournamentRegistrationsTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.id, schema_1.tournamentRegistrationsTable.athlete_id))
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.division_id, divisionId), (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`));
+            return athletes;
+        }
+        catch (error) {
+            this.logger.error('Error al obtener atletas inscritos:', error);
+            throw new common_1.InternalServerErrorException('No se pudieron obtener los atletas inscritos.');
+        }
+    }
 };
 exports.TournamentRegistrationsService = TournamentRegistrationsService;
-exports.TournamentRegistrationsService = TournamentRegistrationsService = __decorate([
+exports.TournamentRegistrationsService = TournamentRegistrationsService = TournamentRegistrationsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(constants_1.PG_CONNECTION)),
     __metadata("design:paramtypes", [neon_serverless_1.NeonDatabase])

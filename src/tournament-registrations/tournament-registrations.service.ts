@@ -1,11 +1,13 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { PG_CONNECTION } from '../constants';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { PG_CONNECTION, ROL_ALUMNO } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, tournamentRegistrationsTable } from '../db/schema';
+import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, tournamentRegistrationsTable, usersTable } from '../db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 
 @Injectable()
 export class TournamentRegistrationsService {
+    private readonly logger = new Logger(TournamentRegistrationsService.name);
+  
   constructor(@Inject(PG_CONNECTION) private readonly db: NeonDatabase) {}
 
   // tournament-registrations.service.ts
@@ -112,6 +114,47 @@ async bulkRegisterAthletes(dto: {
       remainingSlots: limitAllowed - (inscritosActuales + dto.athlete_ids.length)
     };
   });
+}
+
+
+/*
+Pagina : Puntuación de Atleta - Campo select: '2. Selecciona el Atleta'
+Obtener los atletas(usuarios con rol alumno - id rol 5) que estan inscritos en una division seleccionada(division: evento + categoria+modalidad) y que ademas pertenecen a una escuela seleccionada
+*/
+async getAthletesByDivisionAndSchool(divisionId: number, schoolId: number) {
+  try {
+    const athletes = await this.db
+      .select({
+        id: usersTable.id,
+        name: usersTable.name,
+        lastname: usersTable.lastname,
+        email: usersTable.email,
+        status: usersTable.status,
+        // Traemos el estado de la inscripción también
+        registrationStatus: tournamentRegistrationsTable.status, 
+      })
+      .from(usersTable)
+      .innerJoin(
+        tournamentRegistrationsTable,
+        eq(usersTable.id, tournamentRegistrationsTable.athlete_id)
+      )
+      .where(
+        and(
+          // 1. Que pertenezcan a la división seleccionada
+          eq(tournamentRegistrationsTable.division_id, divisionId),
+          // 2. Que pertenezcan a la escuela seleccionada
+          eq(usersTable.school_id, schoolId),
+          // 3. Que tengan el rol de alumno (ID 5)
+          // Usamos @> porque roles_ids es un jsonb array en tu schema
+          sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`
+        )
+      );
+
+    return athletes;
+  } catch (error) {
+    this.logger.error('Error al obtener atletas inscritos:', error);
+    throw new InternalServerErrorException('No se pudieron obtener los atletas inscritos.');
+  }
 }
 
 }

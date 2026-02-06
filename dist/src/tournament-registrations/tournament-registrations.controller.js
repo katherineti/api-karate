@@ -29,6 +29,9 @@ let TournamentRegistrationsController = class TournamentRegistrationsController 
             school_id: user.school_id,
         });
     }
+    async getRegistered(divisionId, schoolId) {
+        return await this.tournamentRegistrationsService.getAthletesByDivisionAndSchool(divisionId, schoolId);
+    }
 };
 exports.TournamentRegistrationsController = TournamentRegistrationsController;
 __decorate([
@@ -40,6 +43,14 @@ __decorate([
     __metadata("design:paramtypes", [create_tournament_registration_dto_1.CreateTournamentRegistrationDto, Object]),
     __metadata("design:returntype", Promise)
 ], TournamentRegistrationsController.prototype, "bulkRegister", null);
+__decorate([
+    (0, common_1.Get)('division/:divisionId/school/:schoolId'),
+    __param(0, (0, common_1.Param)('divisionId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('schoolId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], TournamentRegistrationsController.prototype, "getRegistered", null);
 exports.TournamentRegistrationsController = TournamentRegistrationsController = __decorate([
     (0, common_1.Controller)('tournament-registrations'),
     __metadata("design:paramtypes", [tournament_registrations_service_1.TournamentRegistrationsService])
