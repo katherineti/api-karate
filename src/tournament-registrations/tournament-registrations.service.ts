@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { PG_CONNECTION, ROL_ALUMNO } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, tournamentRegistrationsTable, usersTable } from '../db/schema';
+import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, schoolTable, tournamentRegistrationsTable, usersTable } from '../db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 
 @Injectable()
@@ -116,7 +116,6 @@ async bulkRegisterAthletes(dto: {
   });
 }
 
-
 /*
 Pagina : Puntuación de Atleta - Campo select: '2. Selecciona el Atleta'
 Obtener los atletas(usuarios con rol alumno - id rol 5) que estan inscritos en una division seleccionada(division: evento + categoria+modalidad) y que ademas pertenecen a una escuela seleccionada
@@ -154,6 +153,42 @@ async getAthletesByDivisionAndSchool(divisionId: number, schoolId: number) {
   } catch (error) {
     this.logger.error('Error al obtener atletas inscritos:', error);
     throw new InternalServerErrorException('No se pudieron obtener los atletas inscritos.');
+  }
+}
+
+/*
+Pagina : Puntuación de Atleta - Campo select: '1. Selecciona la escuela'
+lista las escuelas de los atletas que están inscritos en la division seleccionada
+*/
+async getSchoolsByDivision(divisionId: number) {
+  try {
+    const result = await this.db
+      .select({
+        schoolId: schoolTable.id,
+        schoolName: schoolTable.name,
+        schoolLogo: schoolTable.logo_url,
+        // Agregamos un conteo de cuántos atletas hay de esa escuela en esta división
+        athleteCount: sql<number>`count(${usersTable.id})`
+      })
+      .from(tournamentRegistrationsTable)
+      // 1. Unimos con usuarios para saber quién es el atleta
+      .innerJoin(
+        usersTable, 
+        eq(tournamentRegistrationsTable.athlete_id, usersTable.id)
+      )
+      // 2. Unimos con escuelas a través del school_id del usuario
+      .innerJoin(
+        schoolTable, 
+        eq(usersTable.school_id, schoolTable.id)
+      )
+      .where(eq(tournamentRegistrationsTable.division_id, divisionId))
+      // Agrupamos por escuela para no repetir el nombre de la escuela por cada alumno
+      .groupBy(schoolTable.id, schoolTable.name, schoolTable.logo_url);
+
+    return result;
+  } catch (error) {
+    this.logger.error('Error al obtener escuelas de la división:', error);
+    throw new InternalServerErrorException('Error al procesar la lista de escuelas.');
   }
 }
 

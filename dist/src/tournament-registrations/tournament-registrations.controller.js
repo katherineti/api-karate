@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const tournament_registrations_service_1 = require("./tournament-registrations.service");
 const create_tournament_registration_dto_1 = require("./dto/create-tournament-registration.dto");
 const usersesion_decorator_1 = require("../auth/strategies/usersesion.decorator");
+const public_decorator_1 = require("../decorators/public.decorator");
 let TournamentRegistrationsController = class TournamentRegistrationsController {
     constructor(tournamentRegistrationsService) {
         this.tournamentRegistrationsService = tournamentRegistrationsService;
@@ -31,6 +32,9 @@ let TournamentRegistrationsController = class TournamentRegistrationsController 
     }
     async getRegistered(divisionId, schoolId) {
         return await this.tournamentRegistrationsService.getAthletesByDivisionAndSchool(divisionId, schoolId);
+    }
+    async getSchoolsByDivision(divisionId) {
+        return await this.tournamentRegistrationsService.getSchoolsByDivision(divisionId);
     }
 };
 exports.TournamentRegistrationsController = TournamentRegistrationsController;
@@ -51,6 +55,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", Promise)
 ], TournamentRegistrationsController.prototype, "getRegistered", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)('schools-by-division/:divisionId'),
+    __param(0, (0, common_1.Param)('divisionId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], TournamentRegistrationsController.prototype, "getSchoolsByDivision", null);
 exports.TournamentRegistrationsController = TournamentRegistrationsController = __decorate([
     (0, common_1.Controller)('tournament-registrations'),
     __metadata("design:paramtypes", [tournament_registrations_service_1.TournamentRegistrationsService])

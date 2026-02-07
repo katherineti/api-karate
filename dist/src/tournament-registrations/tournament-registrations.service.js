@@ -100,6 +100,27 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
             throw new common_1.InternalServerErrorException('No se pudieron obtener los atletas inscritos.');
         }
     }
+    async getSchoolsByDivision(divisionId) {
+        try {
+            const result = await this.db
+                .select({
+                schoolId: schema_1.schoolTable.id,
+                schoolName: schema_1.schoolTable.name,
+                schoolLogo: schema_1.schoolTable.logo_url,
+                athleteCount: (0, drizzle_orm_1.sql) `count(${schema_1.usersTable.id})`
+            })
+                .from(schema_1.tournamentRegistrationsTable)
+                .innerJoin(schema_1.usersTable, (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, schema_1.usersTable.id))
+                .innerJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schema_1.schoolTable.id))
+                .where((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.division_id, divisionId))
+                .groupBy(schema_1.schoolTable.id, schema_1.schoolTable.name, schema_1.schoolTable.logo_url);
+            return result;
+        }
+        catch (error) {
+            this.logger.error('Error al obtener escuelas de la división:', error);
+            throw new common_1.InternalServerErrorException('Error al procesar la lista de escuelas.');
+        }
+    }
 };
 exports.TournamentRegistrationsService = TournamentRegistrationsService;
 exports.TournamentRegistrationsService = TournamentRegistrationsService = TournamentRegistrationsService_1 = __decorate([
