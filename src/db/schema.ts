@@ -275,7 +275,7 @@ export const requestStatusEnum = pgEnum("participant_requests_status", [
   "rejected", 
   "cancelled"
 ]);
-//solicitud de participantes
+//solicitud de participantes. se crea el evento. En notificaciones el master ve el evento y envia solicitud de 4 participantes 
 export const participantRequestsTable = pgTable("participant_requests", {
   id: serial("id").primaryKey(),
   event_id: integer("event_id").notNull().references(() => eventsTable.id),

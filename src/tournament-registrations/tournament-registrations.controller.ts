@@ -10,6 +10,10 @@ import { Public } from '../decorators/public.decorator';
 export class TournamentRegistrationsController {
   constructor(private readonly tournamentRegistrationsService: TournamentRegistrationsService) {}
 
+/*
+La API POST /api/tournament-registrations/bulk se utiliza en la página de "Inscripción de Atletas".
+Específicamente, la llamada a la API la realiza el componente EnrollmentForm.tsx cuando un usuario con el rol de "Master" hace clic en el botón "Inscribir Atleta(s)" después de haber seleccionado a los atletas de su escuela.
+ */
 @Post('bulk')
   // @Rolkes(RoleType.Admin, RoleType.Master) 
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
