@@ -15,32 +15,30 @@ export class TournamentRegistrationsService {
 // tournament-registrations.service.ts
 
 async bulkRegisterAthletes(dto: {
-  division_id: number;    // ID de la tabla event_divisions
-  athlete_ids: number[];  // Arreglo de IDs de alumnos
-  master_id: number;      // ID del Master que inscribe
-  school_id: number;      // Escuela del Master
+  event_id: number;      // ID del evento
+  category_id: number;   // ID de la categoría
+  modality_id: number;   // ID de la modalidad
+  athlete_ids: number[]; // Arreglo de IDs de alumnos
+  master_id: number;     // ID del Master que inscribe
+  school_id: number;     // Escuela del Master
 }) {
   return await this.db.transaction(async (tx) => {
     
-    // 1. OBTENER EL EVENT_ID desde la jerarquía de tablas
-    // tournament_registrations -> event_divisions -> event_categories
-    const [divisionInfo] = await tx
-      .select({
-        eventId: eventCategoriesTable.event_id,
-      })
-      .from(eventDivisionsTable)
-      .innerJoin(
-        eventCategoriesTable, 
-        eq(eventDivisionsTable.event_category_id, eventCategoriesTable.id)
-      )
-      .where(eq(eventDivisionsTable.id, dto.division_id))
+    // 1. VALIDAR que el evento existe
+    const [event] = await tx
+      .select()
+      .from(eventsTable)
+      .where(and(
+        eq(eventsTable.id, dto.event_id),
+        eq(eventsTable.created_by, dto.master_id)
+      ))
       .limit(1);
 
-    if (!divisionInfo) {
-      throw new NotFoundException('La división seleccionada no existe o no está configurada.');
+    if (!event) {
+      throw new NotFoundException('El evento seleccionado no existe o no tienes permiso.');
     }
 
-    const targetEventId = divisionInfo.eventId;
+    const targetEventId = dto.event_id;
 
     // 2. VALIDAR CUPOS DISPONIBLES
     // Buscamos si el Master tiene una solicitud de cupos extra aprobada para este evento
@@ -64,16 +62,9 @@ async bulkRegisterAthletes(dto: {
         totalInscritos: sql<number>`count(distinct ${tournamentRegistrationsTable.athlete_id})` 
       })
       .from(tournamentRegistrationsTable)
-      .innerJoin(
-        eventDivisionsTable, 
-        eq(tournamentRegistrationsTable.division_id, eventDivisionsTable.id)
-      )
-      .innerJoin(
-        eventCategoriesTable, 
-        eq(eventDivisionsTable.event_category_id, eventCategoriesTable.id)
-      )
+      .leftJoin(usersTable, eq(tournamentRegistrationsTable.athlete_id, usersTable.id))
       .where(and(
-        eq(eventCategoriesTable.event_id, targetEventId),
+        eq(tournamentRegistrationsTable.event_id, targetEventId),
         // Subconsulta para asegurar que solo contamos atletas de la escuela del Master
         sql`${tournamentRegistrationsTable.athlete_id} IN (
           SELECT id FROM users WHERE school_id = ${dto.school_id}
@@ -83,8 +74,6 @@ async bulkRegisterAthletes(dto: {
     const inscritosActuales = Number(currentInscriptions[0].totalInscritos);
 
     // 4. VERIFICAR SI HAY ESPACIO
-    // Solo sumamos al conteo si los atletas que estamos intentando inscribir NO estaban ya en otra división
-    // Para simplificar, comparamos el total proyectado
     if (inscritosActuales + dto.athlete_ids.length > limitAllowed) {
         throw new BadRequestException(
           `Cupo insuficiente para el evento. Tienes ${inscritosActuales} inscritos de ${limitAllowed} permitidos.`
@@ -94,8 +83,14 @@ async bulkRegisterAthletes(dto: {
     // 5. INSERCIÓN MASIVA EN tournament_registrations
     const dataToInsert = dto.athlete_ids.map(athleteId => ({
       athlete_id: athleteId,
-      division_id: dto.division_id,
-      status: 'confirmado', // O el estado que manejes por defecto
+      event_id: dto.event_id,
+      category_id: dto.category_id,
+      modality_id: dto.modality_id,
+      status: 'confirmado',
+      payment_status: 'pagado',
+      registration_date: new Date(),
+      created_at: new Date(),
+      updated_at: new Date(),
     }));
 
     try {
@@ -103,14 +98,14 @@ async bulkRegisterAthletes(dto: {
     } catch (error) {
       // Si el error es por la restricción UNIQUE (unique_registration)
       if (error.code === '23505') {
-        throw new BadRequestException('Uno o más atletas ya están inscritos en esta misma modalidad y categoría.');
+        throw new BadRequestException('Uno o más atletas ya están inscritos en este evento.');
       }
       throw error;
     }
 
     return {
       success: true,
-      message: `${dto.athlete_ids.length} atletas registrados exitosamente en la división.`,
+      message: `${dto.athlete_ids.length} atletas registrados exitosamente.`,
       remainingSlots: limitAllowed - (inscritosActuales + dto.athlete_ids.length)
     };
   });
@@ -118,9 +113,9 @@ async bulkRegisterAthletes(dto: {
 
 /*
 Pagina : Puntuación de Atleta - Campo select: '2. Selecciona el Atleta'
-Obtener los atletas(usuarios con rol alumno - id rol 5) que estan inscritos en una division seleccionada(division: evento + categoria+modalidad) y que ademas pertenecen a una escuela seleccionada
+Obtener los atletas(usuarios con rol alumno - id rol 5) que estan inscritos en una modalidad seleccionada (modality_id) y que ademas pertenecen a una escuela seleccionada
 */
-async getAthletesByDivisionAndSchool(divisionId: number, schoolId: number) {
+async getAthletesByDivisionAndSchool(modalityId: number, schoolId: number) {
   try {
     const athletes = await this.db
       .select({
@@ -129,8 +124,10 @@ async getAthletesByDivisionAndSchool(divisionId: number, schoolId: number) {
         lastname: usersTable.lastname,
         email: usersTable.email,
         status: usersTable.status,
-        // Traemos el estado de la inscripción también
-        registrationStatus: tournamentRegistrationsTable.status, 
+        registrationId: tournamentRegistrationsTable.id,
+        registrationStatus: tournamentRegistrationsTable.status,
+        categoryId: tournamentRegistrationsTable.category_id,
+        modalityId: tournamentRegistrationsTable.modality_id,
       })
       .from(usersTable)
       .innerJoin(
@@ -139,12 +136,11 @@ async getAthletesByDivisionAndSchool(divisionId: number, schoolId: number) {
       )
       .where(
         and(
-          // 1. Que pertenezcan a la división seleccionada
-          eq(tournamentRegistrationsTable.division_id, divisionId),
+          // 1. Que pertenezcan a la modalidad seleccionada
+          eq(tournamentRegistrationsTable.modality_id, modalityId),
           // 2. Que pertenezcan a la escuela seleccionada
           eq(usersTable.school_id, schoolId),
           // 3. Que tengan el rol de alumno (ID 5)
-          // Usamos @> porque roles_ids es un jsonb array en tu schema
           sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`
         )
       );
@@ -158,16 +154,15 @@ async getAthletesByDivisionAndSchool(divisionId: number, schoolId: number) {
 
 /*
 Pagina : Puntuación de Atleta - Campo select: '1. Selecciona la escuela'
-lista las escuelas de los atletas que están inscritos en la division seleccionada
+lista las escuelas de los atletas que están inscritos en la modalidad/evento seleccionado
 */
-async getSchoolsByDivision(divisionId: number) {
+async getSchoolsByDivision(modalityId: number) {
   try {
     const result = await this.db
       .select({
         schoolId: schoolTable.id,
         schoolName: schoolTable.name,
         schoolLogo: schoolTable.logo_url,
-        // Agregamos un conteo de cuántos atletas hay de esa escuela en esta división
         athleteCount: sql<number>`count(${usersTable.id})`
       })
       .from(tournamentRegistrationsTable)
@@ -181,13 +176,13 @@ async getSchoolsByDivision(divisionId: number) {
         schoolTable, 
         eq(usersTable.school_id, schoolTable.id)
       )
-      .where(eq(tournamentRegistrationsTable.division_id, divisionId))
+      .where(eq(tournamentRegistrationsTable.modality_id, modalityId))
       // Agrupamos por escuela para no repetir el nombre de la escuela por cada alumno
       .groupBy(schoolTable.id, schoolTable.name, schoolTable.logo_url);
 
     return result;
   } catch (error) {
-    this.logger.error('Error al obtener escuelas de la división:', error);
+    this.logger.error('Error al obtener escuelas de la modalidad:', error);
     throw new InternalServerErrorException('Error al procesar la lista de escuelas.');
   }
 }
@@ -228,14 +223,14 @@ async getSchoolsByDivision(divisionId: number) {
         throw new BadRequestException('Ya tienes una solicitud de participación para este evento.');
       }
 
-      // 3. Crear la solicitud (sin división ni categoría, las asigna Master después)
+      // 3. Crear la solicitud (sin categoría ni modalidad, las asigna Master después)
       const [newRegistration] = await this.db
         .insert(tournamentRegistrationsTable)
         .values({
           athlete_id: athleteId,
           event_id: eventId,
-          division_id: null, // El Master lo asignará después
-          event_category_id: null, // El Master lo asignará después
+          category_id: null, // El Master lo asignará después
+          modality_id: null, // El Master lo asignará después
           status: 'pendiente',
           payment_status: 'no_pagado',
           registration_date: new Date(),
