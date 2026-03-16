@@ -247,8 +247,8 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
   event_id: integer("event_id").notNull().references(() => eventsTable.id), // Evento al que solicita participar
   
   // El Master asigna estos cuando formaliza (inicialmente NULL)
-  division_id: integer("division_id").references(() => eventDivisionsTable.id), // Null hasta que Master elija
-  event_category_id: integer("event_category_id").references(() => eventCategoriesTable.id), // Null hasta que Master elija
+  category_id: integer("category_id").references(() => karateCategoriesTable.id), // Null hasta que Master elija
+  modality_id: integer("modality_id").references(() => modalitiesTable.id), // Null hasta que Master elija
   
   // Estados principales de inscripción
   status: varchar("status", { length: 50 }).default('pendiente').notNull(), // pendiente, validado, rechazado

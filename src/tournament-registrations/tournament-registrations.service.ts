@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { PG_CONNECTION, ROL_ALUMNO } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, schoolTable, tournamentRegistrationsTable, usersTable, eventsTable, modalitiesTable } from '../db/schema';
+import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, schoolTable, tournamentRegistrationsTable, usersTable, eventsTable, modalitiesTable, karateCategoriesTable } from '../db/schema';
 import { and, eq, sql, isNull, ne } from 'drizzle-orm';
 
 @Injectable()
@@ -270,8 +270,8 @@ async getSchoolsByDivision(divisionId: number) {
   async completeRegistrationByMaster(
     registrationId: number,
     masterId: number,
-    divisionId: number,
-    eventCategoryId: number
+    categoryId: number,
+    modalityId: number
   ) {
     try {
       // 1. Obtener la inscripción
@@ -306,40 +306,34 @@ async getSchoolsByDivision(divisionId: number) {
         throw new NotFoundException('No tienes permiso para completar inscripciones de este evento.');
       }
 
-      // 4. Validar que la división existe y está activa
-      const [division] = await this.db
-        .select()
-        .from(eventDivisionsTable)
-        .where(and(
-          eq(eventDivisionsTable.id, divisionId),
-          eq(eventDivisionsTable.is_active, true)
-        ))
-        .limit(1);
-
-      if (!division) {
-        throw new NotFoundException('La división seleccionada no existe o está inactiva.');
-      }
-
-      // 5. Validar que la categoría existe y está activa
+      // 4. Validar que la categoría existe
       const [category] = await this.db
         .select()
-        .from(eventCategoriesTable)
-        .where(and(
-          eq(eventCategoriesTable.id, eventCategoryId),
-          eq(eventCategoriesTable.is_active, true)
-        ))
+        .from(karateCategoriesTable)
+        .where(eq(karateCategoriesTable.id, categoryId))
         .limit(1);
 
       if (!category) {
-        throw new NotFoundException('La categoría seleccionada no existe o está inactiva.');
+        throw new NotFoundException('La categoría seleccionada no existe.');
+      }
+
+      // 5. Validar que la modalidad existe
+      const [modality] = await this.db
+        .select()
+        .from(modalitiesTable)
+        .where(eq(modalitiesTable.id, modalityId))
+        .limit(1);
+
+      if (!modality) {
+        throw new NotFoundException('La modalidad seleccionada no existe.');
       }
 
       // 6. Actualizar con la categoría y modalidad elegidas por el Master
       const [updated] = await this.db
         .update(tournamentRegistrationsTable)
         .set({
-          division_id: divisionId,
-          event_category_id: eventCategoryId,
+          category_id: categoryId,
+          modality_id: modalityId,
           master_validation_date: new Date(),
           updated_at: new Date(),
         })
@@ -390,7 +384,8 @@ async getSchoolsByDivision(divisionId: number) {
           athleteId: tournamentRegistrationsTable.athlete_id,
           athleteName: sql`CONCAT(${usersTable.name}, ' ', ${usersTable.lastname})`,
           athleteEmail: usersTable.email,
-          divisionId: tournamentRegistrationsTable.division_id,
+          categoryId: tournamentRegistrationsTable.category_id,
+          modalityId: tournamentRegistrationsTable.modality_id,
           status: tournamentRegistrationsTable.status,
           paymentStatus: tournamentRegistrationsTable.payment_status,
           paymentMethod: tournamentRegistrationsTable.payment_method,
@@ -401,8 +396,7 @@ async getSchoolsByDivision(divisionId: number) {
         })
         .from(tournamentRegistrationsTable)
         .leftJoin(usersTable, eq(tournamentRegistrationsTable.athlete_id, usersTable.id))
-        .leftJoin(eventDivisionsTable, eq(tournamentRegistrationsTable.division_id, eventDivisionsTable.id))
-        .where(eq(eventCategoriesTable.event_id, eventId));
+        .where(eq(tournamentRegistrationsTable.event_id, eventId));
 
       return {
         success: true,
@@ -501,10 +495,9 @@ async getSchoolsByDivision(divisionId: number) {
 
       const [event] = await this.db
         .select()
-        .from(eventCategoriesTable)
-        .innerJoin(eventsTable, eq(eventCategoriesTable.event_id, eventsTable.id))
+        .from(eventsTable)
         .where(and(
-          eq(eventCategoriesTable.id, registration.event_category_id),
+          eq(eventsTable.id, registration.event_id),
           eq(eventsTable.created_by, masterId)
         ))
         .limit(1);
@@ -555,10 +548,9 @@ async getSchoolsByDivision(divisionId: number) {
 
       const [event] = await this.db
         .select()
-        .from(eventCategoriesTable)
-        .innerJoin(eventsTable, eq(eventCategoriesTable.event_id, eventsTable.id))
+        .from(eventsTable)
         .where(and(
-          eq(eventCategoriesTable.id, registration.event_category_id),
+          eq(eventsTable.id, registration.event_id),
           eq(eventsTable.created_by, masterId)
         ))
         .limit(1);
@@ -613,10 +605,9 @@ async getSchoolsByDivision(divisionId: number) {
 
       const [event] = await this.db
         .select()
-        .from(eventCategoriesTable)
-        .innerJoin(eventsTable, eq(eventCategoriesTable.event_id, eventsTable.id))
+        .from(eventsTable)
         .where(and(
-          eq(eventCategoriesTable.id, registration.event_category_id),
+          eq(eventsTable.id, registration.event_id),
           eq(eventsTable.created_by, masterId)
         ))
         .limit(1);

@@ -1,0 +1,160 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    COMPARACIÓN: ANTES vs DESPUÉS
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        TABLA: tournament_registrations                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ANTES (Incorrecto):
+─────────────────────
+✗ division_id (FK → event_divisions)       ← Innecesario, muy indirecto
+✗ event_category_id (FK → event_categories) ← Poco explícito
+
+AHORA (Correcto):
+─────────────────
+✓ event_id (FK → events)                   ← Evento al que aplica
+✓ category_id (FK → karate_categories)     ← Categoría del alumno
+✓ modality_id (FK → modalities)            ← Modalidad: Kata, Kumite, etc.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  DTO: CompleteRegistrationDto                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ANTES:
+───────
+{
+  division_id: number,       // ✗ ¿Qué es una división?
+  event_category_id: number  // ✗ Confuso
+}
+
+AHORA:
+──────
+{
+  category_id: number,  // ✓ Juvenil, Senior, etc.
+  modality_id: number   // ✓ Kata, Kumite, etc.
+}
+
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│               SERVICE: completeRegistrationByMaster()                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ANTES:
+───────
+async completeRegistrationByMaster(
+  registrationId,
+  masterId,
+  divisionId,        // ✗ Requiere buscar en event_divisions
+  eventCategoryId    // ✗ Requiere buscar en event_categories
+)
+
+Validaciones:
+  ✗ if (!division) ...
+  ✗ if (!category) ...
+  ✗ JOIN eventDivisionsTable
+  ✗ JOIN eventCategoriesTable
+
+AHORA:
+──────
+async completeRegistrationByMaster(
+  registrationId,
+  masterId,
+  categoryId,    // ✓ Busca directamente en karate_categories
+  modalityId     // ✓ Busca directamente en modalities
+)
+
+Validaciones:
+  ✓ if (!category) ... // Búsqueda simple
+  ✓ if (!modality) ... // Búsqueda simple
+  ✓ SIN joins complejos
+
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   CONSULTAS SQL (Simplificadas)                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ANTES (Complejo):
+─────────────────
+SELECT *
+FROM tournament_registrations tr
+LEFT JOIN event_divisions ed ON tr.division_id = ed.id
+LEFT JOIN event_categories ec ON ed.event_category_id = ec.id
+LEFT JOIN karate_categories kc ON ec.category_id = kc.id
+LEFT JOIN modalities m ON ed.modality_id = m.id
+WHERE tr.event_id = ?;
+
+AHORA (Simple):
+───────────────
+SELECT *
+FROM tournament_registrations tr
+WHERE tr.event_id = ?;
+
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       FLUJO DE INSCRIPCIÓN                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ANTES (Confuso):
+────────────────
+1. Alumno solicita
+   ├─ Envía: division_id
+   └─ Sistema deduce: event_divisions → event_categories → karate_categories
+
+2. Master formaliza
+   ├─ Recibe: division_id, event_category_id (redundante)
+   └─ Actualiza ambas columnas
+
+AHORA (Claro):
+──────────────
+1. Alumno solicita
+   ├─ Envía: event_id (SOLO el evento)
+   └─ Sistema crea registro con category_id=NULL, modality_id=NULL
+
+2. Master formaliza
+   ├─ Recibe: category_id, modality_id (lo que realmente elige)
+   └─ Actualiza ambas columnas directas
+
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ARCHIVOS MODIFICADOS                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+✅ src/db/schema.ts
+   - tournament_registrations table actualizada
+   - Columnas: division_id, event_category_id → eliminadas
+   - Columnas: category_id, modality_id → agregadas
+
+✅ src/tournament-registrations/dto/complete-registration.dto.ts
+   - { division_id, event_category_id } → { category_id, modality_id }
+
+✅ src/tournament-registrations/tournament-registrations.service.ts
+   - Importaciones: agregado karateCategoriesTable
+   - completeRegistrationByMaster(): parámetros actualizados
+   - getEventRegistrations(): select actualizado (sin division_id)
+   - validateRegistration(): WHERE actualizado a usar event_id
+   - validatePayment(): WHERE actualizado a usar event_id
+   - rejectRegistration(): WHERE actualizado a usar event_id
+
+✅ src/tournament-registrations/tournament-registrations.controller.ts
+   - completeRegistration(): pasa dto.category_id, dto.modality_id
+
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       ESTADO: LISTO PARA USAR                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+✅ Todos los cambios aplicados
+✅ Sin errores pendientes
+✅ Listo para compilar: npm run build
+✅ Listo para probar endpoints
+✅ Listo para deploy
+
+═══════════════════════════════════════════════════════════════════════════════

@@ -14,9 +14,9 @@ import { IsNumber, IsNotEmpty } from 'class-validator';
 export class CompleteRegistrationDto {
   @IsNumber()
   @IsNotEmpty()
-  division_id: number; // ID de event_divisions (categoría + modalidad del evento)
+  category_id: number; // ID de karateCategoriesTable (la categoría en la que participa)
 
   @IsNumber()
   @IsNotEmpty()
-  event_category_id: number; // ID de event_categories (categoría del evento)
+  modality_id: number; // ID de modalitiesTable (la modalidad: Kata, Kumite, etc.)
 }

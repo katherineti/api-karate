@@ -111,8 +111,8 @@ async getRegistered(
     return await this.tournamentRegistrationsService.completeRegistrationByMaster(
       registrationId,
       user.sub,
-      dto.division_id,
-      dto.event_category_id
+      dto.category_id,
+      dto.modality_id
     );
   }
 
