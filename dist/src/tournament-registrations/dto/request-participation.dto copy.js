@@ -9,30 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateTournamentRegistrationDto = void 0;
+exports.RequestParticipationDto_copy = void 0;
 const class_validator_1 = require("class-validator");
-class CreateTournamentRegistrationDto {
+class RequestParticipationDto_copy {
 }
-exports.CreateTournamentRegistrationDto = CreateTournamentRegistrationDto;
-__decorate([
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsNumber)({}, { each: true }),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Array)
-], CreateTournamentRegistrationDto.prototype, "athlete_ids", void 0);
+exports.RequestParticipationDto_copy = RequestParticipationDto_copy;
 __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "event_id", void 0);
+], RequestParticipationDto_copy.prototype, "division_id", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "category_id", void 0);
-__decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "modality_id", void 0);
-//# sourceMappingURL=create-tournament-registration.dto.js.map
+], RequestParticipationDto_copy.prototype, "event_category_id", void 0);
+//# sourceMappingURL=request-participation.dto%20copy.js.map

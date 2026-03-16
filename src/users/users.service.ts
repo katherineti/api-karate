@@ -512,51 +512,57 @@ export class UsersService {
     }
   }
 
-async getAlumnosByEscuela(schoolId: number, divisionId?: number) {
-  try {
-    const estadosPermitidos = [STATUS_ACTIVO, STATUS_UPDATED];
+  // async getAlumnosByEscuela(schoolId: number, divisionId?: number) {
+  async getAlumnosByEscuela(
+    schoolId: number, 
+    event_id: number,
+    category_id: number,
+    modality_id: number,
+  ) {
+    try {
+      const estadosPermitidos = [STATUS_ACTIVO, STATUS_UPDATED];
 
-// Iniciamos la consulta base
-    let query = this.db
-      .select({
-        id: usersTable.id,
-        name: usersTable.name,
-        lastname: usersTable.lastname,
-        email: usersTable.email,
-        school_id: usersTable.school_id,
-        status: usersTable.status,
-      })
-      .from(usersTable)
-      .where(
-        and(
-          eq(usersTable.school_id, schoolId),
-          inArray(usersTable.status, estadosPermitidos),
-          sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`,
-          
-          // LÓGICA DE FILTRADO:
-          // Si mandan divisionId, excluimos a los que ya están en tournament_registrations
-          divisionId 
-            ? notExists(
-                this.db
-                  .select()
-                  .from(tournamentRegistrationsTable)
-                  .where(
-                    and(
-                      eq(tournamentRegistrationsTable.athlete_id, usersTable.id),
-                      eq(tournamentRegistrationsTable.division_id, divisionId)
-                    )
+      const query = this.db
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          lastname: usersTable.lastname,
+          email: usersTable.email,
+          school_id: usersTable.school_id,
+          status: usersTable.status,
+        })
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.school_id, schoolId),
+            inArray(usersTable.status, estadosPermitidos),
+            // Filtramos que tengan el rol de alumno
+            sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_ALUMNO])}::jsonb`,
+            
+            // LÓGICA DE EXCLUSIÓN:
+            // No traer alumnos que ya tengan una inscripción (no rechazada) para este evento/categoría/modalidad
+            notExists(
+              this.db
+                .select()
+                .from(tournamentRegistrationsTable)
+                .where(
+                  and(
+                    eq(tournamentRegistrationsTable.athlete_id, usersTable.id),
+                    eq(tournamentRegistrationsTable.event_id, event_id),
+                    eq(tournamentRegistrationsTable.category_id, category_id),
+                    eq(tournamentRegistrationsTable.modality_id, modality_id),
+                    // Opcional: Permitir que aparezcan si su inscripción previa fue 'rechazada' o 'cancelada'
+                    ne(tournamentRegistrationsTable.status, 'rejected') 
                   )
-              )
-            : undefined
-        )
-      );
+                )
+            )
+          )
+        );
 
-    return await query;
-  } catch (error) {
-    this.logger.error(`Error al obtener alumnos de la escuela ${schoolId}:`, error);
-    // Imprimimos el error original para debuggear mejor
-    console.error(error); 
-    throw new Error('Error al obtener la lista de alumnos disponibles.');
+      return await query;
+    } catch (error) {
+      this.logger.error(`Error al obtener alumnos de la escuela ${schoolId}:`, error);
+      throw new InternalServerErrorException('Error al obtener la lista de alumnos disponibles.');
+    }
   }
-}
 }

@@ -243,39 +243,15 @@ export const kataPerformancesTable = pgTable("kata_performances", {
 //Inscripciones (Atleta en Categoría diferente): Para permitir que un atleta se inscriba en una categoría distinta a la de su perfil
 export const tournamentRegistrationsTable = pgTable("tournament_registrations", {
   id: serial("id").primaryKey(),
-  athlete_id: integer("athlete_id").notNull().references(() => usersTable.id),
-  event_id: integer("event_id").notNull().references(() => eventsTable.id), // Evento al que solicita participar
-  
-  // El Master asigna estos cuando formaliza (inicialmente NULL)
-  category_id: integer("category_id").references(() => karateCategoriesTable.id), // Null hasta que Master elija
-  modality_id: integer("modality_id").references(() => modalitiesTable.id), // Null hasta que Master elija
-  
-  // Estados principales de inscripción
-  status: varchar("status", { length: 50 }).default('pendiente').notNull(), // Pendiente/No Inscrito, Solicitud Pendiente, Inscrito/validado, Rechazado , 
-  
-  // Información de pago
-  payment_method: varchar("payment_method", { length: 50 }), // transferencia,pago movil, efectivo
-  payment_reference: varchar("payment_reference", { length: 255 }), // Número de transacción
-  payment_proof_url: varchar("payment_proof_url", { length: 500 }), // URL de comprobante
-  payment_date: timestamp("payment_date"), // Cuándo se intentó pagar
-  // Estados de pago
-  payment_status: varchar("payment_status", { length: 50 }).default('no_pagado').notNull(), // no_pagado, en_espera, pagado
-
-  // Validación por Master
-  master_id: integer("master_id").references(() => usersTable.id).default(null), // Quién validó y formalizó
-  master_validation_date: timestamp("master_validation_date").default(null), // Cuándo formalizó
-  
-  // Rechazo
-  rejection_reason: text("rejection_reason").default(null), // Por qué se rechazó
-  
-  // Timestamps
-  registration_date: timestamp("registration_date").defaultNow().notNull(),
-  created_at: timestamp("created_at").defaultNow().notNull(),
-  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  athlete_id: integer("athlete_id").references(() => usersTable.id),
+  division_id: integer("division_id").references(() => eventDivisionsTable.id),
+  registration_date: timestamp("registration_date").defaultNow(),
+  // Aquí ignoramos la category_id del perfil del usuario y usamos la de division_id
+  status: varchar("status", { length: 50 }).default('pendiente'), // pendiente, confirmado, cancelado
 }, (table) => {
   return [
-    // Evita duplicados: Un atleta no puede solicitar participación dos veces al mismo evento
-    unique("unique_registration").on(table.athlete_id, table.event_id),
+    // Evita duplicados: Un atleta no puede inscribirse dos veces a la misma categoría/modalidad del mismo evento
+    unique("unique_registration").on(table.athlete_id, table.division_id),
   ];
 });
 

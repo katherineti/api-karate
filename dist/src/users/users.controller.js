@@ -26,6 +26,7 @@ const platform_express_1 = require("@nestjs/platform-express");
 const common_2 = require("@nestjs/common");
 const multer_1 = require("multer");
 const path_1 = require("path");
+const users_params_dto_1 = require("./dto/users-params.dto");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
@@ -52,9 +53,8 @@ let UsersController = class UsersController {
     changeStatus(user) {
         return this.usersService.changeStatus(user);
     }
-    async getAlumnosByEscuela(schoolId, divisionId) {
-        const parsedDivisionId = divisionId ? Number.parseInt(divisionId, 10) : undefined;
-        return this.usersService.getAlumnosByEscuela(schoolId, parsedDivisionId);
+    async getAlumnosByEscuela(schoolId, dto) {
+        return this.usersService.getAlumnosByEscuela(schoolId, dto.event_id, dto.category_id, dto.modality_id);
     }
 };
 exports.UsersController = UsersController;
@@ -123,9 +123,9 @@ __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)('alumnos/escuela/:schoolId'),
     __param(0, (0, common_1.Param)('schoolId', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Query)('divisionId')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:paramtypes", [Number, users_params_dto_1.UsersParamsDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getAlumnosByEscuela", null);
 exports.UsersController = UsersController = __decorate([

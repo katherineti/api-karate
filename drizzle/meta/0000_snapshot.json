@@ -1,5 +1,5 @@
 {
-  "id": "56ba4c78-1082-4ead-b458-24596a5faf63",
+  "id": "c5663c67-6e48-4685-92bc-d590fc16dc12",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1099,27 +1099,105 @@
           "name": "athlete_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "division_id": {
-          "name": "division_id",
+        "event_id": {
+          "name": "event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category_id": {
+          "name": "category_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
-        "registration_date": {
-          "name": "registration_date",
-          "type": "timestamp",
+        "modality_id": {
+          "name": "modality_id",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
+          "notNull": false
         },
         "status": {
           "name": "status",
           "type": "varchar(50)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "'pendiente'"
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_reference": {
+          "name": "payment_reference",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_proof_url": {
+          "name": "payment_proof_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_date": {
+          "name": "payment_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_status": {
+          "name": "payment_status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'no_pagado'"
+        },
+        "master_id": {
+          "name": "master_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "master_validation_date": {
+          "name": "master_validation_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "registration_date": {
+          "name": "registration_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -1137,12 +1215,51 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "tournament_registrations_division_id_event_divisions_id_fk": {
-          "name": "tournament_registrations_division_id_event_divisions_id_fk",
+        "tournament_registrations_event_id_events_id_fk": {
+          "name": "tournament_registrations_event_id_events_id_fk",
           "tableFrom": "tournament_registrations",
-          "tableTo": "event_divisions",
+          "tableTo": "events",
           "columnsFrom": [
-            "division_id"
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tournament_registrations_category_id_karate_categories_id_fk": {
+          "name": "tournament_registrations_category_id_karate_categories_id_fk",
+          "tableFrom": "tournament_registrations",
+          "tableTo": "karate_categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tournament_registrations_modality_id_modalities_id_fk": {
+          "name": "tournament_registrations_modality_id_modalities_id_fk",
+          "tableFrom": "tournament_registrations",
+          "tableTo": "modalities",
+          "columnsFrom": [
+            "modality_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tournament_registrations_master_id_users_id_fk": {
+          "name": "tournament_registrations_master_id_users_id_fk",
+          "tableFrom": "tournament_registrations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "master_id"
           ],
           "columnsTo": [
             "id"
@@ -1158,7 +1275,7 @@
           "nullsNotDistinct": false,
           "columns": [
             "athlete_id",
-            "division_id"
+            "event_id"
           ]
         }
       },

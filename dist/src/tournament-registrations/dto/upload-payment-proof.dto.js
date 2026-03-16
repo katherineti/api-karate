@@ -9,30 +9,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateTournamentRegistrationDto = void 0;
+exports.UploadPaymentProofDto = void 0;
 const class_validator_1 = require("class-validator");
-class CreateTournamentRegistrationDto {
+class UploadPaymentProofDto {
 }
-exports.CreateTournamentRegistrationDto = CreateTournamentRegistrationDto;
+exports.UploadPaymentProofDto = UploadPaymentProofDto;
 __decorate([
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsNumber)({}, { each: true }),
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Array)
-], CreateTournamentRegistrationDto.prototype, "athlete_ids", void 0);
+    (0, class_validator_1.IsIn)(['digital', 'efectivo']),
+    __metadata("design:type", String)
+], UploadPaymentProofDto.prototype, "payment_method", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "event_id", void 0);
+    __metadata("design:type", String)
+], UploadPaymentProofDto.prototype, "payment_reference", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "category_id", void 0);
-__decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "modality_id", void 0);
-//# sourceMappingURL=create-tournament-registration.dto.js.map
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    __metadata("design:type", String)
+], UploadPaymentProofDto.prototype, "payment_proof_url", void 0);
+//# sourceMappingURL=upload-payment-proof.dto.js.map

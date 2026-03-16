@@ -349,10 +349,10 @@ let UsersService = UsersService_1 = class UsersService {
             throw error;
         }
     }
-    async getAlumnosByEscuela(schoolId, divisionId) {
+    async getAlumnosByEscuela(schoolId, event_id, category_id, modality_id) {
         try {
             const estadosPermitidos = [constants_1.STATUS_ACTIVO, constants_1.STATUS_UPDATED];
-            let query = this.db
+            const query = this.db
                 .select({
                 id: schema_1.usersTable.id,
                 name: schema_1.usersTable.name,
@@ -362,18 +362,15 @@ let UsersService = UsersService_1 = class UsersService {
                 status: schema_1.usersTable.status,
             })
                 .from(schema_1.usersTable)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.inArray)(schema_1.usersTable.status, estadosPermitidos), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`, divisionId
-                ? (0, drizzle_orm_1.notExists)(this.db
-                    .select()
-                    .from(schema_1.tournamentRegistrationsTable)
-                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, schema_1.usersTable.id), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.division_id, divisionId))))
-                : undefined));
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usersTable.school_id, schoolId), (0, drizzle_orm_1.inArray)(schema_1.usersTable.status, estadosPermitidos), (0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_ALUMNO])}::jsonb`, (0, drizzle_orm_1.notExists)(this.db
+                .select()
+                .from(schema_1.tournamentRegistrationsTable)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, schema_1.usersTable.id), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.event_id, event_id), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.category_id, category_id), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.modality_id, modality_id), (0, drizzle_orm_1.ne)(schema_1.tournamentRegistrationsTable.status, 'rejected'))))));
             return await query;
         }
         catch (error) {
             this.logger.error(`Error al obtener alumnos de la escuela ${schoolId}:`, error);
-            console.error(error);
-            throw new Error('Error al obtener la lista de alumnos disponibles.');
+            throw new common_1.InternalServerErrorException('Error al obtener la lista de alumnos disponibles.');
         }
     }
 };

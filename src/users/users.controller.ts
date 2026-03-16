@@ -11,6 +11,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { UsersParamsDto } from './dto/users-params.dto';
 @Controller('users')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class UsersController {
@@ -104,7 +105,7 @@ async update(
   changeStatus( @Body() user: UpdateUserDto) {
       return this.usersService.changeStatus(user);
   }
-
+/* 
   @Public()
   @Get('alumnos/escuela/:schoolId')
   // @UseGuards(AuthGuard, RolesGuard)
@@ -114,7 +115,22 @@ async update(
     @Query('divisionId') divisionId?: string // Lo recibimos como string opcional de la URL
 ) {
     const parsedDivisionId = divisionId ? Number.parseInt(divisionId, 10) : undefined;
-    return this.usersService.getAlumnosByEscuela(schoolId, parsedDivisionId);
+    // return this.usersService.getAlumnosByEscuela(schoolId, parsedDivisionId);
+    return this.usersService.getAlumnosByEscuela(schoolId,event_id,category_id,modality_id );
+  } */
+
+  @Public()
+  @Get('alumnos/escuela/:schoolId')
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(RoleType.Admin, RoleType.Master) // Solo Admin o Master pueden ver esta lista
+  async getAlumnosByEscuela(
+    @Param('schoolId', ParseIntPipe) schoolId: number,
+    @Body() dto: UsersParamsDto
+    // @Query('divisionId') divisionId?: string // Lo recibimos como string opcional de la URL
+) {
+    // const parsedDivisionId = divisionId ? Number.parseInt(divisionId, 10) : undefined;
+    // return this.usersService.getAlumnosByEscuela(schoolId, parsedDivisionId);
+    return this.usersService.getAlumnosByEscuela(schoolId, dto.event_id, dto.category_id, dto.modality_id );
   }
 
 }

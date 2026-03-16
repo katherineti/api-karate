@@ -9,30 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateTournamentRegistrationDto = void 0;
+exports.CompleteRegistrationDto = void 0;
 const class_validator_1 = require("class-validator");
-class CreateTournamentRegistrationDto {
+class CompleteRegistrationDto {
 }
-exports.CreateTournamentRegistrationDto = CreateTournamentRegistrationDto;
-__decorate([
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsNumber)({}, { each: true }),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Array)
-], CreateTournamentRegistrationDto.prototype, "athlete_ids", void 0);
+exports.CompleteRegistrationDto = CompleteRegistrationDto;
 __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "event_id", void 0);
+], CompleteRegistrationDto.prototype, "category_id", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "category_id", void 0);
-__decorate([
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], CreateTournamentRegistrationDto.prototype, "modality_id", void 0);
-//# sourceMappingURL=create-tournament-registration.dto.js.map
+], CompleteRegistrationDto.prototype, "modality_id", void 0);
+//# sourceMappingURL=complete-registration.dto.js.map

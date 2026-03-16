@@ -170,25 +170,13 @@ exports.kataPerformancesTable = (0, pg_core_1.pgTable)("kata_performances", {
 });
 exports.tournamentRegistrationsTable = (0, pg_core_1.pgTable)("tournament_registrations", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
-    athlete_id: (0, pg_core_1.integer)("athlete_id").notNull().references(() => exports.usersTable.id),
-    event_id: (0, pg_core_1.integer)("event_id").notNull().references(() => exports.eventsTable.id),
-    category_id: (0, pg_core_1.integer)("category_id").references(() => exports.karateCategoriesTable.id),
-    modality_id: (0, pg_core_1.integer)("modality_id").references(() => exports.modalitiesTable.id),
-    status: (0, pg_core_1.varchar)("status", { length: 50 }).default('pendiente').notNull(),
-    payment_method: (0, pg_core_1.varchar)("payment_method", { length: 50 }),
-    payment_reference: (0, pg_core_1.varchar)("payment_reference", { length: 255 }),
-    payment_proof_url: (0, pg_core_1.varchar)("payment_proof_url", { length: 500 }),
-    payment_date: (0, pg_core_1.timestamp)("payment_date"),
-    payment_status: (0, pg_core_1.varchar)("payment_status", { length: 50 }).default('no_pagado').notNull(),
-    master_id: (0, pg_core_1.integer)("master_id").references(() => exports.usersTable.id).default(null),
-    master_validation_date: (0, pg_core_1.timestamp)("master_validation_date").default(null),
-    rejection_reason: (0, pg_core_1.text)("rejection_reason").default(null),
-    registration_date: (0, pg_core_1.timestamp)("registration_date").defaultNow().notNull(),
-    created_at: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
-    updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+    athlete_id: (0, pg_core_1.integer)("athlete_id").references(() => exports.usersTable.id),
+    division_id: (0, pg_core_1.integer)("division_id").references(() => exports.eventDivisionsTable.id),
+    registration_date: (0, pg_core_1.timestamp)("registration_date").defaultNow(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default('pendiente'),
 }, (table) => {
     return [
-        (0, pg_core_1.unique)("unique_registration").on(table.athlete_id, table.event_id),
+        (0, pg_core_1.unique)("unique_registration").on(table.athlete_id, table.division_id),
     ];
 });
 exports.notificationsTable = (0, pg_core_1.pgTable)("notifications", {
@@ -218,4 +206,4 @@ exports.participantRequestsTable = (0, pg_core_1.pgTable)("participant_requests"
     message: (0, pg_core_1.varchar)("message", { length: 500 }),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
 });
-//# sourceMappingURL=schema.js.map
+//# sourceMappingURL=schema.viejo.js.map
