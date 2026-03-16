@@ -243,11 +243,33 @@ export const kataPerformancesTable = pgTable("kata_performances", {
 //Inscripciones (Atleta en Categoría diferente): Para permitir que un atleta se inscriba en una categoría distinta a la de su perfil
 export const tournamentRegistrationsTable = pgTable("tournament_registrations", {
   id: serial("id").primaryKey(),
-  athlete_id: integer("athlete_id").references(() => usersTable.id),
-  division_id: integer("division_id").references(() => eventDivisionsTable.id),
-  registration_date: timestamp("registration_date").defaultNow(),
-  // Aquí ignoramos la category_id del perfil del usuario y usamos la de division_id
-  status: varchar("status", { length: 50 }).default('pendiente'), // pendiente, confirmado, cancelado
+  athlete_id: integer("athlete_id").notNull().references(() => usersTable.id),
+  division_id: integer("division_id").notNull().references(() => eventDivisionsTable.id),
+  event_category_id: integer("event_category_id").notNull().references(() => eventCategoriesTable.id),
+  
+  // Estados principales de inscripción
+  status: varchar("status", { length: 50 }).default('pendiente').notNull(), // pendiente, validado, rechazado
+  
+  // Estados de pago
+  payment_status: varchar("payment_status", { length: 50 }).default('no_pagado').notNull(), // no_pagado, en_espera, pagado
+  
+  // Información de pago
+  payment_method: varchar("payment_method", { length: 50 }), // digital, efectivo
+  payment_reference: varchar("payment_reference", { length: 255 }), // Número de transacción
+  payment_proof_url: varchar("payment_proof_url", { length: 500 }), // URL de comprobante
+  payment_date: timestamp("payment_date"), // Cuándo se intentó pagar
+  
+  // Validación por Master
+  master_id: integer("master_id").references(() => usersTable.id), // Quién validó
+  master_validation_date: timestamp("master_validation_date"), // Cuándo validó
+  
+  // Rechazo
+  rejection_reason: text("rejection_reason"), // Por qué se rechazó
+  
+  // Timestamps
+  registration_date: timestamp("registration_date").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => {
   return [
     // Evita duplicados: Un atleta no puede inscribirse dos veces a la misma categoría/modalidad del mismo evento

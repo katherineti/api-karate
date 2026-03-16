@@ -1,8 +1,8 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { PG_CONNECTION, ROL_ALUMNO } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, schoolTable, tournamentRegistrationsTable, usersTable } from '../db/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, schoolTable, tournamentRegistrationsTable, usersTable, eventsTable, modalitiesTable } from '../db/schema';
+import { and, eq, sql, isNull, ne } from 'drizzle-orm';
 
 @Injectable()
 export class TournamentRegistrationsService {
@@ -191,5 +191,417 @@ async getSchoolsByDivision(divisionId: number) {
     throw new InternalServerErrorException('Error al procesar la lista de escuelas.');
   }
 }
+
+  /**
+   * MÉTODO 1: Crear solicitud de participación (Alumno)
+   * 
+   * Flujo:
+   * - Alumno solicita participación en un evento
+   * - Se crea registro con status='pendiente', payment_status='no_pagado'
+   * - Alumno debe luego subir comprobante de pago
+   */
+  async createParticipationRequest(athleteId: number, divisionId: number, eventCategoryId: number) {
+    try {
+      // 1. Validar que la división existe y está activa
+      const [division] = await this.db
+        .select()
+        .from(eventDivisionsTable)
+        .where(and(
+          eq(eventDivisionsTable.id, divisionId),
+          eq(eventDivisionsTable.is_active, true)
+        ))
+        .limit(1);
+
+      if (!division) {
+        throw new NotFoundException('La división seleccionada no existe o está inactiva.');
+      }
+
+      // 2. Validar que la categoría existe y está activa
+      const [category] = await this.db
+        .select()
+        .from(eventCategoriesTable)
+        .where(and(
+          eq(eventCategoriesTable.id, eventCategoryId),
+          eq(eventCategoriesTable.is_active, true)
+        ))
+        .limit(1);
+
+      if (!category) {
+        throw new NotFoundException('La categoría seleccionada no existe o está inactiva.');
+      }
+
+      // 3. Validar que el atleta no tiene ya una solicitud para esta división
+      const [existingReg] = await this.db
+        .select()
+        .from(tournamentRegistrationsTable)
+        .where(and(
+          eq(tournamentRegistrationsTable.athlete_id, athleteId),
+          eq(tournamentRegistrationsTable.division_id, divisionId)
+        ))
+        .limit(1);
+
+      if (existingReg) {
+        throw new BadRequestException('Ya tienes una solicitud de participación para esta modalidad.');
+      }
+
+      // 4. Crear la solicitud
+      const [newRegistration] = await this.db
+        .insert(tournamentRegistrationsTable)
+        .values({
+          athlete_id: athleteId,
+          division_id: divisionId,
+          event_category_id: eventCategoryId,
+          status: 'pendiente',
+          payment_status: 'no_pagado',
+          registration_date: new Date(),
+          created_at: new Date(),
+          updated_at: new Date(),
+        })
+        .returning();
+
+      return {
+        success: true,
+        message: 'Solicitud de participación creada. Ahora debes subir tu comprobante de pago.',
+        data: newRegistration,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error en createParticipationRequest:', error);
+      throw new InternalServerErrorException('Error al crear la solicitud de participación.');
+    }
+  }
+
+  /**
+   * MÉTODO 2: Obtener inscripciones de un evento (Master)
+   * 
+   * Flujo:
+   * - Master ve todos los atletas inscritos en su evento
+   * - Puede validar inscripciones y pagos
+   */
+  async getEventRegistrations(eventId: number, masterId: number) {
+    try {
+      // 1. Validar que el master es el creador del evento
+      const [event] = await this.db
+        .select()
+        .from(eventsTable)
+        .where(and(
+          eq(eventsTable.id, eventId),
+          eq(eventsTable.created_by, masterId)
+        ))
+        .limit(1);
+
+      if (!event) {
+        throw new NotFoundException('No tienes permiso para ver las inscripciones de este evento.');
+      }
+
+      // 2. Obtener todas las inscripciones del evento con detalles
+      const registrations = await this.db
+        .select({
+          id: tournamentRegistrationsTable.id,
+          athleteId: tournamentRegistrationsTable.athlete_id,
+          athleteName: sql`CONCAT(${usersTable.name}, ' ', ${usersTable.lastname})`,
+          athleteEmail: usersTable.email,
+          divisionId: tournamentRegistrationsTable.division_id,
+          status: tournamentRegistrationsTable.status,
+          paymentStatus: tournamentRegistrationsTable.payment_status,
+          paymentMethod: tournamentRegistrationsTable.payment_method,
+          paymentProofUrl: tournamentRegistrationsTable.payment_proof_url,
+          registrationDate: tournamentRegistrationsTable.registration_date,
+          masterValidationDate: tournamentRegistrationsTable.master_validation_date,
+          rejectionReason: tournamentRegistrationsTable.rejection_reason,
+        })
+        .from(tournamentRegistrationsTable)
+        .leftJoin(usersTable, eq(tournamentRegistrationsTable.athlete_id, usersTable.id))
+        .leftJoin(eventDivisionsTable, eq(tournamentRegistrationsTable.division_id, eventDivisionsTable.id))
+        .where(eq(eventCategoriesTable.event_id, eventId));
+
+      return {
+        success: true,
+        eventId,
+        totalRegistrations: registrations.length,
+        data: registrations,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error en getEventRegistrations:', error);
+      throw new InternalServerErrorException('Error al obtener las inscripciones del evento.');
+    }
+  }
+
+  /**
+   * MÉTODO 3: Subir comprobante de pago (Alumno)
+   * 
+   * Flujo:
+   * - Alumno sube comprobante de pago digital o referencia de efectivo
+   * - Sistema cambia payment_status a 'en_espera'
+   * - Master debe validar el pago después
+   */
+  async uploadPaymentProof(
+    registrationId: number,
+    athleteId: number,
+    paymentMethod: string,
+    paymentReference: string,
+    paymentProofUrl?: string
+  ) {
+    try {
+      // 1. Validar que el registration existe y pertenece al atleta
+      const [registration] = await this.db
+        .select()
+        .from(tournamentRegistrationsTable)
+        .where(and(
+          eq(tournamentRegistrationsTable.id, registrationId),
+          eq(tournamentRegistrationsTable.athlete_id, athleteId)
+        ))
+        .limit(1);
+
+      if (!registration) {
+        throw new NotFoundException('Inscripción no encontrada o no tienes permiso para modificarla.');
+      }
+
+      // 2. Validar que está en estado 'pendiente' o 'en_espera'
+      if (!['pendiente', 'en_espera'].includes(registration.status)) {
+        throw new BadRequestException(
+          `No puedes subir pago para una inscripción en estado "${registration.status}".`
+        );
+      }
+
+      // 3. Actualizar con información del pago
+      const [updated] = await this.db
+        .update(tournamentRegistrationsTable)
+        .set({
+          payment_method: paymentMethod,
+          payment_reference: paymentReference,
+          payment_proof_url: paymentProofUrl || null,
+          payment_date: new Date(),
+          payment_status: 'en_espera',
+          updated_at: new Date(),
+        })
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .returning();
+
+      return {
+        success: true,
+        message: 'Comprobante de pago cargado. Espera la validación del administrador.',
+        data: updated,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error en uploadPaymentProof:', error);
+      throw new InternalServerErrorException('Error al cargar el comprobante de pago.');
+    }
+  }
+
+  /**
+   * MÉTODO 4: Validar inscripción (Master)
+   */
+  async validateRegistration(registrationId: number, masterId: number) {
+    try {
+      const [registration] = await this.db
+        .select()
+        .from(tournamentRegistrationsTable)
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .limit(1);
+
+      if (!registration) {
+        throw new NotFoundException('Inscripción no encontrada.');
+      }
+
+      const [event] = await this.db
+        .select()
+        .from(eventCategoriesTable)
+        .innerJoin(eventsTable, eq(eventCategoriesTable.event_id, eventsTable.id))
+        .where(and(
+          eq(eventCategoriesTable.id, registration.event_category_id),
+          eq(eventsTable.created_by, masterId)
+        ))
+        .limit(1);
+
+      if (!event) {
+        throw new NotFoundException('No tienes permiso para validar inscripciones de este evento.');
+      }
+
+      const [updated] = await this.db
+        .update(tournamentRegistrationsTable)
+        .set({
+          status: 'validado',
+          master_id: masterId,
+          master_validation_date: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .returning();
+
+      return {
+        success: true,
+        message: 'Inscripción validada exitosamente.',
+        data: updated,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error en validateRegistration:', error);
+      throw new InternalServerErrorException('Error al validar la inscripción.');
+    }
+  }
+
+  /**
+   * MÉTODO 5: Validar pago (Master)
+   */
+  async validatePayment(registrationId: number, masterId: number) {
+    try {
+      const [registration] = await this.db
+        .select()
+        .from(tournamentRegistrationsTable)
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .limit(1);
+
+      if (!registration) {
+        throw new NotFoundException('Inscripción no encontrada.');
+      }
+
+      const [event] = await this.db
+        .select()
+        .from(eventCategoriesTable)
+        .innerJoin(eventsTable, eq(eventCategoriesTable.event_id, eventsTable.id))
+        .where(and(
+          eq(eventCategoriesTable.id, registration.event_category_id),
+          eq(eventsTable.created_by, masterId)
+        ))
+        .limit(1);
+
+      if (!event) {
+        throw new NotFoundException('No tienes permiso para validar pagos de este evento.');
+      }
+
+      const [updated] = await this.db
+        .update(tournamentRegistrationsTable)
+        .set({
+          payment_status: 'pagado',
+          master_id: masterId,
+          master_validation_date: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .returning();
+
+      return {
+        success: true,
+        message: 'Pago validado exitosamente.',
+        data: updated,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error en validatePayment:', error);
+      throw new InternalServerErrorException('Error al validar el pago.');
+    }
+  }
+
+  /**
+   * MÉTODO 6: Rechazar inscripción (Master)
+   */
+  async rejectRegistration(registrationId: number, masterId: number, rejectionReason: string) {
+    try {
+      const [registration] = await this.db
+        .select()
+        .from(tournamentRegistrationsTable)
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .limit(1);
+
+      if (!registration) {
+        throw new NotFoundException('Inscripción no encontrada.');
+      }
+
+      if (registration.payment_status === 'pagado') {
+        throw new BadRequestException('No puedes rechazar una inscripción que ya ha sido pagada.');
+      }
+
+      const [event] = await this.db
+        .select()
+        .from(eventCategoriesTable)
+        .innerJoin(eventsTable, eq(eventCategoriesTable.event_id, eventsTable.id))
+        .where(and(
+          eq(eventCategoriesTable.id, registration.event_category_id),
+          eq(eventsTable.created_by, masterId)
+        ))
+        .limit(1);
+
+      if (!event) {
+        throw new NotFoundException('No tienes permiso para rechazar inscripciones de este evento.');
+      }
+
+      const [updated] = await this.db
+        .update(tournamentRegistrationsTable)
+        .set({
+          status: 'rechazado',
+          rejection_reason: rejectionReason,
+          master_id: masterId,
+          master_validation_date: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .returning();
+
+      return {
+        success: true,
+        message: 'Inscripción rechazada exitosamente.',
+        data: updated,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error en rejectRegistration:', error);
+      throw new InternalServerErrorException('Error al rechazar la inscripción.');
+    }
+  }
+
+  /**
+   * MÉTODO 7: Obtener eventos con estado de inscripción (Alumno)
+   */
+  async getEventsWithEnrollmentStatus(athleteId: number) {
+    try {
+      const events = await this.db
+        .select({
+          eventId: eventsTable.id,
+          eventName: eventsTable.name,
+          eventDate: eventsTable.date,
+          eventLocation: eventsTable.location,
+          enrollmentStatus: tournamentRegistrationsTable.status,
+          paymentStatus: tournamentRegistrationsTable.payment_status,
+        })
+        .from(eventsTable)
+        .innerJoin(eventCategoriesTable, eq(eventsTable.id, eventCategoriesTable.event_id))
+        .innerJoin(eventDivisionsTable, eq(eventCategoriesTable.id, eventDivisionsTable.event_category_id))
+        .leftJoin(
+          tournamentRegistrationsTable,
+          and(
+            eq(tournamentRegistrationsTable.division_id, eventDivisionsTable.id),
+            eq(tournamentRegistrationsTable.athlete_id, athleteId)
+          )
+        )
+        .where(and(
+          eq(eventCategoriesTable.is_active, true),
+          eq(eventDivisionsTable.is_active, true)
+        ));
+
+      return {
+        success: true,
+        totalEvents: events.length,
+        data: events,
+      };
+    } catch (error) {
+      this.logger.error('Error en getEventsWithEnrollmentStatus:', error);
+      throw new InternalServerErrorException('Error al obtener los eventos disponibles.');
+    }
+  }
 
 }
