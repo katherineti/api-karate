@@ -3,6 +3,7 @@ import { TournamentRegistrationsService } from './tournament-registrations.servi
 import { CreateTournamentRegistrationDto } from './dto/create-tournament-registration.dto';
 import { UpdateTournamentRegistrationDto } from './dto/update-tournament-registration.dto';
 import { RequestParticipationDto } from './dto/request-participation.dto';
+import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { UploadPaymentProofDto } from './dto/upload-payment-proof.dto';
 import { RejectRegistrationDto } from './dto/reject-registration.dto';
 import { Usersesion } from '../auth/strategies/usersesion.decorator';
@@ -68,6 +69,9 @@ async getRegistered(
    * 
    * Autenticación: Requerida (alumno)
    * Rol: alumno
+   * 
+   * El alumno SOLO envía el event_id (sin elegir categoría ni modalidad)
+   * Master decidirá eso después de revisar la solicitud
    */
   @Post('request-participation')
   @UseGuards(AuthGuard, RolesGuard)
@@ -78,6 +82,34 @@ async getRegistered(
     @Usersesion() user: IJwtPayload,
   ) {
     return await this.tournamentRegistrationsService.createParticipationRequest(
+      user.sub,
+      dto.event_id
+    );
+  }
+
+  /**
+   * ENDPOINT 1B: Master formaliza la inscripción y elige categoría y modalidad
+   * 
+   * PATCH /tournament-registrations/:id/complete
+   * 
+   * Autenticación: Requerida
+   * Rol: master
+   * 
+   * El Master revisa la solicitud y elige:
+   * - La categoría en la que participará el alumno
+   * - La modalidad específica (division_id)
+   */
+  @Patch(':registrationId/complete')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(2) // ID del rol master en tu sistema
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async completeRegistration(
+    @Param('registrationId', ParseIntPipe) registrationId: number,
+    @Body() dto: CompleteRegistrationDto,
+    @Usersesion() user: IJwtPayload,
+  ) {
+    return await this.tournamentRegistrationsService.completeRegistrationByMaster(
+      registrationId,
       user.sub,
       dto.division_id,
       dto.event_category_id

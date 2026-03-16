@@ -6,16 +6,12 @@ import { IsNumber, IsNotEmpty } from 'class-validator';
  * Usada en: POST /tournament-registrations/request-participation
  * 
  * Flujo:
- * 1. Alumno selecciona Evento → Categoría → Modalidad (division_id)
- * 2. Sistema obtiene automáticamente el event_category_id de la división
- * 3. Se crea registro con status='pendiente', payment_status='no_pagado'
+ * 1. Alumno selecciona SOLO el Evento (no categoría ni modalidad)
+ * 2. Sistema crea registro con status='pendiente' y division_id=NULL
+ * 3. Master verá la solicitud y elegirá la categoría y modalidad después
  */
 export class RequestParticipationDto {
   @IsNumber()
   @IsNotEmpty()
-  division_id: number; // ID de event_divisions (evento + categoría + modalidad)
-
-  @IsNumber()
-  @IsNotEmpty()
-  event_category_id: number; // ID de event_categories (evento + categoría)
+  event_id: number; // ID del evento al que quiere participar (es TODO lo que necesita)
 }

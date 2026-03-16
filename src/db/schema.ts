@@ -244,8 +244,11 @@ export const kataPerformancesTable = pgTable("kata_performances", {
 export const tournamentRegistrationsTable = pgTable("tournament_registrations", {
   id: serial("id").primaryKey(),
   athlete_id: integer("athlete_id").notNull().references(() => usersTable.id),
-  division_id: integer("division_id").notNull().references(() => eventDivisionsTable.id),
-  event_category_id: integer("event_category_id").notNull().references(() => eventCategoriesTable.id),
+  event_id: integer("event_id").notNull().references(() => eventsTable.id), // Evento al que solicita participar
+  
+  // El Master asigna estos cuando formaliza (inicialmente NULL)
+  division_id: integer("division_id").references(() => eventDivisionsTable.id), // Null hasta que Master elija
+  event_category_id: integer("event_category_id").references(() => eventCategoriesTable.id), // Null hasta que Master elija
   
   // Estados principales de inscripción
   status: varchar("status", { length: 50 }).default('pendiente').notNull(), // pendiente, validado, rechazado
@@ -260,8 +263,8 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
   payment_date: timestamp("payment_date"), // Cuándo se intentó pagar
   
   // Validación por Master
-  master_id: integer("master_id").references(() => usersTable.id), // Quién validó
-  master_validation_date: timestamp("master_validation_date"), // Cuándo validó
+  master_id: integer("master_id").references(() => usersTable.id), // Quién validó y formalizó
+  master_validation_date: timestamp("master_validation_date"), // Cuándo formalizó
   
   // Rechazo
   rejection_reason: text("rejection_reason"), // Por qué se rechazó
@@ -272,8 +275,8 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => {
   return [
-    // Evita duplicados: Un atleta no puede inscribirse dos veces a la misma categoría/modalidad del mismo evento
-    unique("unique_registration").on(table.athlete_id, table.division_id),
+    // Evita duplicados: Un atleta no puede solicitar participación dos veces al mismo evento
+    unique("unique_registration").on(table.athlete_id, table.event_id),
   ];
 });
 

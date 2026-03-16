@@ -1,0 +1,247 @@
+═══════════════════════════════════════════════════════════════════════════════
+                  RESUMEN FINAL: FLUJO CORREGIDO DE INSCRIPCIONES
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ TODOS LOS CAMBIOS APLICADOS AL CÓDIGO
+
+───────────────────────────────────────────────────────────────────────────────
+PROBLEMA IDENTIFICADO
+───────────────────────────────────────────────────────────────────────────────
+
+❌ Antes: El alumno elegía categoría y modalidad al SOLICITAR (INCORRECTO)
+✅ Ahora: El alumno SOLO solicita, el Master elige categoría y modalidad (CORRECTO)
+
+───────────────────────────────────────────────────────────────────────────────
+ARCHIVOS MODIFICADOS (5 TOTAL)
+───────────────────────────────────────────────────────────────────────────────
+
+1. src/db/schema.ts
+   ✅ division_id: cambio a NULLABLE
+   ✅ event_category_id: cambio a NULLABLE
+   ✅ NUEVO: event_id (obligatorio)
+   ✅ Índice único actualizado: unique(athlete_id, event_id)
+
+2. src/tournament-registrations/dto/request-participation.dto.ts
+   ✅ CORREGIDO: Ahora solo pide event_id (antes pedía division_id + event_category_id)
+   
+3. src/tournament-registrations/dto/complete-registration.dto.ts
+   ✅ NUEVO: DTO para que Master formalice y elija categoría + modalidad
+
+4. src/tournament-registrations/tournament-registrations.service.ts
+   ✅ createParticipationRequest(): Corregido para solo recibir event_id
+   ✅ completeRegistrationByMaster(): NUEVO método donde Master asigna categoría + modalidad
+
+5. src/tournament-registrations/tournament-registrations.controller.ts
+   ✅ request-participation: Endpoint corregido
+   ✅ POST :id/complete: NUEVO endpoint para Master
+
+───────────────────────────────────────────────────────────────────────────────
+ENDPOINTS FINALES
+───────────────────────────────────────────────────────────────────────────────
+
+PARA EL ALUMNO:
+  
+  1. POST /tournament-registrations/request-participation
+     Body: { "event_id": 1 }
+     ¿Qué hace?: Alumno solicita participar en un evento
+     Resultado: Inscripción creada con division_id=NULL, event_category_id=NULL
+
+  2. POST /tournament-registrations/:id/upload-payment
+     Body: { "payment_method": "digital", "payment_reference": "...", "payment_proof_url": "..." }
+     ¿Qué hace?: Alumno sube comprobante de pago
+     Resultado: payment_status="en_espera"
+
+  3. GET /tournament-registrations/athlete/my-events
+     ¿Qué hace?: Alumno ve lista de eventos + su estado de inscripción
+
+PARA EL MASTER:
+
+  1. GET /tournament-registrations/event/:eventId/registrations
+     ¿Qué hace?: Master ve todas las solicitudes pendientes de su evento
+
+  2. PATCH /tournament-registrations/:id/complete ⭐ NUEVO
+     Body: { "division_id": 5, "event_category_id": 2 }
+     ¿Qué hace?: Master FORMALIZA la inscripción y elige categoría + modalidad
+     Resultado: division_id y event_category_id se asignan
+
+  3. PATCH /tournament-registrations/:id/validate-payment
+     ¿Qué hace?: Master valida el pago del alumno
+     Resultado: payment_status="pagado", status="validado"
+
+  4. PATCH /tournament-registrations/:id/reject
+     Body: { "rejection_reason": "No está preparado" }
+     ¿Qué hace?: Master rechaza la solicitud
+
+───────────────────────────────────────────────────────────────────────────────
+FLUJO COMPLETO (AHORA CORRECTO)
+───────────────────────────────────────────────────────────────────────────────
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ PASO 1: ALUMNO SOLICITA PARTICIPACIÓN                                     │
+├────────────────────────────────────────────────────────────────────────────┤
+│ POST /request-participation                                                │
+│ Body: { "event_id": 1 }                                                    │
+│                                                                             │
+│ Tabla: tournament_registrations                                            │
+│   ├─ athlete_id: 10 (alumno)                                               │
+│   ├─ event_id: 1 ✅ (el evento seleccionado)                               │
+│   ├─ division_id: NULL (aún no elegido)                                    │
+│   ├─ event_category_id: NULL (aún no elegido)                              │
+│   ├─ status: "pendiente"                                                   │
+│   └─ payment_status: "no_pagado"                                           │
+│                                                                             │
+│ ✅ Alumno ve en su dashboard: "Solicitud pendiente"                        │
+└────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌────────────────────────────────────────────────────────────────────────────┐
+│ PASO 2: MASTER FORMALIZA (AQUÍ ELIGE CATEGORÍA Y MODALIDAD) ⭐ NUEVO     │
+├────────────────────────────────────────────────────────────────────────────┤
+│ PATCH /tournament-registrations/:id/complete                               │
+│ Body: { "division_id": 5, "event_category_id": 2 }                         │
+│                                                                             │
+│ Tabla: tournament_registrations (ACTUALIZACIÓN)                            │
+│   ├─ athlete_id: 10 (sin cambio)                                           │
+│   ├─ event_id: 1 (sin cambio)                                              │
+│   ├─ division_id: 5 ✅ (ASIGNADO POR MASTER)                               │
+│   ├─ event_category_id: 2 ✅ (ASIGNADO POR MASTER)                         │
+│   ├─ status: "pendiente" (sigue igual, espera pago)                        │
+│   ├─ payment_status: "no_pagado" (sin cambio)                              │
+│   └─ master_validation_date: 2026-03-16T14:30:00Z                          │
+│                                                                             │
+│ ✅ Alumno ahora sabe exactamente dónde va a participar                     │
+└────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌────────────────────────────────────────────────────────────────────────────┐
+│ PASO 3: ALUMNO PAGA                                                        │
+├────────────────────────────────────────────────────────────────────────────┤
+│ POST /tournament-registrations/:id/upload-payment                          │
+│ Body: { "payment_method": "digital", "payment_reference": "ref123456", ... │
+│                                                                             │
+│ Tabla: tournament_registrations (ACTUALIZACIÓN)                            │
+│   ├─ payment_method: "digital" ✅                                          │
+│   ├─ payment_reference: "ref123456" ✅                                     │
+│   ├─ payment_proof_url: "https://..." ✅                                   │
+│   ├─ payment_date: 2026-03-16T15:00:00Z ✅                                 │
+│   ├─ payment_status: "en_espera" (esperando validación)                    │
+│   └─ status: "pendiente" (sigue igual)                                     │
+│                                                                             │
+│ ✅ Alumno ve: "Pago en espera de validación"                               │
+└────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌────────────────────────────────────────────────────────────────────────────┐
+│ PASO 4: MASTER VALIDA PAGO                                                 │
+├────────────────────────────────────────────────────────────────────────────┤
+│ PATCH /tournament-registrations/:id/validate-payment                       │
+│                                                                             │
+│ Tabla: tournament_registrations (ACTUALIZACIÓN FINAL)                      │
+│   ├─ payment_status: "pagado" ✅ (CONFIRMADO)                              │
+│   ├─ status: "validado" ✅ (CONFIRMADO)                                    │
+│   └─ Todos los campos completos                                            │
+│                                                                             │
+│ ✅✅ ALUMNO TOTALMENTE INSCRITO Y CONFIRMADO                                │
+│   ├─ Evento: 1                                                             │
+│   ├─ Categoría: 2                                                          │
+│   ├─ Modalidad: 5                                                          │
+│   └─ Pago: Validado                                                        │
+└────────────────────────────────────────────────────────────────────────────┘
+
+───────────────────────────────────────────────────────────────────────────────
+CAMBIOS EN LA TABLA
+───────────────────────────────────────────────────────────────────────────────
+
+ANTES (INCORRECTO):
+┌────────────┬────────────┬──────────────┬─────────────────┬────────────┐
+│ athlete_id │ division_id│ event_cat_id │ status          │ payment_st │
+│ (NOT NULL) │ (NOT NULL) │ (NOT NULL)   │ (NOT NULL)      │ (NOT NULL) │
+└────────────┴────────────┴──────────────┴─────────────────┴────────────┘
+   ❌ Alumno debe elegir división y categoría al solicitar
+   ❌ Master no puede cambiar después
+   ❌ Sin event_id
+
+AHORA (CORRECTO):
+┌────────────┬──────────┬────────────┬──────────────┬────────────┬────────────┐
+│ athlete_id │ event_id │ division_id│ event_cat_id │ status     │ payment_st │
+│ (NOT NULL) │(NOT NULL)│ (NULLABLE) │ (NULLABLE)   │ (NOT NULL) │ (NOT NULL) │
+└────────────┴──────────┴────────────┴──────────────┴────────────┴────────────┘
+   ✅ Alumno solo elige evento
+   ✅ Master elige división y categoría después
+   ✅ event_id para identificar el evento
+
+───────────────────────────────────────────────────────────────────────────────
+VALIDACIONES
+───────────────────────────────────────────────────────────────────────────────
+
+✅ Alumno no puede solicitar dos veces el mismo evento
+   └─ Unique constraint: (athlete_id, event_id)
+
+✅ Master no puede asignar división inactiva
+   └─ Validación: division está activo
+
+✅ Master no puede asignar categoría inactiva
+   └─ Validación: event_category está activa
+
+✅ Master solo puede formalizar inscripciones de su evento
+   └─ Validación: Master creador del evento
+
+✅ Master no puede rechazar si ya pagó
+   └─ Validación: payment_status != 'pagado'
+
+───────────────────────────────────────────────────────────────────────────────
+PRÓXIMOS PASOS
+───────────────────────────────────────────────────────────────────────────────
+
+1. Compilar el proyecto:
+   npm run build
+   
+2. Si hay errores, verificar:
+   - IDs de roles (@Roles(2) para Master, @Roles(5) para Alumno)
+   - Imports de tablas en el service
+   
+3. Probar los 4 endpoints:
+   - Test 1: Alumno solicita
+   - Test 2: Master formaliza
+   - Test 3: Alumno paga
+   - Test 4: Master valida
+
+4. Hacer commit y push:
+   git add .
+   git commit -m "fix: Flujo correcto de inscripciones"
+   git push origin event-registration-status
+
+5. Deploy en Render (automático)
+
+───────────────────────────────────────────────────────────────────────────────
+DOCUMENTOS DE REFERENCIA
+───────────────────────────────────────────────────────────────────────────────
+
+Lee estos en este orden:
+
+1. RESPUESTA_A_TUS_PREGUNTAS.md
+   └─ Respuestas directas a tus 2 preguntas
+
+2. FLUJO_CORRECTO_INSCRIPCIONES.md
+   └─ Explicación completa del flujo
+
+3. ACCIONES_A_HACER.md
+   └─ Checklist y próximos pasos
+
+4. CAMBIOS_APLICADOS.md
+   └─ Resumen de todos los cambios (más técnico)
+
+═══════════════════════════════════════════════════════════════════════════════
+                              ¡LISTO PARA USAR!
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Schema corregido
+✅ DTOs corregidos
+✅ Service actualizado
+✅ Controller actualizado
+✅ Flujo correcto
+
+Solo faltan:
+  1. npm run build
+  2. Probar endpoints
+  3. git push
+  4. Deploy
+
+═══════════════════════════════════════════════════════════════════════════════

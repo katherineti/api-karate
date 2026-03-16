@@ -196,13 +196,117 @@ async getSchoolsByDivision(divisionId: number) {
    * MÉTODO 1: Crear solicitud de participación (Alumno)
    * 
    * Flujo:
-   * - Alumno solicita participación en un evento
-   * - Se crea registro con status='pendiente', payment_status='no_pagado'
-   * - Alumno debe luego subir comprobante de pago
+   * - Alumno SOLO solicita participación en un evento (sin elegir categoría/modalidad)
+   * - Se crea registro con status='pendiente', division_id=NULL, event_category_id=NULL
+   * - Master decidirá la categoría y modalidad después
+   * - Alumno luego paga y Master formaliza
    */
-  async createParticipationRequest(athleteId: number, divisionId: number, eventCategoryId: number) {
+  async createParticipationRequest(athleteId: number, eventId: number) {
     try {
-      // 1. Validar que la división existe y está activa
+      // 1. Validar que el evento existe y está activo
+      const [event] = await this.db
+        .select()
+        .from(eventsTable)
+        .where(eq(eventsTable.id, eventId))
+        .limit(1);
+
+      if (!event) {
+        throw new NotFoundException('El evento seleccionado no existe.');
+      }
+
+      // 2. Validar que el atleta no tiene ya una solicitud para este evento
+      const [existingReg] = await this.db
+        .select()
+        .from(tournamentRegistrationsTable)
+        .where(and(
+          eq(tournamentRegistrationsTable.athlete_id, athleteId),
+          eq(tournamentRegistrationsTable.event_id, eventId)
+        ))
+        .limit(1);
+
+      if (existingReg) {
+        throw new BadRequestException('Ya tienes una solicitud de participación para este evento.');
+      }
+
+      // 3. Crear la solicitud (sin división ni categoría, las asigna Master después)
+      const [newRegistration] = await this.db
+        .insert(tournamentRegistrationsTable)
+        .values({
+          athlete_id: athleteId,
+          event_id: eventId,
+          division_id: null, // El Master lo asignará después
+          event_category_id: null, // El Master lo asignará después
+          status: 'pendiente',
+          payment_status: 'no_pagado',
+          registration_date: new Date(),
+          created_at: new Date(),
+          updated_at: new Date(),
+        })
+        .returning();
+
+      return {
+        success: true,
+        message: 'Solicitud de participación creada. Espera a que el Master revise tu solicitud.',
+        data: newRegistration,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error en createParticipationRequest:', error);
+      throw new InternalServerErrorException('Error al crear la solicitud de participación.');
+    }
+  }
+
+  /**
+   * MÉTODO 1B: Formalizar inscripción (Master)
+   * 
+   * Flujo:
+   * - Master revisa la solicitud del alumno
+   * - Master elige la categoría y modalidad en la que participará
+   * - Se actualiza la inscripción con estos datos
+   * - Status pasa a "pendiente_pago" (esperando que alumno pague)
+   */
+  async completeRegistrationByMaster(
+    registrationId: number,
+    masterId: number,
+    divisionId: number,
+    eventCategoryId: number
+  ) {
+    try {
+      // 1. Obtener la inscripción
+      const [registration] = await this.db
+        .select()
+        .from(tournamentRegistrationsTable)
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
+        .limit(1);
+
+      if (!registration) {
+        throw new NotFoundException('Inscripción no encontrada.');
+      }
+
+      // 2. Validar que el status es 'pendiente' (no ha sido completada ni rechazada)
+      if (registration.status !== 'pendiente') {
+        throw new BadRequestException(
+          `No puedes completar una inscripción en estado "${registration.status}".`
+        );
+      }
+
+      // 3. Validar que el master es el creador del evento
+      const [event] = await this.db
+        .select()
+        .from(eventsTable)
+        .where(and(
+          eq(eventsTable.id, registration.event_id),
+          eq(eventsTable.created_by, masterId)
+        ))
+        .limit(1);
+
+      if (!event) {
+        throw new NotFoundException('No tienes permiso para completar inscripciones de este evento.');
+      }
+
+      // 4. Validar que la división existe y está activa
       const [division] = await this.db
         .select()
         .from(eventDivisionsTable)
@@ -216,7 +320,7 @@ async getSchoolsByDivision(divisionId: number) {
         throw new NotFoundException('La división seleccionada no existe o está inactiva.');
       }
 
-      // 2. Validar que la categoría existe y está activa
+      // 5. Validar que la categoría existe y está activa
       const [category] = await this.db
         .select()
         .from(eventCategoriesTable)
@@ -230,46 +334,29 @@ async getSchoolsByDivision(divisionId: number) {
         throw new NotFoundException('La categoría seleccionada no existe o está inactiva.');
       }
 
-      // 3. Validar que el atleta no tiene ya una solicitud para esta división
-      const [existingReg] = await this.db
-        .select()
-        .from(tournamentRegistrationsTable)
-        .where(and(
-          eq(tournamentRegistrationsTable.athlete_id, athleteId),
-          eq(tournamentRegistrationsTable.division_id, divisionId)
-        ))
-        .limit(1);
-
-      if (existingReg) {
-        throw new BadRequestException('Ya tienes una solicitud de participación para esta modalidad.');
-      }
-
-      // 4. Crear la solicitud
-      const [newRegistration] = await this.db
-        .insert(tournamentRegistrationsTable)
-        .values({
-          athlete_id: athleteId,
+      // 6. Actualizar con la categoría y modalidad elegidas por el Master
+      const [updated] = await this.db
+        .update(tournamentRegistrationsTable)
+        .set({
           division_id: divisionId,
           event_category_id: eventCategoryId,
-          status: 'pendiente',
-          payment_status: 'no_pagado',
-          registration_date: new Date(),
-          created_at: new Date(),
+          master_validation_date: new Date(),
           updated_at: new Date(),
         })
+        .where(eq(tournamentRegistrationsTable.id, registrationId))
         .returning();
 
       return {
         success: true,
-        message: 'Solicitud de participación creada. Ahora debes subir tu comprobante de pago.',
-        data: newRegistration,
+        message: 'Inscripción completada. Ahora el alumno debe subir su comprobante de pago.',
+        data: updated,
       };
     } catch (error) {
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error('Error en createParticipationRequest:', error);
-      throw new InternalServerErrorException('Error al crear la solicitud de participación.');
+      this.logger.error('Error en completeRegistrationByMaster:', error);
+      throw new InternalServerErrorException('Error al completar la inscripción.');
     }
   }
 
