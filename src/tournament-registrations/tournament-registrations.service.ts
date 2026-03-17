@@ -261,8 +261,9 @@ async getSchoolsByDivision(modalityId: number) {
           category_id: tournamentRegistrationsTable.category_id,
           modality_id: tournamentRegistrationsTable.modality_id,
           // enrollmentStatus: tournamentRegistrationsTable.status, // pendiente/No Inscrito, validado/Inscrito,  rechazado // no_pagado/Pendiente por pagar, en_espera, Pagado
-          enrollmentStatus: tournamentRegistrationsTable.status, // No Inscrito, Inscrito, Rechazado
-          paymentStatus: tournamentRegistrationsTable.payment_status, // Pendiente por pagar, En_espera, Pagado
+         // COALESCE devuelve el primer valor que no sea NULL
+          enrollmentStatus: sql<string>`COALESCE(${tournamentRegistrationsTable.status}, 'No inscrito')`, // pendiente/No Inscrito, validado/Inscrito,  rechazado 
+          paymentStatus: sql<string>`COALESCE(${tournamentRegistrationsTable.payment_status}, 'Pendiente por pagar')`,// Pendiente por pagar, En_espera, Pagado
         })
         .from(eventsTable)
         .leftJoin(subtypesEventsTable, eq(eventsTable.subtype_id, subtypesEventsTable.id))
@@ -324,7 +325,7 @@ async getSchoolsByDivision(modalityId: number) {
    * - Master decidirá la categoría y modalidad después
    * - Alumno luego paga y Master formaliza
    */
-  async createParticipationRequest(athleteId: number, eventId: number) {
+  async createParticipationRequest(athleteId: number, eventId: number) {console.log("llego aqui")
     try {
       // 1. Validar que el evento existe y está activo
       const [event] = await this.db
@@ -359,8 +360,8 @@ async getSchoolsByDivision(modalityId: number) {
           event_id: eventId,
           category_id: null, // El Master lo asignará después
           modality_id: null, // El Master lo asignará después
-          status: 'pendiente',
-          payment_status: 'no_pagado',
+          status: 'Solicitud Pendiente',
+          payment_status: 'Pendiente por pagar',
           registration_date: new Date(),
           created_at: new Date(),
           updated_at: new Date(),

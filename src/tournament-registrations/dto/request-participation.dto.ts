@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsNumber, IsNotEmpty } from 'class-validator';
 
 /**
@@ -11,6 +12,7 @@ import { IsNumber, IsNotEmpty } from 'class-validator';
  * 3. Master verá la solicitud y elegirá la categoría y modalidad después
  */
 export class RequestParticipationDto {
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   event_id: number; // ID del evento al que quiere participar (es TODO lo que necesita)

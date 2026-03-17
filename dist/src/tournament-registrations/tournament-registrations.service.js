@@ -169,8 +169,8 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
                     status: schema_1.statusTable.status,
                     category_id: schema_1.tournamentRegistrationsTable.category_id,
                     modality_id: schema_1.tournamentRegistrationsTable.modality_id,
-                    enrollmentStatus: schema_1.tournamentRegistrationsTable.status,
-                    paymentStatus: schema_1.tournamentRegistrationsTable.payment_status,
+                    enrollmentStatus: (0, drizzle_orm_1.sql) `COALESCE(${schema_1.tournamentRegistrationsTable.status}, 'No inscrito')`,
+                    paymentStatus: (0, drizzle_orm_1.sql) `COALESCE(${schema_1.tournamentRegistrationsTable.payment_status}, 'Pendiente por pagar')`,
                 })
                     .from(schema_1.eventsTable)
                     .leftJoin(schema_1.subtypesEventsTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.subtype_id, schema_1.subtypesEventsTable.id))
@@ -203,6 +203,7 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
         }
     }
     async createParticipationRequest(athleteId, eventId) {
+        console.log("llego aqui");
         try {
             const [event] = await this.db
                 .select()
@@ -227,8 +228,8 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
                 event_id: eventId,
                 category_id: null,
                 modality_id: null,
-                status: 'pendiente',
-                payment_status: 'no_pagado',
+                status: 'Solicitud Pendiente',
+                payment_status: 'Pendiente por pagar',
                 registration_date: new Date(),
                 created_at: new Date(),
                 updated_at: new Date(),

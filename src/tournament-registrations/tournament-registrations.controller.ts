@@ -14,6 +14,8 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { PaginationTournamentRegistrationsDto } from './dto/pagination-tournament-registrations.dto';
+import { ROL_ALUMNO } from '../constants';
+import { RoleType } from '@/types';
 
 @Controller('tournament-registrations')
 export class TournamentRegistrationsController {
@@ -79,12 +81,12 @@ async getRegistered(
    */
   @Post('request-participation')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(5) // ID del rol alumno en tu sistema
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  @Roles(RoleType.Alumno) 
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
   async requestParticipation(
     @Body() dto: RequestParticipationDto,
     @Usersesion() user: IJwtPayload,
-  ) {
+  ) {console.log("llego aqui 1")
     return await this.tournamentRegistrationsService.createParticipationRequest(
       user.sub,
       dto.event_id

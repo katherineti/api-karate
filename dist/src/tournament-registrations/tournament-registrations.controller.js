@@ -27,6 +27,7 @@ const common_2 = require("@nestjs/common");
 const auth_guard_1 = require("../guards/auth.guard");
 const roles_guard_1 = require("../guards/roles.guard");
 const pagination_tournament_registrations_dto_1 = require("./dto/pagination-tournament-registrations.dto");
+const types_1 = require("../../types");
 let TournamentRegistrationsController = class TournamentRegistrationsController {
     constructor(tournamentRegistrationsService) {
         this.tournamentRegistrationsService = tournamentRegistrationsService;
@@ -48,6 +49,7 @@ let TournamentRegistrationsController = class TournamentRegistrationsController 
         return await this.tournamentRegistrationsService.getSchoolsByDivision(divisionId);
     }
     async requestParticipation(dto, user) {
+        console.log("llego aqui 1");
         return await this.tournamentRegistrationsService.createParticipationRequest(user.sub, dto.event_id);
     }
     async completeRegistration(registrationId, dto, user) {
@@ -101,8 +103,8 @@ __decorate([
 __decorate([
     (0, common_1.Post)('request-participation'),
     (0, common_2.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, role_decorators_1.Roles)(5),
-    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Alumno),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true })),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, usersesion_decorator_1.Usersesion)()),
     __metadata("design:type", Function),
