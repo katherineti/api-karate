@@ -251,7 +251,7 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
   modality_id: integer("modality_id").references(() => modalitiesTable.id), // Null hasta que Master elija
   
   // Estados principales de inscripción
-  status: varchar("status", { length: 50 }).default('pendiente').notNull(), // Pendiente/No Inscrito, Solicitud Pendiente, Inscrito/validado, Rechazado , 
+  status: varchar("status", { length: 50 }).default('Solicitud Pendiente').notNull(), // Pendiente/No Inscrito, Solicitud Pendiente, Inscrito/validado, Rechazado , 
   
   // Información de pago
   payment_method: varchar("payment_method", { length: 50 }), // transferencia,pago movil, efectivo
@@ -259,7 +259,7 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
   payment_proof_url: varchar("payment_proof_url", { length: 500 }), // URL de comprobante
   payment_date: timestamp("payment_date"), // Cuándo se intentó pagar
   // Estados de pago
-  payment_status: varchar("payment_status", { length: 50 }).default('no_pagado').notNull(), // no_pagado, en_espera, pagado
+  payment_status: varchar("payment_status", { length: 50 }).default('Pendiente por pagar').notNull(), // no_pagado, en_espera, pagado
 
   // Validación por Master
   master_id: integer("master_id").references(() => usersTable.id).default(null), // Quién validó y formalizó
