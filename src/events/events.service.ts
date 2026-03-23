@@ -113,7 +113,81 @@ export class EventsService {
   }
 
 // events.service.ts
-async create(createEventDto: CreateEventDto, creatorId: number) {
+  //Bueno - antes de la imageneds
+/* async create(createEventDto: CreateEventDto, creatorId: number) {
+  // 1. Iniciar transacción
+  return await this.db.transaction(async (tx) => {
+    try {
+      // VALIDACIÓN DE SUBTIPO (Igual que antes pero usando 'tx')
+      const subtypeExists = await tx
+        .select()
+        .from(subtypesEventsTable)
+        .where(eq(subtypesEventsTable.id, createEventDto.subtype_id))
+        .limit(1);
+
+      if (subtypeExists.length === 0) {
+        throw new BadRequestException(`El subtipo de evento no es válido.`);
+      }
+
+      // 2. INSERCIÓN DEL EVENTO
+      const params = {
+        ...createEventDto,
+        created_by: creatorId, // <-- Guardamos quién lo creó
+        status_id: eventStatus_scheduled,
+        max_participants: createEventDto.max_participants ?? 0,
+        max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
+      };
+      
+      // Eliminamos campos que no van a la tabla de eventos si es necesario
+      delete (params as any).send_to_all_masters;
+      delete (params as any).selected_master_ids;
+
+      const [newEvent] = await tx
+        .insert(eventsTable)
+        .values(params as any)
+        .returning();
+
+      // 3. IDENTIFICAR DESTINATARIOS
+      let mastersToNotify: number[] = [];
+
+      if (createEventDto.send_to_all_masters) {
+        // Buscamos usuarios que tengan el rol Master:2 
+        const masters = await tx
+          .select({ id: usersTable.id })
+          .from(usersTable)
+          .where(sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_MASTER])}::jsonb`); // Operador "contiene" de Postgres
+        mastersToNotify = masters.map((m) => m.id);
+      } else if (createEventDto.selected_master_ids) {
+        mastersToNotify = createEventDto.selected_master_ids;
+      }
+
+      // 4. INSERCIÓN MASIVA DE NOTIFICACIONES
+      if (mastersToNotify.length > 0) {
+        const notifications = mastersToNotify.map((masterId) => ({
+          sender_id: creatorId,    // <-- Quién envía
+          recipient_id: masterId,  // <-- Quién recibe
+          event_id: newEvent.id,
+          title: `Nueva Convocatoria: ${newEvent.name}`,
+          message: `Se ha creado un nuevo evento de tipo ${subtypeExists[0].subtype}.`,
+          is_read: false,
+        }));
+
+        await tx.insert(notificationsTable).values(notifications);
+      }
+
+      return {
+        message: 'Evento creado y notificaciones enviadas',
+        data: newEvent,
+      };
+
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      console.error('ERROR_CREATING_EVENT:', error);
+      throw new InternalServerErrorException('Error al crear el evento y notificar.');
+    }
+  });
+} */
+async createNvo(createEventDto: CreateEventDto, creatorId: number) {
   // 1. Iniciar transacción
   return await this.db.transaction(async (tx) => {
     try {
@@ -244,6 +318,9 @@ async create(createEventDto: CreateEventDto, creatorId: number) {
             subtype: subtypesEventsTable.subtype,
             max_participants: eventsTable.max_participants,
             max_evaluation_score: eventsTable.max_evaluation_score,
+            //afiche del evento
+            poster_front_url: eventsTable.poster_front_url,
+            poster_back_url: eventsTable.poster_back_url
         })
         .from(eventsTable)
         .leftJoin(statusTable, eq(eventsTable.status_id, statusTable.id))

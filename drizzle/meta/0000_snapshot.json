@@ -1,5 +1,5 @@
 {
-  "id": "c5663c67-6e48-4685-92bc-d590fc16dc12",
+  "id": "b1ba3009-f62d-4ffd-ada1-9b9581e0aa74",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -347,6 +347,20 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "poster_front_url": {
+          "name": "poster_front_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "poster_back_url": {
+          "name": "poster_back_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
         },
         "created_at": {
           "name": "created_at",
@@ -1124,7 +1138,7 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true,
-          "default": "'pendiente'"
+          "default": "'Solicitud Pendiente'"
         },
         "payment_method": {
           "name": "payment_method",
@@ -1155,7 +1169,7 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true,
-          "default": "'no_pagado'"
+          "default": "'Pendiente por pagar'"
         },
         "master_id": {
           "name": "master_id",

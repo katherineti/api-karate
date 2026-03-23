@@ -98,7 +98,7 @@ export const subtypesEventsTable = pgTable("subtypes_events",{
 
 // Tabla: events (Reemplaza a competitionsTable)
 // Propósito: Almacena los torneos, seminarios y eventos mayores del dashboard.
-export const eventsTable = pgTable("events", {
+export const eventsTable = pgTable("events", { //pendiente de normalizar
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(), // Ej: "Campeonato Nacional Juvenil"
   description: varchar("description", { length: 500 }),
@@ -119,6 +119,8 @@ export const eventsTable = pgTable("events", {
   max_evaluation_score: integer("max_evaluation_score").notNull().default(0),
   max_participants: integer("max_participants").default(null),// Máximo de participantes permitidos (null= 0 = ilimitado)
   created_by: integer("created_by").references(() => usersTable.id),
+  poster_front_url: varchar("poster_front_url", { length: 500 }).default(null), 
+  poster_back_url: varchar("poster_back_url", { length: 500 }).default(null),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

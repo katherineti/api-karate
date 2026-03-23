@@ -14,12 +14,20 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   // @Public()
-  @Post()
+                                 //Bueno - antes de la amges
+/*   @Post()
   async create(
     @Body() createEventDto: CreateEventDto,
     @Usersesion() user: IJwtPayload // <-- Capturamos al usuario en sesión
   ) {
     return this.eventsService.create(createEventDto, user.sub);
+  } */
+  @Post()
+  async create(
+    @Body() createEventDto: CreateEventDto,
+    @Usersesion() user: IJwtPayload // <-- Capturamos al usuario en sesión
+  ) {
+    return this.eventsService.createNvo(createEventDto, user.sub);
   }
 
   @Public()

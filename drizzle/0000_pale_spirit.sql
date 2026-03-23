@@ -43,6 +43,8 @@ CREATE TABLE "events" (
 	"max_evaluation_score" integer DEFAULT 0 NOT NULL,
 	"max_participants" integer DEFAULT null,
 	"created_by" integer,
+	"poster_front_url" varchar(500) DEFAULT null,
+	"poster_back_url" varchar(500) DEFAULT null,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
@@ -146,12 +148,12 @@ CREATE TABLE "tournament_registrations" (
 	"event_id" integer NOT NULL,
 	"category_id" integer,
 	"modality_id" integer,
-	"status" varchar(50) DEFAULT 'pendiente' NOT NULL,
+	"status" varchar(50) DEFAULT 'Solicitud Pendiente' NOT NULL,
 	"payment_method" varchar(50),
 	"payment_reference" varchar(255),
 	"payment_proof_url" varchar(500),
 	"payment_date" timestamp,
-	"payment_status" varchar(50) DEFAULT 'no_pagado' NOT NULL,
+	"payment_status" varchar(50) DEFAULT 'Pendiente por pagar' NOT NULL,
 	"master_id" integer DEFAULT null,
 	"master_validation_date" timestamp DEFAULT null,
 	"rejection_reason" text DEFAULT null,
