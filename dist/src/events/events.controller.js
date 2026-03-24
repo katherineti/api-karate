@@ -21,12 +21,21 @@ const pagination_events_dto_1 = require("./dto/pagination-events.dto");
 const change_status_event_dto_1 = require("./dto/change-status-event.dto");
 const public_decorator_1 = require("../decorators/public.decorator");
 const usersesion_decorator_1 = require("../auth/strategies/usersesion.decorator");
+const path_1 = require("path");
+const multer_1 = require("multer");
+const platform_express_1 = require("@nestjs/platform-express");
 let EventsController = class EventsController {
     constructor(eventsService) {
         this.eventsService = eventsService;
     }
-    async create(createEventDto, user) {
-        return this.eventsService.create(createEventDto, user.sub);
+    async create(createEventDto, user, files) {
+        if (files.poster_front) {
+            createEventDto.poster_front_url = `/uploads/events/${files.poster_front[0].filename}`;
+        }
+        if (files.poster_back) {
+            createEventDto.poster_back_url = `/uploads/events/${files.poster_back[0].filename}`;
+        }
+        return this.eventsService.createNvo(createEventDto, user.sub);
     }
     async findAll(query) {
         return this.eventsService.findAll(query);
@@ -52,10 +61,28 @@ let EventsController = class EventsController {
 exports.EventsController = EventsController;
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.UsePipes)(new common_1.ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true
+    })),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileFieldsInterceptor)([
+        { name: 'poster_front', maxCount: 1 },
+        { name: 'poster_back', maxCount: 1 },
+    ], {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/events',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                cb(null, `${file.fieldname}-${uniqueSuffix}${(0, path_1.extname)(file.originalname)}`);
+            },
+        }),
+    })),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, usersesion_decorator_1.Usersesion)()),
+    __param(2, (0, common_1.UploadedFiles)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_event_dto_1.CreateEventDto, Object]),
+    __metadata("design:paramtypes", [create_event_dto_1.CreateEventDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "create", null);
 __decorate([

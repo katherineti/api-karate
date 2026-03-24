@@ -96,6 +96,8 @@ exports.eventsTable = (0, pg_core_1.pgTable)("events", {
     max_evaluation_score: (0, pg_core_1.integer)("max_evaluation_score").notNull().default(0),
     max_participants: (0, pg_core_1.integer)("max_participants").default(null),
     created_by: (0, pg_core_1.integer)("created_by").references(() => exports.usersTable.id),
+    poster_front_url: (0, pg_core_1.varchar)("poster_front_url", { length: 500 }).default(null),
+    poster_back_url: (0, pg_core_1.varchar)("poster_back_url", { length: 500 }).default(null),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });

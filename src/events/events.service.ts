@@ -187,76 +187,98 @@ export class EventsService {
     }
   });
 } */
+// events.service.ts
+
 async createNvo(createEventDto: CreateEventDto, creatorId: number) {
-  // 1. Iniciar transacción
+  // 1. Iniciar transacción para asegurar integridad (Evento + Notificaciones)
   return await this.db.transaction(async (tx) => {
     try {
-      // VALIDACIÓN DE SUBTIPO (Igual que antes pero usando 'tx')
-      const subtypeExists = await tx
+      // 2. VALIDACIÓN DE SUBTIPO
+      // Verificamos que el subtipo (Kumite, Kata, etc.) exista antes de insertar
+      const [subtypeExists] = await tx
         .select()
         .from(subtypesEventsTable)
         .where(eq(subtypesEventsTable.id, createEventDto.subtype_id))
         .limit(1);
 
-      if (subtypeExists.length === 0) {
-        throw new BadRequestException(`El subtipo de evento no es válido.`);
+      if (!subtypeExists) {
+        throw new BadRequestException(`El subtipo de evento ID ${createEventDto.subtype_id} no es válido.`);
       }
 
-      // 2. INSERCIÓN DEL EVENTO
+      // 3. PREPARACIÓN DE DATOS PARA LA TABLA 'events'
+      // Extraemos los campos de control que NO pertenecen a la tabla eventsTable
+      const { send_to_all_masters, selected_master_ids, ...eventData } = createEventDto;
+
       const params = {
-        ...createEventDto,
-        created_by: creatorId, // <-- Guardamos quién lo creó
-        status_id: eventStatus_scheduled,
+        ...eventData,
+        created_by: creatorId,
+        status_id: eventStatus_scheduled, // ID 4 por defecto
         max_participants: createEventDto.max_participants ?? 0,
         max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
+        // Las URLs de los posters ya vienen en el DTO si el controlador las procesó
+        poster_front_url: createEventDto.poster_front_url ?? null,
+        poster_back_url: createEventDto.poster_back_url ?? null,
       };
-      
-      // Eliminamos campos que no van a la tabla de eventos si es necesario
-      delete (params as any).send_to_all_masters;
-      delete (params as any).selected_master_ids;
 
+      // 4. INSERCIÓN DEL EVENTO
       const [newEvent] = await tx
         .insert(eventsTable)
         .values(params as any)
         .returning();
 
-      // 3. IDENTIFICAR DESTINATARIOS
+      // 5. IDENTIFICAR DESTINATARIOS PARA NOTIFICACIONES
       let mastersToNotify: number[] = [];
 
-      if (createEventDto.send_to_all_masters) {
-        // Buscamos usuarios que tengan el rol Master:2 
+      if (send_to_all_masters) {
+        // Buscamos todos los usuarios que tengan el ROL_MASTER (ID 2) en su arreglo JSONB
         const masters = await tx
           .select({ id: usersTable.id })
           .from(usersTable)
-          .where(sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_MASTER])}::jsonb`); // Operador "contiene" de Postgres
+          .where(sql`${usersTable.roles_ids} @> ${JSON.stringify([ROL_MASTER])}::jsonb`);
+        
         mastersToNotify = masters.map((m) => m.id);
-      } else if (createEventDto.selected_master_ids) {
-        mastersToNotify = createEventDto.selected_master_ids;
+      } else if (selected_master_ids && selected_master_ids.length > 0) {
+        mastersToNotify = selected_master_ids;
       }
 
-      // 4. INSERCIÓN MASIVA DE NOTIFICACIONES
+      // 6. INSERCIÓN MASIVA DE NOTIFICACIONES
       if (mastersToNotify.length > 0) {
         const notifications = mastersToNotify.map((masterId) => ({
-          sender_id: creatorId,    // <-- Quién envía
-          recipient_id: masterId,  // <-- Quién recibe
+          sender_id: creatorId,
+          recipient_id: masterId,
           event_id: newEvent.id,
           title: `Nueva Convocatoria: ${newEvent.name}`,
-          message: `Se ha creado un nuevo evento de tipo ${subtypeExists[0].subtype}.`,
+          message: `Se ha publicado un nuevo evento de tipo ${subtypeExists.subtype}. Revisa los detalles y el afiche adjunto.`,
           is_read: false,
+          created_at: new Date(),
         }));
 
+        // Insertamos todas las notificaciones en una sola consulta
         await tx.insert(notificationsTable).values(notifications);
       }
 
+      // 7. RESPUESTA EXITOSA
       return {
-        message: 'Evento creado y notificaciones enviadas',
-        data: newEvent,
+        message: 'Evento creado exitosamente y notificaciones enviadas.',
+        data: {
+          id: newEvent.id,
+          name: newEvent.name,
+          poster_front: newEvent.poster_front_url,
+          poster_back: newEvent.poster_back_url,
+        },
       };
 
     } catch (error) {
+      // Si es un error controlado (BadRequest), lo relanzamos
       if (error instanceof BadRequestException) throw error;
-      console.error('ERROR_CREATING_EVENT:', error);
-      throw new InternalServerErrorException('Error al crear el evento y notificar.');
+
+      // Log del error real para el desarrollador
+      this.logger.error('Error en createNvo:', error);
+
+      // Error genérico para el cliente
+      throw new InternalServerErrorException(
+        'Error crítico al procesar la creación del evento. La operación fue abortada.'
+      );
     }
   });
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, Query, ParseIntPipe, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -7,6 +7,9 @@ import { ChangeStatusEventDto } from './dto/change-status-event.dto';
 import { Public } from '../decorators/public.decorator';
 import { Usersesion } from '../auth/strategies/usersesion.decorator';
 import { IJwtPayload } from '../auth/dto/jwt-payload.interface';
+import { extname } from 'path';
+import { diskStorage } from 'multer';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller('events')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -22,13 +25,41 @@ export class EventsController {
   ) {
     return this.eventsService.create(createEventDto, user.sub);
   } */
-  @Post()
-  async create(
-    @Body() createEventDto: CreateEventDto,
-    @Usersesion() user: IJwtPayload // <-- Capturamos al usuario en sesión
-  ) {
-    return this.eventsService.createNvo(createEventDto, user.sub);
+@Post()
+// 👇 ESTO ES LO QUE TE FALTA: Activa la transformación de tipos para este endpoint
+  @UsePipes(new ValidationPipe({ 
+    transform: true, 
+    whitelist: true,
+    forbidNonWhitelisted: true 
+  }))
+@UseInterceptors(FileFieldsInterceptor([
+  { name: 'poster_front', maxCount: 1 },
+  { name: 'poster_back', maxCount: 1 },
+], {
+  storage: diskStorage({
+    destination: './uploads/events',
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+    },
+  }),
+}))
+async create(
+  @Body() createEventDto: CreateEventDto,
+  @Usersesion() user: IJwtPayload,
+  @UploadedFiles() files: { poster_front?: Express.Multer.File[], poster_back?: Express.Multer.File[] }
+) {
+  // Extraemos las rutas de los archivos si existen
+  if (files.poster_front) {
+    createEventDto.poster_front_url = `/uploads/events/${files.poster_front[0].filename}`;
   }
+  if (files.poster_back) {
+    createEventDto.poster_back_url = `/uploads/events/${files.poster_back[0].filename}`;
+  }
+
+  return this.eventsService.createNvo(createEventDto, user.sub);
+}
+
 
   @Public()
   @Get()

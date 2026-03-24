@@ -102,40 +102,41 @@ let EventsService = EventsService_1 = class EventsService {
             throw new common_1.InternalServerErrorException('Error al procesar la lista de eventos. Por favor, contacte al administrador.');
         }
     }
-    async create(createEventDto, creatorId) {
+    async createNvo(createEventDto, creatorId) {
         return await this.db.transaction(async (tx) => {
             try {
-                const subtypeExists = await tx
+                const [subtypeExists] = await tx
                     .select()
                     .from(schema_1.subtypesEventsTable)
                     .where((0, drizzle_orm_1.eq)(schema_1.subtypesEventsTable.id, createEventDto.subtype_id))
                     .limit(1);
-                if (subtypeExists.length === 0) {
-                    throw new common_1.BadRequestException(`El subtipo de evento no es válido.`);
+                if (!subtypeExists) {
+                    throw new common_1.BadRequestException(`El subtipo de evento ID ${createEventDto.subtype_id} no es válido.`);
                 }
+                const { send_to_all_masters, selected_master_ids, ...eventData } = createEventDto;
                 const params = {
-                    ...createEventDto,
+                    ...eventData,
                     created_by: creatorId,
                     status_id: schema_1.eventStatus_scheduled,
                     max_participants: createEventDto.max_participants ?? 0,
                     max_evaluation_score: createEventDto.max_evaluation_score ?? 0,
+                    poster_front_url: createEventDto.poster_front_url ?? null,
+                    poster_back_url: createEventDto.poster_back_url ?? null,
                 };
-                delete params.send_to_all_masters;
-                delete params.selected_master_ids;
                 const [newEvent] = await tx
                     .insert(schema_1.eventsTable)
                     .values(params)
                     .returning();
                 let mastersToNotify = [];
-                if (createEventDto.send_to_all_masters) {
+                if (send_to_all_masters) {
                     const masters = await tx
                         .select({ id: schema_1.usersTable.id })
                         .from(schema_1.usersTable)
                         .where((0, drizzle_orm_1.sql) `${schema_1.usersTable.roles_ids} @> ${JSON.stringify([constants_1.ROL_MASTER])}::jsonb`);
                     mastersToNotify = masters.map((m) => m.id);
                 }
-                else if (createEventDto.selected_master_ids) {
-                    mastersToNotify = createEventDto.selected_master_ids;
+                else if (selected_master_ids && selected_master_ids.length > 0) {
+                    mastersToNotify = selected_master_ids;
                 }
                 if (mastersToNotify.length > 0) {
                     const notifications = mastersToNotify.map((masterId) => ({
@@ -143,21 +144,27 @@ let EventsService = EventsService_1 = class EventsService {
                         recipient_id: masterId,
                         event_id: newEvent.id,
                         title: `Nueva Convocatoria: ${newEvent.name}`,
-                        message: `Se ha creado un nuevo evento de tipo ${subtypeExists[0].subtype}.`,
+                        message: `Se ha publicado un nuevo evento de tipo ${subtypeExists.subtype}. Revisa los detalles y el afiche adjunto.`,
                         is_read: false,
+                        created_at: new Date(),
                     }));
                     await tx.insert(schema_1.notificationsTable).values(notifications);
                 }
                 return {
-                    message: 'Evento creado y notificaciones enviadas',
-                    data: newEvent,
+                    message: 'Evento creado exitosamente y notificaciones enviadas.',
+                    data: {
+                        id: newEvent.id,
+                        name: newEvent.name,
+                        poster_front: newEvent.poster_front_url,
+                        poster_back: newEvent.poster_back_url,
+                    },
                 };
             }
             catch (error) {
                 if (error instanceof common_1.BadRequestException)
                     throw error;
-                console.error('ERROR_CREATING_EVENT:', error);
-                throw new common_1.InternalServerErrorException('Error al crear el evento y notificar.');
+                this.logger.error('Error en createNvo:', error);
+                throw new common_1.InternalServerErrorException('Error crítico al procesar la creación del evento. La operación fue abortada.');
             }
         });
     }
@@ -178,6 +185,8 @@ let EventsService = EventsService_1 = class EventsService {
                 subtype: schema_1.subtypesEventsTable.subtype,
                 max_participants: schema_1.eventsTable.max_participants,
                 max_evaluation_score: schema_1.eventsTable.max_evaluation_score,
+                poster_front_url: schema_1.eventsTable.poster_front_url,
+                poster_back_url: schema_1.eventsTable.poster_back_url
             })
                 .from(schema_1.eventsTable)
                 .leftJoin(schema_1.statusTable, (0, drizzle_orm_1.eq)(schema_1.eventsTable.status_id, schema_1.statusTable.id))
