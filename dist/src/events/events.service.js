@@ -19,6 +19,8 @@ const schema_1 = require("../db/schema");
 const constants_1 = require("../constants");
 const neon_serverless_1 = require("drizzle-orm/neon-serverless");
 const drizzle_orm_1 = require("drizzle-orm");
+const path_1 = require("path");
+const fs = require("fs");
 let EventsService = EventsService_1 = class EventsService {
     constructor(db) {
         this.db = db;
@@ -245,7 +247,7 @@ let EventsService = EventsService_1 = class EventsService {
     }
     removeFile(filePath) {
         try {
-            const fullPath = join(process.cwd(), filePath);
+            const fullPath = (0, path_1.join)(process.cwd(), filePath);
             if (fs.existsSync(fullPath)) {
                 fs.unlinkSync(fullPath);
             }

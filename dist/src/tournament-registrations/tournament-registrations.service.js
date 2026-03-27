@@ -333,12 +333,15 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
             const registrations = await this.db
                 .select({
                 id: schema_1.tournamentRegistrationsTable.id,
+                event_id: schema_1.tournamentRegistrationsTable.event_id,
                 athleteId: schema_1.tournamentRegistrationsTable.athlete_id,
                 athleteName: (0, drizzle_orm_1.sql) `CONCAT(${schema_1.usersTable.name}, ' ', ${schema_1.usersTable.lastname})`,
                 athleteEmail: schema_1.usersTable.email,
                 categoryId: schema_1.tournamentRegistrationsTable.category_id,
                 modalityId: schema_1.tournamentRegistrationsTable.modality_id,
                 status: schema_1.tournamentRegistrationsTable.status,
+                schoolId: schema_1.schoolTable.id,
+                school_name: schema_1.schoolTable.name,
                 paymentStatus: schema_1.tournamentRegistrationsTable.payment_status,
                 paymentMethod: schema_1.tournamentRegistrationsTable.payment_method,
                 paymentProofUrl: schema_1.tournamentRegistrationsTable.payment_proof_url,
@@ -348,6 +351,7 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
             })
                 .from(schema_1.tournamentRegistrationsTable)
                 .leftJoin(schema_1.usersTable, (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, schema_1.usersTable.id))
+                .leftJoin(schema_1.schoolTable, (0, drizzle_orm_1.eq)(schema_1.schoolTable.id, schema_1.usersTable.school_id))
                 .where((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.event_id, eventId));
             return {
                 success: true,

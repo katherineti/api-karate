@@ -514,15 +514,20 @@ async getSchoolsByDivision(modalityId: number) {
       }
 
       // 2. Obtener todas las inscripciones del evento con detalles
+      // >> gestion de eventos >accion 'participantes' > Listado de Atletas Inscritos
+
       const registrations = await this.db
         .select({
           id: tournamentRegistrationsTable.id,
+          event_id: tournamentRegistrationsTable.event_id,
           athleteId: tournamentRegistrationsTable.athlete_id,
           athleteName: sql`CONCAT(${usersTable.name}, ' ', ${usersTable.lastname})`,
           athleteEmail: usersTable.email,
           categoryId: tournamentRegistrationsTable.category_id,
           modalityId: tournamentRegistrationsTable.modality_id,
           status: tournamentRegistrationsTable.status,
+          schoolId: schoolTable.id,
+          school_name: schoolTable.name,
           paymentStatus: tournamentRegistrationsTable.payment_status,
           paymentMethod: tournamentRegistrationsTable.payment_method,
           paymentProofUrl: tournamentRegistrationsTable.payment_proof_url,
@@ -532,6 +537,7 @@ async getSchoolsByDivision(modalityId: number) {
         })
         .from(tournamentRegistrationsTable)
         .leftJoin(usersTable, eq(tournamentRegistrationsTable.athlete_id, usersTable.id))
+        .leftJoin(schoolTable, eq(schoolTable.id, usersTable.school_id))
         .where(eq(tournamentRegistrationsTable.event_id, eventId));
 
       return {

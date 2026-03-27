@@ -156,15 +156,29 @@ async getRegistered(
    * Autenticación: Requerida
    * Rol: master
    */
+  @Public()
   @Get('event/:eventId/registrations')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(2) // ID del rol master en tu sistema
+  //@UseGuards(AuthGuard)
+   @UseGuards(AuthGuard, RolesGuard)
+//  @Roles(2) // ID del rol master en tu sistema
+    @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez, RoleType.Alumno) 
   async getEventRegistrations(
     @Param('eventId', ParseIntPipe) eventId: number,
     @Usersesion() user: IJwtPayload,
   ) {
     return await this.tournamentRegistrationsService.getEventRegistrations(eventId, user.sub);
   }
+
+
+  /*
+    @Public()
+    @Get('by-role/:roleId')//lista representantes en el form de editar usuario
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(RoleType.Admin, RoleType.Master, RoleType.Juez, RoleType.Alumno) 
+    async getUsersByRole(@Param('roleId') roleId: number) {
+      return this.usersService.getByRol(roleId);
+    }
+   */
 
   /**
    * ENDPOINT 4: Master valida una inscripción
