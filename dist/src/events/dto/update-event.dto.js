@@ -13,12 +13,24 @@ exports.UpdateEventDto = void 0;
 const mapped_types_1 = require("@nestjs/mapped-types");
 const create_event_dto_1 = require("./create-event.dto");
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class UpdateEventDto extends (0, mapped_types_1.PartialType)(create_event_dto_1.CreateEventDto) {
 }
 exports.UpdateEventDto = UpdateEventDto;
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateEventDto.prototype, "status_id", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateEventDto.prototype, "poster_front_url", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateEventDto.prototype, "poster_back_url", void 0);
 //# sourceMappingURL=update-event.dto.js.map

@@ -73,7 +73,8 @@ async create(
     return this.eventsService.findOne(id);
   }
 
-  @Public()
+  //update bueno - sin imagenes
+/*   @Public()
   @Patch(':id')
   async update(
     @Param('id') id: string, 
@@ -81,7 +82,38 @@ async create(
   ) {console.log( "parametros recibidos: ", id, updateEventDto)
     // El signo + convierte el string a number explícitamente si es necesario
     return this.eventsService.update(+id, updateEventDto);
+  } */
+
+    //actualizar evento con afiche
+@Public()
+@Patch(':id')
+@UseInterceptors(FileFieldsInterceptor([
+  { name: 'poster_front', maxCount: 1 },
+  { name: 'poster_back', maxCount: 1 },
+], {
+  storage: diskStorage({
+    destination: './uploads/events',
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+    },
+  }),
+}))
+async update(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() updateEventDto: UpdateEventDto,
+  @UploadedFiles() files: { poster_front?: Express.Multer.File[], poster_back?: Express.Multer.File[] }
+) {
+  // Si el usuario subió fotos nuevas, añadimos las rutas al DTO
+  if (files?.poster_front) {
+    updateEventDto.poster_front_url = `/uploads/events/${files.poster_front[0].filename}`;
   }
+  if (files?.poster_back) {
+    updateEventDto.poster_back_url = `/uploads/events/${files.poster_back[0].filename}`;
+  }
+
+  return this.eventsService.update(id, updateEventDto);
+}
 
   @Public()
   @Patch(':id/status')

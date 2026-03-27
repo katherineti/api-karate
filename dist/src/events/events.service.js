@@ -212,46 +212,25 @@ let EventsService = EventsService_1 = class EventsService {
     async update(id, updateEventDto) {
         try {
             const [currentEvent] = await this.db
-                .select({
-                id: schema_1.eventsTable.id,
-                status_id: schema_1.eventsTable.status_id
-            })
+                .select()
                 .from(schema_1.eventsTable)
                 .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, id))
                 .limit(1);
             if (!currentEvent) {
                 throw new common_1.BadRequestException(`El evento con ID ${id} no existe.`);
             }
-            if ([6, 7].includes(currentEvent.status_id)) {
-                throw new common_1.BadRequestException('No se puede modificar un evento que ya ha sido finalizado o cancelado.');
+            if (updateEventDto.poster_front_url && currentEvent.poster_front_url) {
+                this.removeFile(currentEvent.poster_front_url);
             }
-            if (updateEventDto.subtype_id) {
-                const [subtype] = await this.db
-                    .select()
-                    .from(schema_1.subtypesEventsTable)
-                    .where((0, drizzle_orm_1.eq)(schema_1.subtypesEventsTable.id, updateEventDto.subtype_id))
-                    .limit(1);
-                if (!subtype) {
-                    throw new common_1.BadRequestException(`El subtipo de evento (${updateEventDto.subtype_id}) no es válido.`);
-                }
+            if (updateEventDto.poster_back_url && currentEvent.poster_back_url) {
+                this.removeFile(currentEvent.poster_back_url);
             }
-            if (updateEventDto.status_id) {
-                const [status] = await this.db
-                    .select()
-                    .from(schema_1.statusTable)
-                    .where((0, drizzle_orm_1.eq)(schema_1.statusTable.id, updateEventDto.status_id))
-                    .limit(1);
-                if (!status) {
-                    throw new common_1.BadRequestException(`El estado (${updateEventDto.status_id}) no existe en la base de datos.`);
-                }
-            }
-            const params = {
-                ...updateEventDto,
-                updated_at: new Date(),
-            };
             const [updatedEvent] = await this.db
                 .update(schema_1.eventsTable)
-                .set(params)
+                .set({
+                ...updateEventDto,
+                updated_at: new Date(),
+            })
                 .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, id))
                 .returning();
             return {
@@ -260,13 +239,19 @@ let EventsService = EventsService_1 = class EventsService {
             };
         }
         catch (error) {
-            if (error instanceof common_1.BadRequestException)
-                throw error;
-            if (error.code === '22007' || error.code === '22P02') {
-                throw new common_1.BadRequestException('Los datos proporcionados tienen un formato inválido.');
+            this.logger.error('Error al actualizar evento', error);
+            throw error;
+        }
+    }
+    removeFile(filePath) {
+        try {
+            const fullPath = join(process.cwd(), filePath);
+            if (fs.existsSync(fullPath)) {
+                fs.unlinkSync(fullPath);
             }
-            console.error('ERROR_UPDATING_EVENT:', error);
-            throw new common_1.InternalServerErrorException('Error interno al actualizar el evento. Intente más tarde.');
+        }
+        catch (err) {
+            this.logger.warn(`No se pudo eliminar el archivo: ${filePath}`);
         }
     }
     async changeStatus(id, status_id) {

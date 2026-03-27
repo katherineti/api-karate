@@ -6,6 +6,8 @@ import { PG_CONNECTION, ROL_MASTER } from '../constants';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { and, eq, gte, ilike, lte, or, sql, SQL } from 'drizzle-orm';
 import { PaginationEventsDto } from './dto/pagination-events.dto';
+import { join } from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class EventsService {
@@ -369,7 +371,62 @@ async createNvo(createEventDto: CreateEventDto, creatorId: number) {
     }
   }
 
-  async update(id: number, updateEventDto: UpdateEventDto) {
+
+async update(id: number, updateEventDto: UpdateEventDto) {
+  try {
+    // 1. Obtener los datos actuales del evento antes de actualizar
+    const [currentEvent] = await this.db
+      .select()
+      .from(eventsTable)
+      .where(eq(eventsTable.id, id))
+      .limit(1);
+
+    if (!currentEvent) {
+      throw new BadRequestException(`El evento con ID ${id} no existe.`);
+    }
+
+    // 2. Si vienen imágenes nuevas, borrar las viejas del disco
+    if (updateEventDto.poster_front_url && currentEvent.poster_front_url) {
+      this.removeFile(currentEvent.poster_front_url);
+    }
+    if (updateEventDto.poster_back_url && currentEvent.poster_back_url) {
+      this.removeFile(currentEvent.poster_back_url);
+    }
+
+    // 3. Actualizar en la base de datos
+    const [updatedEvent] = await this.db
+      .update(eventsTable)
+      .set({
+        ...updateEventDto,
+        updated_at: new Date(),
+      } as any)
+      .where(eq(eventsTable.id, id))
+      .returning();
+
+    return {
+      message: 'Evento actualizado exitosamente',
+      data: updatedEvent,
+    };
+  } catch (error) {
+    this.logger.error('Error al actualizar evento', error);
+    throw error;
+  }
+}
+
+// Método auxiliar para borrar archivos
+private removeFile(filePath: string) {
+  try {
+    const fullPath = join(process.cwd(), filePath);
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+  } catch (err) {
+    this.logger.warn(`No se pudo eliminar el archivo: ${filePath}`);
+  }
+}
+
+  //update bueno - sin fichero
+/*   async update(id: number, updateEventDto: UpdateEventDto) {
     try {
       // 1. Verificar existencia del evento y obtener su estado actual
       const [currentEvent] = await this.db
@@ -454,7 +511,7 @@ async createNvo(createEventDto: CreateEventDto, creatorId: number) {
         'Error interno al actualizar el evento. Intente más tarde.'
       );
     }
-  }
+  } */
 
     async changeStatus(id: number, status_id: number) {
     try {

@@ -43,9 +43,14 @@ let EventsController = class EventsController {
     findOne(id) {
         return this.eventsService.findOne(id);
     }
-    async update(id, updateEventDto) {
-        console.log("parametros recibidos: ", id, updateEventDto);
-        return this.eventsService.update(+id, updateEventDto);
+    async update(id, updateEventDto, files) {
+        if (files?.poster_front) {
+            updateEventDto.poster_front_url = `/uploads/events/${files.poster_front[0].filename}`;
+        }
+        if (files?.poster_back) {
+            updateEventDto.poster_back_url = `/uploads/events/${files.poster_back[0].filename}`;
+        }
+        return this.eventsService.update(id, updateEventDto);
     }
     async changeStatus(id, changeStatusDto) {
         return this.eventsService.changeStatus(id, changeStatusDto.status_id);
@@ -104,10 +109,23 @@ __decorate([
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileFieldsInterceptor)([
+        { name: 'poster_front', maxCount: 1 },
+        { name: 'poster_back', maxCount: 1 },
+    ], {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads/events',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                cb(null, `${file.fieldname}-${uniqueSuffix}${(0, path_1.extname)(file.originalname)}`);
+            },
+        }),
+    })),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.UploadedFiles)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_event_dto_1.UpdateEventDto]),
+    __metadata("design:paramtypes", [Number, update_event_dto_1.UpdateEventDto, Object]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "update", null);
 __decorate([
