@@ -1,5 +1,5 @@
 {
-  "id": "b1ba3009-f62d-4ffd-ada1-9b9581e0aa74",
+  "id": "ed1cdfc1-007c-4cae-9b0f-6cc638014d2a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1283,16 +1283,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "unique_registration": {
-          "name": "unique_registration",
-          "nullsNotDistinct": false,
-          "columns": [
-            "athlete_id",
-            "event_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

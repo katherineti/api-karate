@@ -217,7 +217,7 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
             const [existingReg] = await this.db
                 .select()
                 .from(schema_1.tournamentRegistrationsTable)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, athleteId), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.event_id, event_id)))
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, athleteId), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.event_id, event_id), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.category_id, category_id), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.modality_id, modality_id)))
                 .limit(1);
             if (existingReg) {
                 throw new common_1.BadRequestException('Ya tienes una solicitud de participación/pre-inscripción para este torneo.');

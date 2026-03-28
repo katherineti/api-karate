@@ -274,12 +274,14 @@ export const tournamentRegistrationsTable = pgTable("tournament_registrations", 
   registration_date: timestamp("registration_date").defaultNow().notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => {
+}
+/* , (table) => {
   return [
     // Evita duplicados: Un atleta no puede solicitar participación dos veces al mismo evento
     unique("unique_registration").on(table.athlete_id, table.event_id),
   ];
-});
+} */
+);
 
 //notificaciones a los masters
 export const notificationsTable = pgTable("notifications", {

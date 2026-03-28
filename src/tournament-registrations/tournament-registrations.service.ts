@@ -341,13 +341,16 @@ async getSchoolsByDivision(modalityId: number) {
       }
 
       // 2. Validar que el atleta no tiene ya una solicitud de pre-inscripcion para este evento
+      //se agrego por evento,categoria
       const [existingReg] = await this.db
         .select()
         .from(tournamentRegistrationsTable)
         .where(and(
           eq(tournamentRegistrationsTable.athlete_id, athleteId),
-          eq(tournamentRegistrationsTable.event_id, event_id)
-        ))
+          eq(tournamentRegistrationsTable.event_id, event_id),
+          eq( tournamentRegistrationsTable.category_id, category_id ),
+          eq( tournamentRegistrationsTable.modality_id, modality_id ),
+        ) )
         .limit(1);
 
       if (existingReg) {

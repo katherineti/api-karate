@@ -159,8 +159,7 @@ CREATE TABLE "tournament_registrations" (
 	"rejection_reason" text DEFAULT null,
 	"registration_date" timestamp DEFAULT now() NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "unique_registration" UNIQUE("athlete_id","event_id")
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "types_events" (

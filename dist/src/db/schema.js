@@ -188,10 +188,6 @@ exports.tournamentRegistrationsTable = (0, pg_core_1.pgTable)("tournament_regist
     registration_date: (0, pg_core_1.timestamp)("registration_date").defaultNow().notNull(),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
-}, (table) => {
-    return [
-        (0, pg_core_1.unique)("unique_registration").on(table.athlete_id, table.event_id),
-    ];
 });
 exports.notificationsTable = (0, pg_core_1.pgTable)("notifications", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
