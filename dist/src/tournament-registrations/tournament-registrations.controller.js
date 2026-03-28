@@ -50,7 +50,7 @@ let TournamentRegistrationsController = class TournamentRegistrationsController 
     }
     async requestParticipation(dto, user) {
         console.log("llego aqui 1");
-        return await this.tournamentRegistrationsService.createParticipationRequest(user.sub, dto.event_id);
+        return await this.tournamentRegistrationsService.createParticipationRequest(user.sub, dto);
     }
     async completeRegistration(registrationId, dto, user) {
         return await this.tournamentRegistrationsService.completeRegistrationByMaster(registrationId, user.sub, dto.category_id, dto.modality_id);
@@ -103,7 +103,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)('request-participation'),
     (0, common_2.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, role_decorators_1.Roles)(types_1.RoleType.Alumno),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Alumno),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true })),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, usersesion_decorator_1.Usersesion)()),
@@ -126,7 +126,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':registrationId/upload-payment'),
     (0, common_2.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, role_decorators_1.Roles)(5),
+    (0, role_decorators_1.Roles)(types_1.RoleType.Admin, types_1.RoleType.Alumno),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true, whitelist: true })),
     __param(0, (0, common_1.Param)('registrationId', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),

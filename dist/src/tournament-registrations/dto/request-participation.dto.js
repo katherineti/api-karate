@@ -21,4 +21,16 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], RequestParticipationDto.prototype, "event_id", void 0);
+__decorate([
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], RequestParticipationDto.prototype, "category_id", void 0);
+__decorate([
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], RequestParticipationDto.prototype, "modality_id", void 0);
 //# sourceMappingURL=request-participation.dto.js.map

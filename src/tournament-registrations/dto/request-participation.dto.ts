@@ -16,4 +16,14 @@ export class RequestParticipationDto {
   @IsNumber()
   @IsNotEmpty()
   event_id: number; // ID del evento al que quiere participar (es TODO lo que necesita)
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsNotEmpty()
+  category_id: number; // ID de karateCategoriesTable (la categoría en la que participa)
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsNotEmpty()
+  modality_id: number;
 }

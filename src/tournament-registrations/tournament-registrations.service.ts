@@ -4,6 +4,7 @@ import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { eventCategoriesTable, eventDivisionsTable, participantRequestsTable, schoolTable, tournamentRegistrationsTable, usersTable, eventsTable, modalitiesTable, karateCategoriesTable, notificationsTable, subtypesEventsTable, typesEventsTable, statusTable } from '../db/schema';
 import { and, eq, sql, isNull, ne, or, ilike, gte, lte, SQL } from 'drizzle-orm';
 import { PaginationTournamentRegistrationsDto } from './dto/pagination-tournament-registrations.dto';
+import { RequestParticipationDto } from './dto/request-participation.dto';
 
 @Injectable()
 export class TournamentRegistrationsService {
@@ -325,13 +326,14 @@ async getSchoolsByDivision(modalityId: number) {
    * - Master decidirá la categoría y modalidad después
    * - Alumno luego paga y Master formaliza
    */
-  async createParticipationRequest(athleteId: number, eventId: number) {console.log("llego aqui")
+  async createParticipationRequest(athleteId: number, params:RequestParticipationDto) {console.log("llego aqui")
+    const { event_id,category_id,modality_id } = params
     try {
       // 1. Validar que el evento existe y está activo
       const [event] = await this.db
         .select()
         .from(eventsTable)
-        .where(eq(eventsTable.id, eventId))
+        .where(eq(eventsTable.id, event_id))
         .limit(1);
 
       if (!event) {
@@ -344,7 +346,7 @@ async getSchoolsByDivision(modalityId: number) {
         .from(tournamentRegistrationsTable)
         .where(and(
           eq(tournamentRegistrationsTable.athlete_id, athleteId),
-          eq(tournamentRegistrationsTable.event_id, eventId)
+          eq(tournamentRegistrationsTable.event_id, event_id)
         ))
         .limit(1);
 
@@ -357,9 +359,9 @@ async getSchoolsByDivision(modalityId: number) {
         .insert(tournamentRegistrationsTable)
         .values({
           athlete_id: athleteId,
-          event_id: eventId,
-          category_id: null, // El Master lo asignará después
-          modality_id: null, // El Master lo asignará después
+          event_id: event_id,
+          category_id: category_id, // El Master lo asignará después
+          modality_id: modality_id, // El Master lo asignará después
           status: 'Solicitud Pendiente',
           payment_status: 'Pendiente por pagar',
           registration_date: new Date(),

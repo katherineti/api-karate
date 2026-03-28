@@ -17,7 +17,7 @@ exports.UploadPaymentProofDto = UploadPaymentProofDto;
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsIn)(['digital', 'efectivo']),
+    (0, class_validator_1.IsIn)(['digital', 'Pago movil', 'Pago móvil', 'Trasferencia', 'efectivo']),
     __metadata("design:type", String)
 ], UploadPaymentProofDto.prototype, "payment_method", void 0);
 __decorate([

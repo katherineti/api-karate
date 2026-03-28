@@ -202,13 +202,14 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
             throw new common_1.InternalServerErrorException('Error al obtener los eventos disponibles.');
         }
     }
-    async createParticipationRequest(athleteId, eventId) {
+    async createParticipationRequest(athleteId, params) {
         console.log("llego aqui");
+        const { event_id, category_id, modality_id } = params;
         try {
             const [event] = await this.db
                 .select()
                 .from(schema_1.eventsTable)
-                .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, eventId))
+                .where((0, drizzle_orm_1.eq)(schema_1.eventsTable.id, event_id))
                 .limit(1);
             if (!event) {
                 throw new common_1.NotFoundException('El evento seleccionado no existe.');
@@ -216,7 +217,7 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
             const [existingReg] = await this.db
                 .select()
                 .from(schema_1.tournamentRegistrationsTable)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, athleteId), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.event_id, eventId)))
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.athlete_id, athleteId), (0, drizzle_orm_1.eq)(schema_1.tournamentRegistrationsTable.event_id, event_id)))
                 .limit(1);
             if (existingReg) {
                 throw new common_1.BadRequestException('Ya tienes una solicitud de participación/pre-inscripción para este torneo.');
@@ -225,9 +226,9 @@ let TournamentRegistrationsService = TournamentRegistrationsService_1 = class To
                 .insert(schema_1.tournamentRegistrationsTable)
                 .values({
                 athlete_id: athleteId,
-                event_id: eventId,
-                category_id: null,
-                modality_id: null,
+                event_id: event_id,
+                category_id: category_id,
+                modality_id: modality_id,
                 status: 'Solicitud Pendiente',
                 payment_status: 'Pendiente por pagar',
                 registration_date: new Date(),

@@ -14,7 +14,7 @@ import { IsString, IsNotEmpty, IsOptional, IsIn, IsUrl } from 'class-validator';
 export class UploadPaymentProofDto {
   @IsString()
   @IsNotEmpty()
-  @IsIn(['digital', 'efectivo'])
+  @IsIn(['digital','Pago movil','Pago móvil','Trasferencia', 'efectivo'])
   payment_method: string; // 'digital' o 'efectivo'
 
   @IsString()

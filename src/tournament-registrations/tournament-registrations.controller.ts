@@ -81,7 +81,7 @@ async getRegistered(
    */
   @Post('request-participation')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(RoleType.Alumno) 
+  @Roles(RoleType.Admin, RoleType.Alumno) 
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
   async requestParticipation(
     @Body() dto: RequestParticipationDto,
@@ -89,7 +89,7 @@ async getRegistered(
   ) {console.log("llego aqui 1")
     return await this.tournamentRegistrationsService.createParticipationRequest(
       user.sub,
-      dto.event_id
+      dto
     );
   }
 
@@ -132,7 +132,7 @@ async getRegistered(
    */
   @Post(':registrationId/upload-payment')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(5) // ID del rol alumno
+  @Roles(RoleType.Admin, RoleType.Alumno) // ID del rol alumno
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async uploadPaymentProof(
     @Param('registrationId', ParseIntPipe) registrationId: number,
